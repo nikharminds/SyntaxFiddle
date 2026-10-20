@@ -1,0 +1,8 @@
+/csv/csv-to-json/ /csv-to-json/ 301
+/csv/csv-to-sql/ /csv-to-sql/ 301
+/csv/excel-to-sql/ /excel-to-sql/ 301
+/csv/excel-to-json/ /excel-to-json/ 301
+/csv/csv-to-soql/ /csv-to-soql/ 301
+/csv/excel-to-soql/ /excel-to-soql/ 301
+/csv/csv-to-xml/ /csv-to-xml/ 301
+/csv/excel-to-xml/ /excel-to-xml/ 301
