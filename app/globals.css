@@ -124,6 +124,30 @@
   }
 }
 
+/* Prose colors mapped to the flipped zinc palette so typography stays
+   readable in both light and dark modes (the plugin's prose-invert uses
+   hardcoded colors that ignore the CSS-variable theme). */
+.prose {
+  --tw-prose-body: rgb(var(--zinc-300));
+  --tw-prose-headings: rgb(var(--zinc-50));
+  --tw-prose-lead: rgb(var(--zinc-400));
+  --tw-prose-links: rgb(var(--emerald-300));
+  --tw-prose-bold: rgb(var(--zinc-100));
+  --tw-prose-counters: rgb(var(--zinc-400));
+  --tw-prose-bullets: rgb(var(--zinc-400));
+  --tw-prose-hr: rgb(var(--zinc-200));
+  --tw-prose-quotes: rgb(var(--zinc-100));
+  --tw-prose-quote-borders: rgb(var(--zinc-200));
+  --tw-prose-captions: rgb(var(--zinc-400));
+  --tw-prose-kbd: rgb(var(--zinc-100));
+  --tw-prose-kbd-shadows: rgb(var(--zinc-50) / 10%);
+  --tw-prose-code: rgb(var(--emerald-300));
+  --tw-prose-pre-code: rgb(var(--zinc-100));
+  --tw-prose-pre-bg: rgb(var(--zinc-900));
+  --tw-prose-th-borders: rgb(var(--zinc-200));
+  --tw-prose-td-borders: rgb(var(--zinc-200));
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
