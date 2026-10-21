@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import {
   AlertTriangle,
+  ArrowUpRight,
   Check,
   Copy,
   Eraser,
@@ -19,6 +21,13 @@ import type { TranspileTarget } from "@/lib/curl";
 import { cn } from "@/lib/utils";
 
 const COPY_FEEDBACK_MS = 2000;
+
+const JSON_SCHEMA_CTA: Partial<Record<TranspileTarget, { href: string; label: string }>> = {
+  fetch: { href: "/json-to-zod/", label: "Zod schema" },
+  axios: { href: "/json-to-typescript/", label: "TypeScript interface" },
+  python: { href: "/json-to-pydantic/", label: "Pydantic model" },
+  go: { href: "/json-to-go-struct/", label: "Go struct" },
+};
 
 const TARGETS: Array<{ value: TranspileTarget; label: string }> = [
   { value: "fetch", label: "Fetch" },
@@ -92,6 +101,7 @@ export function CurlConverterWorkspace({ initialTarget = "fetch" }: CurlConverte
 
   const [copied, setCopied] = React.useState(false);
   const copyTimer = React.useRef<number | null>(null);
+  const schemaCta = JSON_SCHEMA_CTA[target];
 
   React.useEffect(() => {
     return () => {
@@ -312,6 +322,21 @@ export function CurlConverterWorkspace({ initialTarget = "fetch" }: CurlConverte
               </div>
             );
           })}
+
+          {output && schemaCta ? (
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-800 px-4 py-3">
+              <p className="text-sm text-zinc-400">
+                Got a JSON response from this API?
+              </p>
+              <Link
+                href={schemaCta.href}
+                className="inline-flex items-center gap-1 text-sm font-medium text-emerald-400 transition-colors hover:text-emerald-300"
+              >
+                Generate a {schemaCta.label} offline
+                <ArrowUpRight size={14} aria-hidden />
+              </Link>
+            </div>
+          ) : null}
         </Card>
       </div>
     </section>

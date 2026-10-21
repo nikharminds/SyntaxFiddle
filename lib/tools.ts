@@ -1,9 +1,10 @@
 export type ToolStatus = "live" | "beta" | "soon";
 
-export type ToolIcon = "cron" | "csv" | "regex" | "jwt" | "curl";
+export type ToolIcon = "cron" | "csv" | "regex" | "jwt" | "curl" | "database";
 
 export type Tool = {
   slug: string;
+  href?: string;
   name: string;
   tagline: string;
   description: string;
@@ -11,6 +12,7 @@ export type Tool = {
   icon: ToolIcon;
   keywords: string[];
   featured?: boolean;
+  badges?: string[];
   conversions?: { label: string; href: string }[];
 };
 
@@ -131,6 +133,28 @@ export const TOOLS: Tool[] = [
       "transpile",
       "http client",
       "api testing",
+    ],
+  },
+  {
+    slug: "json-to-schema",
+    href: "/json-to-schema/",
+    name: "JSON to Schema Converter",
+    tagline: "Infer types from raw JSON — Zod, TypeScript, Pydantic & Go.",
+    description:
+      "Instantly infer types from raw JSON. 100% offline execution ensures customer PII never leaves your browser.",
+    status: "live",
+    icon: "database",
+    badges: ["TypeScript", "Zod", "Pydantic", "Go"],
+    keywords: [
+      "json to schema",
+      "json to zod",
+      "json to typescript",
+      "json to pydantic",
+      "json to go struct",
+      "json to interface",
+      "schema generator",
+      "type inference",
+      "json validator generator",
     ],
   },
 ];

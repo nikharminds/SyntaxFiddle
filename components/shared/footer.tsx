@@ -7,6 +7,7 @@ const TOOL_LINKS = [
   { href: "/regex", label: "Regex Tester" },
   { href: "/jwt", label: "JWT Decoder" },
   { href: "/curl-converter", label: "cURL Converter" },
+  { href: "/json-to-schema", label: "JSON to Schema Converter" },
 ];
 
 const COMPANY_LINKS = [

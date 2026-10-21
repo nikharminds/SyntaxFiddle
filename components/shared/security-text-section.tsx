@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Braces, KeyRound, Terminal, WifiOff, type LucideIcon } from "lucide-react";
+import { ArrowRight, Braces, FileJson, KeyRound, Terminal, WifiOff, type LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
@@ -47,6 +47,17 @@ const SECURITY_TOOLS: SecurityTool[] = [
     chips: ["fetch · axios · Python", "Basic auth & JSON bodies", "100 ms live transpile"],
     icon: Terminal,
     cta: "Open converter",
+  },
+  {
+    href: "/json-to-schema",
+    name: "JSON to Schema Converter",
+    badge: "Web Worker",
+    badgeVariant: "info",
+    description:
+      "Infer Zod schemas, TypeScript interfaces, Pydantic models, or Go structs from any JSON payload — unions, optionals, and ISO-8601 dates included. Generation runs in a local worker guarded by a watchdog, so payloads with PII are never uploaded.",
+    chips: ["Zod · TS · Pydantic · Go", "Unions & optional fields", "3 s watchdog"],
+    icon: FileJson,
+    cta: "Open generator",
   },
 ];
 

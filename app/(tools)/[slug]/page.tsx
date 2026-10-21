@@ -6,16 +6,22 @@ import { AdUnit } from "@/components/ads/AdUnit";
 import { PageHero } from "@/components/shared/page-hero";
 import { ToolSchema } from "@/components/schema/ToolSchema";
 import { CurlConverterWorkspace } from "@/components/tools/curl-converter/workspace";
+import { JsonConverterWorkspace } from "@/components/tools/json-converter/workspace";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { CURL_SEO_TARGETS, getCurlSeoTarget } from "@/lib/curl/seo-targets";
 import type { CurlSeoFactIcon } from "@/lib/curl/seo-targets";
 import type { TranspileTarget } from "@/lib/curl";
+import {
+  getJsonSchemaSeoTarget,
+  JSON_SCHEMA_SEO_TARGETS,
+} from "@/lib/json-schema/seo-targets";
+import type { JsonSchemaSeoFactIcon } from "@/lib/json-schema/seo-targets";
 import { SITE_URL } from "@/lib/site";
 
 export const dynamicParams = false;
 
-const FACT_ICONS: Record<CurlSeoFactIcon, typeof Lock> = {
+const FACT_ICONS: Record<CurlSeoFactIcon | JsonSchemaSeoFactIcon, typeof Lock> = {
   lock: Lock,
   zap: Zap,
   terminal: Terminal,
@@ -33,8 +39,30 @@ const TARGET_BADGES: Record<TranspileTarget, string> = {
   java: "Java OkHttp Output",
 };
 
+const JSON_TARGET_BADGES: Record<string, string> = {
+  zod: "Zod Schema Output",
+  ts: "TypeScript Interface Output",
+  pydantic: "Pydantic v2 Output",
+  go: "Go Struct Output",
+};
+
+type Landing =
+  | { kind: "curl"; data: (typeof CURL_SEO_TARGETS)[number] }
+  | { kind: "json-schema"; data: (typeof JSON_SCHEMA_SEO_TARGETS)[number] };
+
+function resolveLanding(slug: string): Landing | undefined {
+  const jsonTarget = getJsonSchemaSeoTarget(slug);
+  if (jsonTarget) return { kind: "json-schema", data: jsonTarget };
+  const curlTarget = getCurlSeoTarget(slug);
+  if (curlTarget) return { kind: "curl", data: curlTarget };
+  return undefined;
+}
+
 export function generateStaticParams(): { slug: string }[] {
-  return CURL_SEO_TARGETS.map((target) => ({ slug: target.slug }));
+  return [
+    ...CURL_SEO_TARGETS.map((target) => ({ slug: target.slug })),
+    ...JSON_SCHEMA_SEO_TARGETS.map((target) => ({ slug: target.slug })),
+  ];
 }
 
 export async function generateMetadata({
@@ -43,55 +71,68 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const target = getCurlSeoTarget(slug);
-  if (!target) return {};
+  const landing = resolveLanding(slug);
+  if (!landing) return {};
 
-  const url = `${SITE_URL}/${target.slug}/`;
-  const ogImage = `${SITE_URL}/og/${target.slug}.jpg`;
-  const privacyDescription = `${target.description} Free, offline, and zero-upload — conversion happens entirely in your browser.`;
+  const { data } = landing;
+  const url = `${SITE_URL}/${data.slug}/`;
+  const ogImage = `${SITE_URL}/og/${data.slug}.jpg`;
+  const privacyDescription =
+    landing.kind === "curl"
+      ? `${data.description} Free, offline, and zero-upload — conversion happens entirely in your browser.`
+      : `${data.description} Zero-upload by design: your JSON never leaves this browser tab.`;
 
   return {
-    title: { absolute: target.title },
-    description: target.description,
-    keywords: target.keywords,
-    alternates: { canonical: `/${target.slug}/` },
+    title: { absolute: data.title },
+    description: data.description,
+    keywords: data.keywords,
+    alternates: { canonical: `/${data.slug}/` },
     openGraph: {
-      title: target.title,
+      title: data.title,
       description: privacyDescription,
       url,
       siteName: "SyntaxFiddle",
       type: "website",
-      images: [{ url: ogImage, width: 1200, height: 630, alt: target.heading }],
+      images: [{ url: ogImage, width: 1200, height: 630, alt: data.heading }],
     },
     twitter: {
       card: "summary_large_image",
-      title: target.title,
+      title: data.title,
       description: privacyDescription,
       images: [ogImage],
     },
   };
 }
 
-export default async function CurlToolPage({
+export default async function ToolLandingPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const target = getCurlSeoTarget(slug);
-  if (!target) notFound();
+  const landing = resolveLanding(slug);
+  if (!landing) notFound();
 
-  const url = `${SITE_URL}/${target.slug}/`;
-  const relatedTargets = CURL_SEO_TARGETS.filter((entry) => entry.slug !== target.slug);
+  const { kind, data } = landing;
+  const url = `${SITE_URL}/${data.slug}/`;
+  const isCurl = kind === "curl";
+  const relatedTargets = isCurl
+    ? CURL_SEO_TARGETS.filter((entry) => entry.slug !== data.slug)
+    : JSON_SCHEMA_SEO_TARGETS.filter((entry) => entry.slug !== data.slug);
+  const targetBadge = isCurl
+    ? data.target
+      ? TARGET_BADGES[data.target]
+      : "7 Code Targets"
+    : JSON_TARGET_BADGES[data.target] ?? "Schema Output";
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
       <ToolSchema
-        name={target.heading}
-        description={`${target.description} Executes fully offline in the browser and is free to use.`}
+        name={data.heading}
+        description={`${data.description} Executes fully offline in the browser and is free to use.`}
         url={url}
-        featureList={target.featureList}
-        faqs={target.faqs}
+        featureList={data.featureList}
+        faqs={data.faqs}
       />
 
       <nav aria-label="Breadcrumb">
@@ -103,7 +144,7 @@ export default async function CurlToolPage({
           </li>
           <li aria-hidden="true">/</li>
           <li aria-current="page" className="text-zinc-300">
-            {target.heading}
+            {data.heading}
           </li>
         </ol>
       </nav>
@@ -114,12 +155,12 @@ export default async function CurlToolPage({
             <>
               <Badge variant="success">100% Client-Side</Badge>
               <Badge variant="outline">Zero Upload</Badge>
-              <Badge variant="outline">{target.target ? TARGET_BADGES[target.target] : "7 Code Targets"}</Badge>
+              <Badge variant="outline">{targetBadge}</Badge>
             </>
           }
-          title={target.heading}
-          description={target.heroDescription}
-          facts={target.facts.map((fact) => ({
+          title={data.heading}
+          description={data.heroDescription}
+          facts={data.facts.map((fact) => ({
             icon: FACT_ICONS[fact.icon],
             title: fact.title,
             description: fact.description,
@@ -127,21 +168,28 @@ export default async function CurlToolPage({
         />
       </header>
 
-      <section aria-label="cURL converter workspace" className="mt-8">
-        <CurlConverterWorkspace initialTarget={target.target ?? "fetch"} />
+      <section
+        aria-label={isCurl ? "cURL converter workspace" : "JSON to schema workspace"}
+        className="mt-8"
+      >
+        {isCurl ? (
+          <CurlConverterWorkspace initialTarget={data.target ?? "fetch"} />
+        ) : (
+          <JsonConverterWorkspace defaultTab={data.target} />
+        )}
       </section>
 
       <AdUnit format="leaderboard" className="mt-10" />
 
-      <section aria-labelledby={`${target.slug}-docs-heading`} className="mt-14 max-w-3xl">
+      <section aria-labelledby={`${data.slug}-docs-heading`} className="mt-14 max-w-3xl">
         <h2
-          id={`${target.slug}-docs-heading`}
+          id={`${data.slug}-docs-heading`}
           className="text-xl font-bold tracking-tight text-zinc-100"
         >
           Technical documentation
         </h2>
         <div className="mt-6 space-y-10">
-          {target.sections.map((section) => (
+          {data.sections.map((section) => (
             <div key={section.heading}>
               <h3 className="text-base font-semibold text-zinc-100">{section.heading}</h3>
               {section.body.map((paragraph) => (
@@ -154,15 +202,15 @@ export default async function CurlToolPage({
         </div>
       </section>
 
-      <section aria-labelledby={`${target.slug}-faq-heading`} className="mt-14 max-w-3xl">
+      <section aria-labelledby={`${data.slug}-faq-heading`} className="mt-14 max-w-3xl">
         <h2
-          id={`${target.slug}-faq-heading`}
+          id={`${data.slug}-faq-heading`}
           className="text-xl font-bold tracking-tight text-zinc-100"
         >
           Frequently asked questions
         </h2>
         <div className="mt-6 space-y-6">
-          {target.faqs.map((faq) => (
+          {data.faqs.map((faq) => (
             <div key={faq.question}>
               <h3 className="text-base font-semibold text-zinc-100">{faq.question}</h3>
               <p className="mt-2 text-sm leading-6 text-zinc-400">{faq.answer}</p>
@@ -171,12 +219,12 @@ export default async function CurlToolPage({
         </div>
       </section>
 
-      <section aria-labelledby={`${target.slug}-related-heading`} className="mt-14">
+      <section aria-labelledby={`${data.slug}-related-heading`} className="mt-14">
         <h2
-          id={`${target.slug}-related-heading`}
+          id={`${data.slug}-related-heading`}
           className="text-xl font-bold tracking-tight text-zinc-100"
         >
-          Convert cURL to another target
+          {isCurl ? "Convert cURL to another target" : "Generate another schema target"}
         </h2>
         <Card className="mt-5 p-4 sm:p-5">
           <ul className="grid list-none gap-2 sm:grid-cols-2 lg:grid-cols-3">

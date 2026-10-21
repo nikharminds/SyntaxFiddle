@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { RECIPES, type RecipeCategory } from "@/lib/cron/recipes";
 import { CONVERSION_PAIRS } from "@/lib/converter/routes";
 import { CURL_SEO_TARGETS } from "@/lib/curl/seo-targets";
+import { JSON_SCHEMA_SEO_TARGETS } from "@/lib/json-schema/seo-targets";
 import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-static";
@@ -24,6 +25,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/jwt/`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${SITE_URL}/regex-tester/`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${SITE_URL}/jwt-decoder/`, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${SITE_URL}/json-to-schema/`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${SITE_URL}/about/`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE_URL}/privacy/`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE_URL}/terms/`, changeFrequency: "yearly", priority: 0.3 },
@@ -48,6 +50,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "monthly",
     priority: target.slug === "curl-converter" ? 0.9 : 0.8,
   }));
+  const jsonSchemaRoutes: MetadataRoute.Sitemap = JSON_SCHEMA_SEO_TARGETS.map(
+    (target) => ({
+      url: `${SITE_URL}/${target.slug}/`,
+      lastModified,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    }),
+  );
 
-  return [...staticRoutes, ...conversionRoutes, ...recipeRoutes, ...curlRoutes];
+  return [
+    ...staticRoutes,
+    ...conversionRoutes,
+    ...recipeRoutes,
+    ...curlRoutes,
+    ...jsonSchemaRoutes,
+  ];
 }

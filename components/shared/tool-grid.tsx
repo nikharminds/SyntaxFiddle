@@ -6,6 +6,7 @@ import {
   ArrowRight,
   Braces,
   Clock,
+  Database,
   KeyRound,
   Search,
   Table2,
@@ -23,7 +24,12 @@ const ICONS: Record<ToolIcon, LucideIcon> = {
   regex: Braces,
   jwt: KeyRound,
   curl: Terminal,
+  database: Database,
 };
+
+function toolHref(tool: Tool): string {
+  return tool.href ?? `/${tool.slug}`;
+}
 
 const STATUS_META: Record<ToolStatus, { label: string; variant: BadgeVariant }> = {
   live: { label: "Live", variant: "success" },
@@ -44,7 +50,7 @@ function FeaturedToolCard({ tool }: { tool: Tool }) {
   return (
     <Card hover className="h-full">
       <Link
-        href={`/${tool.slug}`}
+        href={toolHref(tool)}
         className="flex h-full flex-col gap-4 p-6 focus-visible:outline-none"
       >
         <div className="flex items-start justify-between gap-4">
@@ -110,7 +116,7 @@ function ToolCard({ tool }: { tool: Tool }) {
   return (
     <Card hover className="flex h-full flex-col">
       <Link
-        href={`/${tool.slug}`}
+        href={toolHref(tool)}
         className="flex flex-1 flex-col gap-4 p-6 focus-visible:outline-none"
       >
         <div className="flex items-start justify-between gap-4">
@@ -128,6 +134,18 @@ function ToolCard({ tool }: { tool: Tool }) {
           <ArrowRight size={15} />
         </span>
       </Link>
+      {tool.badges ? (
+        <div className="flex flex-wrap gap-1.5 border-t border-zinc-800/80 px-6 pb-5 pt-4">
+          {tool.badges.map((badge) => (
+            <span
+              key={badge}
+              className="rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 font-mono text-[11px] text-emerald-400/90"
+            >
+              {badge}
+            </span>
+          ))}
+        </div>
+      ) : null}
       {tool.conversions ? (
         <div className="flex flex-wrap gap-1.5 border-t border-zinc-800/80 px-6 pb-5 pt-4">
           {tool.conversions.map((conversion) => (

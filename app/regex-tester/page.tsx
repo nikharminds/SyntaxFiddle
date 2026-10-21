@@ -198,6 +198,7 @@ export default function RegexTesterPage() {
               { href: "/jwt-decoder/", label: "JWT Decoder — Secure & Offline" },
               { href: "/regex/", label: "Regex Tester workspace" },
               { href: "/cron/", label: "Cron Expression Visualizer" },
+              { href: "/json-to-schema/", label: "JSON to Schema Converter" },
             ].map((tool) => (
               <li key={tool.href}>
                 <Link

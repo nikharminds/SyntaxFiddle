@@ -17,6 +17,13 @@ const NAV_LINKS = [
   { href: "/curl-converter", label: "cURL Converter", badge: undefined as string | undefined },
 ] as const;
 
+const DATA_SCHEMA_LINKS = [
+  { href: "/json-to-zod/", label: "JSON to Zod" },
+  { href: "/json-to-typescript/", label: "JSON to TypeScript" },
+  { href: "/json-to-pydantic/", label: "JSON to Pydantic" },
+  { href: "/json-to-go-struct/", label: "JSON to Go Struct" },
+];
+
 const CONVERTER_GROUPS: {
   label: string;
   items: { href: string; label: string }[];
@@ -28,11 +35,15 @@ const CONVERTER_GROUPS: {
   })),
 }));
 
+type MenuId = "converters" | "data";
+
 export function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [convertersOpen, setConvertersOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [openMenu, setOpenMenu] = useState<MenuId | null>(null);
+  const [openSection, setOpenSection] = useState<MenuId | null>(null);
+  const convertersRef = useRef<HTMLDivElement>(null);
+  const dataRef = useRef<HTMLDivElement>(null);
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
@@ -43,16 +54,18 @@ export function Navbar() {
     CONVERSION_PAIRS.some(
       (pair) => pathname === `/${pair.slug}` || pathname.startsWith(`/${pair.slug}/`),
     );
+  const dataActive = pathname.startsWith("/json-to");
 
   useEffect(() => {
-    if (!convertersOpen) return;
+    if (!openMenu) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setConvertersOpen(false);
+      if (event.key === "Escape") setOpenMenu(null);
     };
     const onClick = (event: MouseEvent) => {
-      if (!dropdownRef.current?.contains(event.target as Node)) {
-        setConvertersOpen(false);
-      }
+      const target = event.target as Node;
+      if (convertersRef.current?.contains(target)) return;
+      if (dataRef.current?.contains(target)) return;
+      setOpenMenu(null);
     };
     document.addEventListener("keydown", onKey);
     document.addEventListener("mousedown", onClick);
@@ -60,7 +73,31 @@ export function Navbar() {
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("mousedown", onClick);
     };
-  }, [convertersOpen]);
+  }, [openMenu]);
+
+  const closeMenus = () => {
+    setOpen(false);
+    setOpenMenu(null);
+    setOpenSection(null);
+  };
+
+  const toggleSection = (section: MenuId) =>
+    setOpenSection(openSection === section ? null : section);
+
+  const renderDesktopLinkClasses = (active: boolean, highlighted = false) =>
+    cn(
+      "flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors",
+      active || highlighted
+        ? "bg-zinc-900 text-zinc-100"
+        : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
+    );
+  const renderSubLinkClasses = (active: boolean) =>
+    cn(
+      "block rounded-md px-2 py-1.5 text-sm transition-colors",
+      active
+        ? "bg-zinc-900 text-zinc-100"
+        : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
+    );
 
   return (
     <header className="sticky top-0 z-40 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/60">
@@ -78,18 +115,13 @@ export function Navbar() {
           <span className="text-base font-semibold tracking-tight">SyntaxFiddle</span>
         </Link>
 
-        <div className="hidden items-center gap-1 md:flex">
+        <div className="hidden items-center gap-1.5 lg:flex">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               aria-current={isActive(link.href) ? "page" : undefined}
-              className={cn(
-                "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                isActive(link.href)
-                  ? "text-zinc-100"
-                  : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
-              )}
+              className={renderDesktopLinkClasses(isActive(link.href))}
             >
               {link.label}
               {link.badge ? (
@@ -100,33 +132,30 @@ export function Navbar() {
             </Link>
           ))}
 
-          <div ref={dropdownRef} className="relative">
+          <div ref={convertersRef} className="relative">
             <button
               type="button"
-              aria-expanded={convertersOpen}
+              aria-expanded={openMenu === "converters"}
               aria-haspopup="true"
-              onClick={() => setConvertersOpen((current) => !current)}
-              className={cn(
-                "flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                convertersOpen || convertersActive
-                  ? "bg-zinc-900 text-zinc-100"
-                  : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
+              onClick={() => setOpenMenu(openMenu === "converters" ? null : "converters")}
+              className={renderDesktopLinkClasses(
+                openMenu === "converters" || convertersActive,
               )}
             >
               Converters
               <ChevronDown
                 size={14}
-                className={cn("transition-transform", convertersOpen && "rotate-180")}
+                className={cn("transition-transform", openMenu === "converters" && "rotate-180")}
               />
             </button>
             <div
-              hidden={!convertersOpen}
+              hidden={openMenu !== "converters"}
               className="absolute left-0 top-full z-50 mt-1 w-[400px] rounded-xl border border-zinc-800 bg-zinc-950 p-4 shadow-xl shadow-black/40"
             >
               <Link
                 href="/csv/"
-                onClick={() => setConvertersOpen(false)}
-                className="flex items-center justify-between rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20"
+                onClick={closeMenus}
+                className="flex items-center justify-between gap-2 whitespace-nowrap rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20"
               >
                 Conversion Studio
                 <span aria-hidden>→</span>
@@ -142,14 +171,9 @@ export function Navbar() {
                         <li key={item.href}>
                           <Link
                             href={item.href}
-                            onClick={() => setConvertersOpen(false)}
+                            onClick={closeMenus}
                             aria-current={isActive(item.href) ? "page" : undefined}
-                            className={cn(
-                              "block rounded-md px-2 py-1.5 text-sm transition-colors",
-                              isActive(item.href)
-                                ? "bg-zinc-900 text-zinc-100"
-                                : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
-                            )}
+                            className={renderSubLinkClasses(isActive(item.href))}
                           >
                             {item.label}
                           </Link>
@@ -161,22 +185,71 @@ export function Navbar() {
               </div>
             </div>
           </div>
+
+          <div ref={dataRef} className="relative">
+            <button
+              type="button"
+              aria-expanded={openMenu === "data"}
+              aria-haspopup="true"
+              onClick={() => setOpenMenu(openMenu === "data" ? null : "data")}
+              className={renderDesktopLinkClasses(openMenu === "data" || dataActive)}
+            >
+              Data &amp; Schemas
+              <ChevronDown
+                size={14}
+                className={cn("transition-transform", openMenu === "data" && "rotate-180")}
+              />
+            </button>
+            <div
+              hidden={openMenu !== "data"}
+              className="absolute left-0 top-full z-50 mt-1 w-[300px] rounded-xl border border-zinc-800 bg-zinc-950 p-4 shadow-xl shadow-black/40"
+            >
+              <Link
+                href="/json-to-schema/"
+                onClick={closeMenus}
+                className="flex items-center justify-between gap-2 whitespace-nowrap rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20"
+              >
+                JSON to Schema
+                <span aria-hidden>→</span>
+              </Link>
+              <p className="px-1 pb-1.5 pt-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                Schema targets
+              </p>
+              <ul className="list-none space-y-0.5">
+                {DATA_SCHEMA_LINKS.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      onClick={closeMenus}
+                      aria-current={isActive(item.href) ? "page" : undefined}
+                      className={renderSubLinkClasses(isActive(item.href))}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <Badge variant="success" className="hidden sm:inline-flex" title="100% Client-Side / Zero Data Logged">
             <ShieldCheck size={12} />
-            <span className="hidden lg:inline">100% Client-Side / Zero Data Logged</span>
-            <span className="lg:hidden">Client-Side</span>
+            <span className="hidden xl:inline">100% Client-Side / Zero Data Logged</span>
+            <span className="xl:hidden">Client-Side</span>
           </Badge>
           <button
             type="button"
             aria-expanded={open}
             aria-controls="mobile-nav"
             aria-label={open ? "Close menu" : "Open menu"}
-            onClick={() => setOpen((current) => !current)}
-            className="flex h-9 w-9 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-100 md:hidden"
+            onClick={() => {
+              setOpen((current) => !current);
+              setOpenSection(null);
+            }}
+            className="flex h-9 w-9 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-100 lg:hidden"
           >
             {open ? <X size={18} /> : <Menu size={18} />}
           </button>
@@ -184,18 +257,19 @@ export function Navbar() {
       </nav>
 
       {open ? (
-        <div id="mobile-nav" className="border-t border-zinc-800/80 md:hidden">
+        <div id="mobile-nav" className="border-t border-zinc-800/80 lg:hidden">
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-1 px-4 py-3 sm:px-6">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={() => setOpen(false)}
+                onClick={closeMenus}
+                aria-current={isActive(link.href) ? "page" : undefined}
                 className={cn(
                   "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   isActive(link.href)
                     ? "bg-zinc-900 text-zinc-100"
-                    : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
+                    : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
                 )}
               >
                 {link.label}
@@ -208,7 +282,7 @@ export function Navbar() {
             ))}
             <Link
               href="/csv/"
-              onClick={() => setOpen(false)}
+              onClick={closeMenus}
               className={cn(
                 "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                 isActive("/csv")
@@ -218,25 +292,101 @@ export function Navbar() {
             >
               Conversion Studio
             </Link>
-            <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+
+            <button
+              type="button"
+              aria-expanded={openSection === "converters"}
+              aria-controls="mobile-converters-section"
+              onClick={() => toggleSection("converters")}
+              className="mt-1 flex w-full items-center justify-between rounded-md px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 transition-colors hover:text-zinc-300"
+            >
               Converters
-            </p>
-            {CONVERSION_PAIRS.map((pair) => (
-              <Link
-                key={pair.slug}
-                href={`/${pair.slug}/`}
-                onClick={() => setOpen(false)}
-                aria-current={isActive(`/${pair.slug}`) ? "page" : undefined}
+              <ChevronDown
+                size={14}
+                aria-hidden
                 className={cn(
-                  "block rounded-md py-1.5 pl-6 pr-3 text-sm transition-colors",
-                  isActive(`/${pair.slug}`)
-                    ? "bg-zinc-900 text-zinc-100"
-                    : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
+                  "transition-transform",
+                  openSection === "converters" && "rotate-180",
                 )}
-              >
-                {pair.sourceLabel} to {pair.targetLabel}
-              </Link>
-            ))}
+              />
+            </button>
+            <div
+              id="mobile-converters-section"
+              hidden={openSection !== "converters"}
+              className="pb-1"
+            >
+              {CONVERSION_PAIRS.map((pair) => (
+                <Link
+                  key={pair.slug}
+                  href={`/${pair.slug}/`}
+                  onClick={closeMenus}
+                  aria-current={isActive(`/${pair.slug}`) ? "page" : undefined}
+                  className={cn(
+                    "block rounded-md py-1.5 pl-6 pr-3 text-sm transition-colors",
+                    isActive(`/${pair.slug}`)
+                      ? "bg-zinc-900 text-zinc-100"
+                      : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
+                  )}
+                >
+                  {pair.sourceLabel} to {pair.targetLabel}
+                </Link>
+              ))}
+            </div>
+
+            <Link
+              href="/json-to-schema/"
+              onClick={closeMenus}
+              aria-current={isActive("/json-to-schema") ? "page" : undefined}
+              className={cn(
+                "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                isActive("/json-to-schema")
+                  ? "bg-zinc-900 text-zinc-100"
+                  : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
+              )}
+            >
+              JSON to Schema
+            </Link>
+
+            <button
+              type="button"
+              aria-expanded={openSection === "data"}
+              aria-controls="mobile-data-section"
+              onClick={() => toggleSection("data")}
+              className="mt-1 flex w-full items-center justify-between rounded-md px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 transition-colors hover:text-zinc-300"
+            >
+              Data &amp; Schemas
+              <ChevronDown
+                size={14}
+                aria-hidden
+                className={cn(
+                  "transition-transform",
+                  openSection === "data" && "rotate-180",
+                )}
+              />
+            </button>
+            <div
+              id="mobile-data-section"
+              hidden={openSection !== "data"}
+              className="pb-1"
+            >
+              {DATA_SCHEMA_LINKS.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={closeMenus}
+                  aria-current={isActive(item.href) ? "page" : undefined}
+                  className={cn(
+                    "block rounded-md py-1.5 pl-6 pr-3 text-sm transition-colors",
+                    isActive(item.href)
+                      ? "bg-zinc-900 text-zinc-100"
+                      : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
+                  )}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+
             <p className="flex items-center gap-2 px-3 pb-1 pt-2 text-xs text-zinc-500">
               <ShieldCheck size={12} className="text-emerald-400" />
               100% Client-Side / Zero Data Logged

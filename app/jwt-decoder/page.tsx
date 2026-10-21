@@ -165,6 +165,7 @@ export default function JwtDecoderPage() {
               { href: "/regex-tester/", label: "Regex Tester & Visualizer" },
               { href: "/jwt/", label: "JWT Decoder workspace" },
               { href: "/cron/", label: "Cron Expression Visualizer" },
+              { href: "/json-to-schema/", label: "JSON to Schema Converter" },
             ].map((tool) => (
               <li key={tool.href}>
                 <Link
