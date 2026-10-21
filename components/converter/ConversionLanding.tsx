@@ -16,6 +16,7 @@ import {
 import { SITE_URL } from "@/lib/site";
 
 export function buildPairMetadata(pair: ConversionPair): Metadata {
+  const ogImage = `${SITE_URL}/og/csv.jpg`;
   return {
     title: pair.title,
     description: pair.description,
@@ -27,6 +28,13 @@ export function buildPairMetadata(pair: ConversionPair): Metadata {
       url: `${SITE_URL}/${pair.slug}/`,
       siteName: "SyntaxFiddle",
       type: "website",
+      images: [{ url: ogImage, width: 1200, height: 630, alt: pair.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${pair.title} — Online & Private | SyntaxFiddle`,
+      description: pair.description,
+      images: [ogImage],
     },
   };
 }

@@ -6,6 +6,7 @@ const TOOL_LINKS = [
   { href: "/csv", label: "CSV & Excel Converter" },
   { href: "/regex", label: "Regex Tester" },
   { href: "/jwt", label: "JWT Decoder" },
+  { href: "/curl-converter", label: "cURL Converter" },
 ];
 
 const COMPANY_LINKS = [

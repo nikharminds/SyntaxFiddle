@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { RECIPES, type RecipeCategory } from "@/lib/cron/recipes";
 import { CONVERSION_PAIRS } from "@/lib/converter/routes";
+import { CURL_SEO_TARGETS } from "@/lib/curl/seo-targets";
 import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-static";
@@ -41,6 +42,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "monthly",
     priority: CATEGORY_PRIORITY[recipe.category],
   }));
+  const curlRoutes: MetadataRoute.Sitemap = CURL_SEO_TARGETS.map((target) => ({
+    url: `${SITE_URL}/${target.slug}/`,
+    lastModified,
+    changeFrequency: "monthly",
+    priority: target.slug === "curl-converter" ? 0.9 : 0.8,
+  }));
 
-  return [...staticRoutes, ...conversionRoutes, ...recipeRoutes];
+  return [...staticRoutes, ...conversionRoutes, ...recipeRoutes, ...curlRoutes];
 }

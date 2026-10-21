@@ -9,6 +9,7 @@ import {
   KeyRound,
   Search,
   Table2,
+  Terminal,
   type LucideIcon,
 } from "lucide-react";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
@@ -21,6 +22,7 @@ const ICONS: Record<ToolIcon, LucideIcon> = {
   csv: Table2,
   regex: Braces,
   jwt: KeyRound,
+  curl: Terminal,
 };
 
 const STATUS_META: Record<ToolStatus, { label: string; variant: BadgeVariant }> = {

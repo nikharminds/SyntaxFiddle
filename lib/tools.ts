@@ -1,6 +1,6 @@
 export type ToolStatus = "live" | "beta" | "soon";
 
-export type ToolIcon = "cron" | "csv" | "regex" | "jwt";
+export type ToolIcon = "cron" | "csv" | "regex" | "jwt" | "curl";
 
 export type Tool = {
   slug: string;
@@ -95,5 +95,42 @@ export const TOOLS: Tool[] = [
     status: "live",
     icon: "jwt",
     keywords: ["jwt", "json web token", "decode", "inspect", "claims", "auth", "bearer"],
+  },
+  {
+    slug: "curl-converter",
+    name: "cURL Converter",
+    tagline: "Convert cURL commands to fetch, axios, and Python requests.",
+    description:
+      "Paste a cURL command and transpile it to idiomatic JavaScript fetch(), axios, or Python requests code — headers, JSON bodies, basic auth, and query strings included. 100% client-side, zero uploads.",
+    status: "live",
+    icon: "curl",
+    conversions: [
+      { label: "cURL to Fetch", href: "/curl-to-fetch/" },
+      { label: "cURL to Axios", href: "/curl-to-axios/" },
+      { label: "cURL to Python", href: "/curl-to-python/" },
+      { label: "cURL to PHP", href: "/curl-to-php/" },
+      { label: "cURL to Go", href: "/curl-to-go/" },
+      { label: "cURL to C#", href: "/curl-to-csharp/" },
+      { label: "cURL to Java", href: "/curl-to-java/" },
+    ],
+    keywords: [
+      "curl",
+      "curl converter",
+      "curl to fetch",
+      "curl to axios",
+      "curl to python",
+      "curl to php",
+      "curl to guzzle",
+      "curl to go",
+      "curl to golang",
+      "curl to csharp",
+      "curl to java",
+      "curl to okhttp",
+      "curl to requests",
+      "curl to javascript",
+      "transpile",
+      "http client",
+      "api testing",
+    ],
   },
 ];

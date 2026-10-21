@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Braces, KeyRound, WifiOff, type LucideIcon } from "lucide-react";
+import { ArrowRight, Braces, KeyRound, Terminal, WifiOff, type LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
@@ -36,6 +36,17 @@ const SECURITY_TOOLS: SecurityTool[] = [
     chips: ["Live highlighting", "g i m s u y flags", "ReDoS watchdog"],
     icon: Braces,
     cta: "Open tester",
+  },
+  {
+    href: "/curl-converter",
+    name: "cURL Converter",
+    badge: "Zero Upload",
+    badgeVariant: "success",
+    description:
+      "Paste a cURL command and get idiomatic fetch(), axios, or Python requests code — bearer tokens, cookies, and basic-auth credentials are parsed by your browser and never transmitted.",
+    chips: ["fetch · axios · Python", "Basic auth & JSON bodies", "100 ms live transpile"],
+    icon: Terminal,
+    cta: "Open converter",
   },
 ];
 

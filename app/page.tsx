@@ -123,8 +123,12 @@ export default function HomePage() {
 
       <TabularConverters />
 
-      <article className="mx-auto w-full max-w-3xl px-4 pb-16 pt-4 sm:px-6">
-        <div className="prose max-w-none prose-headings:tracking-tight prose-a:text-emerald-400 prose-code:rounded prose-code:bg-zinc-900 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-emerald-400 prose-code:before:content-none prose-code:after:content-none">
+      <article
+        aria-label="About SyntaxFiddle"
+        className="mx-auto w-full max-w-6xl px-4 pb-16 pt-4 sm:px-6"
+      >
+        <div className="max-w-3xl">
+          <div className="prose max-w-none prose-headings:tracking-tight prose-a:text-emerald-400 prose-code:rounded prose-code:bg-zinc-900 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-emerald-400 prose-code:before:content-none prose-code:after:content-none">
           <h2>Privacy by architecture, not by policy</h2>
           <p>
             Most web-based developer tools quietly ship your input to a backend. You
@@ -171,6 +175,7 @@ export default function HomePage() {
             keeps working even on a flaky connection — your data and your workflow stay
             yours.
           </p>
+          </div>
         </div>
       </article>
     </>

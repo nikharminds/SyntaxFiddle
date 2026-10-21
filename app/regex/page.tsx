@@ -4,6 +4,9 @@ import { AdUnit } from "@/components/ads/AdUnit";
 import { PageHero } from "@/components/shared/page-hero";
 import { RegexLayout } from "@/components/regex/RegexLayout";
 import { Badge } from "@/components/ui/badge";
+import { SITE_URL } from "@/lib/site";
+
+const PAGE_URL = `${SITE_URL}/regex-tester/`;
 
 export const metadata: Metadata = {
   title: "Regex Tester — Live Match Highlighting & Capture Groups",
@@ -20,6 +23,22 @@ export const metadata: Metadata = {
     "pattern matcher",
   ],
   alternates: { canonical: "/regex-tester/" },
+  openGraph: {
+    title: "Regex Tester — Live Match Highlighting & Capture Groups | SyntaxFiddle",
+    description:
+      "Test regular expressions with real-time match highlighting, named capture groups, flags, and execution timing — 100% client-side.",
+    url: PAGE_URL,
+    siteName: "SyntaxFiddle",
+    type: "website",
+    images: [{ url: `${SITE_URL}/og/regex.jpg`, width: 1200, height: 630, alt: "Regex Tester" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Regex Tester — Live Match Highlighting & Capture Groups | SyntaxFiddle",
+    description:
+      "Test regular expressions with real-time match highlighting — 100% client-side.",
+    images: [`${SITE_URL}/og/regex.jpg`],
+  },
 };
 
 export default function RegexPage() {

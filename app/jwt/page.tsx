@@ -4,6 +4,9 @@ import { AdUnit } from "@/components/ads/AdUnit";
 import { JwtLayout } from "@/components/jwt/JwtLayout";
 import { PageHero } from "@/components/shared/page-hero";
 import { Badge } from "@/components/ui/badge";
+import { SITE_URL } from "@/lib/site";
+
+const PAGE_URL = `${SITE_URL}/jwt-decoder/`;
 
 export const metadata: Metadata = {
   title: "JWT Decoder — Inspect Header, Payload & Claims",
@@ -20,6 +23,22 @@ export const metadata: Metadata = {
     "base64url",
   ],
   alternates: { canonical: "/jwt-decoder/" },
+  openGraph: {
+    title: "JWT Decoder — Inspect Header, Payload & Claims | SyntaxFiddle",
+    description:
+      "Decode JSON Web Tokens locally — color-coded segments, syntax-highlighted claims, and expiry checks. 100% client-side.",
+    url: PAGE_URL,
+    siteName: "SyntaxFiddle",
+    type: "website",
+    images: [{ url: `${SITE_URL}/og/jwt.jpg`, width: 1200, height: 630, alt: "JWT Decoder" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "JWT Decoder — Inspect Header, Payload & Claims | SyntaxFiddle",
+    description:
+      "Decode JSON Web Tokens locally — 100% client-side, zero network calls.",
+    images: [`${SITE_URL}/og/jwt.jpg`],
+  },
 };
 
 export default function JwtPage() {

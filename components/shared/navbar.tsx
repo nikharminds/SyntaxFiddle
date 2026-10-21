@@ -14,6 +14,7 @@ const NAV_LINKS = [
   { href: "/cron", label: "Cron Visualizer", badge: undefined as string | undefined },
   { href: "/regex-tester", label: "Regex", badge: undefined as string | undefined },
   { href: "/jwt-decoder", label: "JWT", badge: undefined as string | undefined },
+  { href: "/curl-converter", label: "cURL Converter", badge: undefined as string | undefined },
 ] as const;
 
 const CONVERTER_GROUPS: {

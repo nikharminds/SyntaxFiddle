@@ -1,0 +1,77 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`transpileCurl generators > generates async/await fetch with a JSON.stringify body 1`] = `
+"const response = await fetch("https://api.example.com/todos?user=42", {
+  method: "POST",
+  headers: {
+    "Authorization": "Basic YWRtaW46c2VjcmV0",
+    "Content-Type": "application/json",
+    "X-Request-Id": "abc",
+  },
+  body: JSON.stringify({
+    "title": "ship it",
+    "tags": [
+      "api",
+      "curl"
+    ],
+    "done": false,
+    "meta": null
+  }),
+});
+
+const data = await response.json();
+console.log(data);"
+`;
+
+exports[`transpileCurl generators > generates axios.request with auth config 1`] = `
+"import axios from "axios";
+
+const response = await axios.request({
+  method: "post",
+  url: "https://api.example.com/todos?user=42",
+  headers: {
+    "Content-Type": "application/json",
+    "X-Request-Id": "abc",
+  },
+  data: {
+    "title": "ship it",
+    "tags": [
+      "api",
+      "curl"
+    ],
+    "done": false,
+    "meta": null
+  },
+  auth: {
+    username: "admin",
+    password: "secret",
+  },
+});
+
+console.log(response.data);"
+`;
+
+exports[`transpileCurl generators > generates python requests with json= payload 1`] = `
+"import requests
+
+url = "https://api.example.com/todos?user=42"
+
+json_data = {
+    "title": "ship it",
+    "tags": [
+        "api",
+        "curl",
+    ],
+    "done": False,
+    "meta": None,
+}
+
+headers = {
+    "Content-Type": "application/json",
+    "X-Request-Id": "abc",
+}
+
+response = requests.post(url, headers=headers, json=json_data, auth=("admin", "secret"))
+
+print(response.json())"
+`;
