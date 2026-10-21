@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Menu, ShieldCheck, Terminal, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { CONVERSION_PAIRS } from "@/lib/converter/routes";
 import type { SourceFormat } from "@/lib/converter/types";
 import { cn } from "@/lib/utils";
@@ -162,6 +163,7 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Badge variant="success" className="hidden sm:inline-flex" title="100% Client-Side / Zero Data Logged">
             <ShieldCheck size={12} />
             <span className="hidden lg:inline">100% Client-Side / Zero Data Logged</span>

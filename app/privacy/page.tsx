@@ -12,7 +12,7 @@ export default function PrivacyPage() {
       <article className="prose prose-invert prose-zinc max-w-none prose-headings:tracking-tight">
         <h1>Privacy Policy</h1>
         <p>
-          <em>Last updated: October 20, 2026</em>
+          <em>Last updated: October 21, 2026</em>
         </p>
         <p>
           This policy explains what information SyntaxFiddle (&ldquo;we&rdquo;,
@@ -36,6 +36,25 @@ export default function PrivacyPage() {
           <li>We do not require accounts, and we do not set authentication cookies.</li>
           <li>We do not maintain server-side session or analytics databases.</li>
         </ul>
+
+        <h2>Traffic analytics</h2>
+        <p>
+          We use Google Analytics to understand aggregate site usage — such as page
+          views, approximate geographic region, browser, and referral source. Google
+          Analytics sets cookies and processes data (including your IP address, in
+          truncated form where supported) under Google&rsquo;s own terms. Analytics
+          tracking covers page traffic only; it has no access to tool input, output,
+          or files, all of which remain strictly local to your browser. You can block
+          analytics cookies through your browser settings or via{" "}
+          <a
+            href="https://tools.google.com/dlpage/gaoptout"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Google&rsquo;s official opt-out browser add-on
+          </a>
+          .
+        </p>
 
         <h2>Cookies and advertising</h2>
         <p>

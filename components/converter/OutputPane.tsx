@@ -289,7 +289,7 @@ export function OutputPane({
           {output && !busy ? (
             <pre className="min-h-full py-3 font-mono text-xs leading-5">
               {visibleLines.map((line, index) => (
-                <div key={index} className="flex hover:bg-white/[0.02]">
+                <div key={index} className="flex hover:bg-zinc-800/40">
                   <span className="w-10 shrink-0 select-none border-r border-zinc-800/80 pr-2 text-right text-zinc-600">
                     {index + 1}
                   </span>
