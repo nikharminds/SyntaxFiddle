@@ -333,3 +333,59 @@ describe("java okhttp generator", () => {
     expect(output).toContain('.method("PROPFIND", null)');
   });
 });
+
+describe("apex httprequest generator", () => {
+  const command = `curl -X POST https://api.example.com/todos -H 'Content-Type: application/json' -H 'X-Request-Id: abc' -u admin:secret --data-raw '{"title": "ship it"}'`;
+
+  it("builds an HttpRequest with a compacted single-line body", () => {
+    const output = transpileCurl(command, "apex");
+    expect(output).toContain("HttpRequest req = new HttpRequest();");
+    expect(output).toContain("req.setEndpoint('https://api.example.com/todos');");
+    expect(output).toContain("req.setMethod('POST');");
+    expect(output).toContain("req.setHeader('Content-Type', 'application/json');");
+    expect(output).toContain("req.setHeader('X-Request-Id', 'abc');");
+    expect(output).toContain('req.setBody(\'{"title":"ship it"}\');');
+    expect(output).toContain("Http http = new Http();");
+    expect(output).toContain("HttpResponse res = http.send(req);");
+    expect(output).toContain("System.debug('Status: ' + res.getStatusCode());");
+    expect(output).toContain("System.debug('Body: ' + res.getBody());");
+  });
+
+  it("encodes basic auth with EncodingUtil and prefers explicit Authorization headers", () => {
+    const output = transpileCurl(command, "apex");
+    expect(output).toContain(
+      "req.setHeader('Authorization', 'Basic ' + EncodingUtil.base64Encode(Blob.valueOf('admin:secret')));",
+    );
+    const bearer = transpileCurl(
+      "curl -u admin:secret -H 'Authorization: Bearer tok' https://api.example.com/",
+      "apex",
+    );
+    expect(bearer).not.toContain("EncodingUtil");
+    expect(bearer).toContain("req.setHeader('Authorization', 'Bearer tok');");
+  });
+
+  it("escapes single quotes, backslashes, and newlines inside literals", () => {
+    const output = transpileCurl(
+      `curl -d $'it\\'s "quoted"\\nline2 \\\\tmp' https://api.example.com/echo`,
+      "apex",
+    );
+    const bodyLine = output.split("\n").find((line) => line.startsWith("req.setBody"));
+    expect(bodyLine).toBe("req.setBody('it\\'s \"quoted\"\\nline2 \\\\tmp');");
+  });
+
+  it("keeps multiline bodies on a single line via newline escapes", () => {
+    const output = transpileCurl(
+      "curl --data-raw $'line1\\nline2' https://api.example.com/echo",
+      "apex",
+    );
+    const bodyLine = output.split("\n").find((line) => line.startsWith("req.setBody"));
+    expect(bodyLine).toBe("req.setBody('line1\\nline2');");
+  });
+
+  it("omits setBody and setHeader for bare GET requests", () => {
+    const output = transpileCurl("curl https://api.example.com/health", "apex");
+    expect(output).toContain("req.setMethod('GET');");
+    expect(output).not.toContain("setBody");
+    expect(output).not.toContain("setHeader");
+  });
+});

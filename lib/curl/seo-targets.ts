@@ -53,7 +53,7 @@ export const CURL_SEO_TARGETS: CurlSeoTarget[] = [
     description:
       "Paste a cURL command and instantly convert it to idiomatic JavaScript fetch(), axios, or Python requests code. 100% client-side — commands, headers, and tokens never leave your browser.",
     heroDescription:
-      "One input, three targets: paste any cURL command and switch between fetch(), axios, and Python requests output instantly. The parser understands quoting rules, line continuations, data flags, and basic auth — and the whole pipeline runs offline in your browser.",
+      "One input, eight targets: paste any cURL command and switch between fetch(), axios, Python requests, PHP Guzzle, Go, C#, Java OkHttp, and Salesforce Apex output instantly. The parser understands quoting rules, line continuations, data flags, and basic auth — and the whole pipeline runs offline in your browser.",
     keywords: [
       "curl converter",
       "curl to code",
@@ -120,7 +120,7 @@ export const CURL_SEO_TARGETS: CurlSeoTarget[] = [
       {
         question: "Which programming languages can I convert cURL to?",
         answer:
-          "Three targets are supported today: native JavaScript/TypeScript fetch() with async/await, axios using axios.request(), and Python 3 using the requests library. Dedicated landing pages for each target are linked below.",
+          "Eight targets are supported: JavaScript fetch(), axios, Python requests, PHP Guzzle, Go net/http, C# HttpClient, Java OkHttp, and Salesforce Apex HttpRequest. Dedicated landing pages for each target are linked below.",
       },
       {
         question: "What happens if my cURL command is malformed?",
@@ -821,6 +821,105 @@ export const CURL_SEO_TARGETS: CurlSeoTarget[] = [
         question: "Can I reuse the OkHttpClient across requests?",
         answer:
           "You should — OkHttp performs best when its client is shared. Move the OkHttpClient declaration to a field or DI provider; the request-building chain needs no changes.",
+      },
+    ],
+  },
+  {
+    slug: "curl-to-apex",
+    target: "apex",
+    title: "cURL to Salesforce Apex HttpRequest Converter (Offline) | SyntaxFiddle",
+    heading: "cURL to Salesforce Apex HttpRequest Converter — Offline & Secure",
+    description:
+      "Instantly convert cURL commands into Salesforce Apex HttpRequest code. 100% offline execution ensures your enterprise API tokens never leave your browser.",
+    heroDescription:
+      "Paste a cURL command and get a ready-to-run Apex script: a HttpRequest with setEndpoint, setMethod, and setHeader calls, an EncodingUtil-powered Authorization header when you pass -u, and Http.send with System.debug logging. The whole conversion runs in your browser, so org credentials and API tokens never leave your machine.",
+    keywords: [
+      "curl to apex",
+      "curl to salesforce apex",
+      "curl to apex converter",
+      "convert curl to apex",
+      "curl to httprequest",
+      "salesforce apex http request generator",
+      "apex callout generator",
+      "curl command to apex code",
+    ],
+    featureList: [
+      "Emits a complete, runnable Apex script — HttpRequest setup, Http.send execution, and System.debug logging included",
+      "Single quotes escaped to \\' and backslashes doubled so every generated string literal compiles in Apex",
+      "-u basic auth becomes 'Basic ' + EncodingUtil.base64Encode(Blob.valueOf('user:pass')) at Apex runtime",
+      "JSON bodies minified onto a single line to stay inside Apex string-literal limits",
+      "100% client-side conversion — enterprise tokens and org credentials never leave your browser",
+    ],
+    facts: [
+      PRIVACY_FACT,
+      SPEED_FACT,
+      {
+        icon: "code",
+        title: "Anonymous-Apex ready",
+        description:
+          "Paste the output straight into the Developer Console — request setup, send, and debug lines included.",
+      },
+    ],
+    sections: [
+      {
+        heading: "How cURL maps to Apex HttpRequest",
+        body: [
+          "The generated code follows the canonical Salesforce callout shape: HttpRequest req = new HttpRequest(); followed by req.setEndpoint(...) with your URL, req.setMethod(...) with the verb uppercased, and one req.setHeader(name, value) call per -H flag, in the same order curl sends them. Execution uses the standard Http http = new Http(); HttpResponse res = http.send(req); pair, with System.debug lines printing the status code and response body.",
+          "The output is valid anonymous Apex: copy it into the Developer Console (Debug → Open Execute Anonymous Window) and run it as-is, or lift the request-building block into a class method. Bare GET requests simply omit setBody and setHeader when your command carried no headers or data.",
+        ],
+      },
+      {
+        heading: "Single-quote escaping and Apex string-literal limits",
+        body: [
+          "Apex string literals are delimited by single quotes, which is exactly where naive converters break. This tool escapes every single quote as \\' and doubles every backslash to \\\\ across the URL, header values, and body, so pasted JSON with apostrophes, Windows paths, or regex fragments compiles cleanly. Newlines inside raw bodies are emitted as \\n escapes, keeping every literal on a single source line.",
+          "JSON bodies are re-serialized in minified form onto that single line — no multi-line literals that break mid-string when pasted into the Developer Console, and no pretty-print padding that inflates the payload toward Apex's compiled string-literal length limits. The bytes you send are exactly the bytes curl would send.",
+        ],
+      },
+      {
+        heading: "Basic auth through EncodingUtil",
+        body: [
+          "When your command carries -u user:pass — or credentials embedded in the URL — the converter emits req.setHeader('Authorization', 'Basic ' + EncodingUtil.base64Encode(Blob.valueOf('user:pass')));, the idiomatic Apex pattern. The base64 encoding happens at runtime inside your org, computed by Salesforce with correct UTF-8 semantics instead of being baked into the snippet as an opaque precomputed string.",
+          "An explicit Authorization header from your cURL command always wins: bearer tokens and API keys pass through untouched, and the generated Basic header is suppressed so the request never carries two conflicting credentials.",
+        ],
+      },
+      {
+        heading: "Running the generated callout in Salesforce",
+        body: [
+          "Apex callouts can only reach endpoints you have whitelisted: add the host under Setup → Remote Site Settings, or configure a Named Credential and swap the endpoint for callout:My_Credential/path. Wrap http.send(req) in a try/catch for System.CalloutException so DNS failures, timeouts, and unexpected redirects surface the way production code expects.",
+          "Keep Salesforce governor limits in mind when adapting the snippet: Apex allows 100 callouts per transaction, req.setTimeout() accepts up to 120,000 milliseconds, and a callout cannot follow uncommitted DML in the same transaction. It is a stricter environment than curl, but the generated request itself transfers unchanged.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Is this cURL to Apex converter really free and private?",
+        answer:
+          "Yes. The page ships as static HTML and JavaScript, and the transpiler runs entirely in your browser — commands containing org credentials, session IDs, or API tokens are never uploaded, stored, or logged.",
+      },
+      {
+        question: "Where can I run the generated Apex code?",
+        answer:
+          "Anywhere Apex runs. The snippet is valid anonymous Apex — paste it into the Developer Console's Execute Anonymous Window — or move the request-building lines into an Apex class or test method unchanged.",
+      },
+      {
+        question: "How is basic auth (-u) converted for Apex?",
+        answer:
+          "The converter emits an Authorization header built with EncodingUtil.base64Encode(Blob.valueOf('user:pass')), so the base64 encoding runs at runtime inside Salesforce with correct UTF-8 handling — the same pattern the Apex documentation uses.",
+      },
+      {
+        question: "How does the converter escape quotes for Apex strings?",
+        answer:
+          "Apex uses single-quoted strings, so every single quote in your URL, headers, or body is escaped to \\' and every backslash is doubled. Newlines become \\n escapes so each literal stays on one source line.",
+      },
+      {
+        question: "Why is my JSON body minified to a single line?",
+        answer:
+          "Multi-line string literals are fragile to paste into the Developer Console, and padded bodies push against Apex's compiled string-literal length limits. Minifying keeps the payload byte-identical to what curl sends while staying safe to copy.",
+      },
+      {
+        question: "Why does the generated callout fail with an 'unauthorized endpoint' error?",
+        answer:
+          "Salesforce blocks callouts to hosts that are not whitelisted. Add the endpoint under Setup → Remote Site Settings, or configure a Named Credential and reference it as callout:My_Credential in setEndpoint — the rest of the generated code works unchanged.",
       },
     ],
   },

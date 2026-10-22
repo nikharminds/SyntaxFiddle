@@ -27,6 +27,7 @@ const JSON_SCHEMA_CTA: Partial<Record<TranspileTarget, { href: string; label: st
   axios: { href: "/json-to-typescript/", label: "TypeScript interface" },
   python: { href: "/json-to-pydantic/", label: "Pydantic model" },
   go: { href: "/json-to-go-struct/", label: "Go struct" },
+  apex: { href: "/json-to-zod/", label: "Zod schema" },
 };
 
 const TARGETS: Array<{ value: TranspileTarget; label: string }> = [
@@ -37,6 +38,7 @@ const TARGETS: Array<{ value: TranspileTarget; label: string }> = [
   { value: "go", label: "Go" },
   { value: "csharp", label: "C#" },
   { value: "java", label: "Java" },
+  { value: "apex", label: "Apex" },
 ];
 
 const TARGET_LABELS: Record<TranspileTarget, string> = {
@@ -47,7 +49,100 @@ const TARGET_LABELS: Record<TranspileTarget, string> = {
   go: "Go net/http",
   csharp: "C# HttpClient",
   java: "Java OkHttp",
+  apex: "Salesforce Apex",
 };
+
+type OutputTokenKind = "plain" | "string" | "comment" | "keyword" | "number";
+
+const OUTPUT_TOKEN_STYLES: Record<OutputTokenKind, string> = {
+  plain: "text-zinc-200",
+  string: "text-emerald-300",
+  comment: "text-zinc-500 italic",
+  keyword: "text-sky-300",
+  number: "text-amber-300",
+};
+
+const JS_KEYWORDS = new Set([
+  "import", "export", "from", "const", "let", "var", "function", "async", "await",
+  "new", "return", "if", "else", "for", "while", "try", "catch", "throw", "class",
+  "typeof", "of", "in", "default", "true", "false", "null", "undefined",
+]);
+
+const PYTHON_KEYWORDS = new Set([
+  "import", "from", "as", "def", "return", "if", "elif", "else", "for", "while",
+  "in", "is", "not", "and", "or", "class", "with", "try", "except", "raise",
+  "lambda", "pass", "print", "True", "False", "None",
+]);
+
+const PHP_KEYWORDS = new Set([
+  "use", "new", "function", "return", "if", "else", "elseif", "foreach", "for",
+  "while", "as", "echo", "print", "class", "public", "private", "protected",
+  "static", "const", "try", "catch", "throw", "array", "true", "false", "null",
+]);
+
+const GO_KEYWORDS = new Set([
+  "package", "import", "func", "var", "const", "type", "struct", "map", "chan",
+  "interface", "return", "if", "else", "for", "range", "switch", "case",
+  "default", "defer", "go", "make", "new", "nil", "true", "false", "string",
+  "int", "byte", "error",
+]);
+
+const C_LIKE_KEYWORDS = new Set([
+  "using", "import", "new", "public", "private", "protected", "static", "final",
+  "void", "class", "return", "if", "else", "for", "foreach", "while", "switch",
+  "case", "try", "catch", "finally", "throw", "throws", "const", "var", "async",
+  "await", "true", "false", "null", "string", "int", "bool", "boolean",
+]);
+
+const APEX_KEYWORDS = new Set([
+  ...C_LIKE_KEYWORDS,
+  "global", "override", "virtual", "extends", "implements", "instanceof",
+  "HttpRequest", "HttpResponse", "Http", "System", "EncodingUtil", "Blob",
+  "String", "Integer", "Boolean", "List", "Map", "Set",
+]);
+
+const TARGET_KEYWORDS: Record<TranspileTarget, ReadonlySet<string>> = {
+  fetch: JS_KEYWORDS,
+  axios: JS_KEYWORDS,
+  python: PYTHON_KEYWORDS,
+  php: PHP_KEYWORDS,
+  go: GO_KEYWORDS,
+  csharp: C_LIKE_KEYWORDS,
+  java: C_LIKE_KEYWORDS,
+  apex: APEX_KEYWORDS,
+};
+
+const OUTPUT_TOKEN_PATTERN =
+  /(\/\/[^\n]*)|('(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*")|(-?\d+(?:\.\d+)?)|([A-Za-z_$][A-Za-z0-9_$]*)/g;
+
+function renderOutputLine(line: string, target: TranspileTarget): React.ReactNode[] {
+  const keywords = TARGET_KEYWORDS[target];
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let fragmentKey = 0;
+  for (const match of line.matchAll(OUTPUT_TOKEN_PATTERN)) {
+    const index = match.index ?? 0;
+    const token = match[0];
+    if (index > lastIndex) {
+      parts.push(<span key={fragmentKey++}>{line.slice(lastIndex, index)}</span>);
+    }
+    let kind: OutputTokenKind = "plain";
+    if (match[1]) kind = "comment";
+    else if (match[2]) kind = "string";
+    else if (match[3]) kind = "number";
+    else if (match[4] && keywords.has(token)) kind = "keyword";
+    parts.push(
+      <span key={fragmentKey++} className={OUTPUT_TOKEN_STYLES[kind]}>
+        {token}
+      </span>,
+    );
+    lastIndex = index + token.length;
+  }
+  if (lastIndex < line.length) {
+    parts.push(<span key={fragmentKey++}>{line.slice(lastIndex)}</span>);
+  }
+  return parts;
+}
 
 const EXAMPLES = [
   {
@@ -304,7 +399,14 @@ export function CurlConverterWorkspace({ initialTarget = "fetch" }: CurlConverte
               >
                 {active && output ? (
                   <pre className="h-full overflow-auto whitespace-pre p-4 font-mono text-[13px] leading-6 text-zinc-200">
-                    <code>{output}</code>
+                    <code>
+                      {output.split("\n").map((line, index, lines) => (
+                        <React.Fragment key={index}>
+                          {renderOutputLine(line, entry.value)}
+                          {index < lines.length - 1 ? "\n" : null}
+                        </React.Fragment>
+                      ))}
+                    </code>
                   </pre>
                 ) : null}
                 {active && !output ? (

@@ -7,6 +7,7 @@ import { generatePhp } from "./generators/php";
 import { generateGo } from "./generators/go";
 import { generateCsharp } from "./generators/csharp";
 import { generateJava } from "./generators/java";
+import { generateApex } from "./generators/apex";
 
 export type TranspileTarget =
   | "fetch"
@@ -15,7 +16,8 @@ export type TranspileTarget =
   | "php"
   | "go"
   | "csharp"
-  | "java";
+  | "java"
+  | "apex";
 
 export { parseCurl, CurlParseError, isCurlParseError } from "./parser";
 export type { ParsedCurlRequest } from "./parser";
@@ -26,6 +28,7 @@ export { generatePhp } from "./generators/php";
 export { generateGo } from "./generators/go";
 export { generateCsharp } from "./generators/csharp";
 export { generateJava } from "./generators/java";
+export { generateApex } from "./generators/apex";
 
 const GENERATORS: Record<TranspileTarget, (request: ParsedCurlRequest) => string> = {
   fetch: generateFetch,
@@ -35,13 +38,14 @@ const GENERATORS: Record<TranspileTarget, (request: ParsedCurlRequest) => string
   go: generateGo,
   csharp: generateCsharp,
   java: generateJava,
+  apex: generateApex,
 };
 
 export function transpileCurl(curlCommand: string, target: TranspileTarget): string {
   const generator = GENERATORS[target];
   if (!generator) {
     throw new Error(
-      `Unsupported transpile target "${String(target)}". Expected one of: fetch, axios, python, php, go, csharp, java.`,
+      `Unsupported transpile target "${String(target)}". Expected one of: fetch, axios, python, php, go, csharp, java, apex.`,
     );
   }
   return generator(parseCurl(curlCommand));

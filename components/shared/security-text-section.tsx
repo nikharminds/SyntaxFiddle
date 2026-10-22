@@ -43,8 +43,8 @@ const SECURITY_TOOLS: SecurityTool[] = [
     badge: "Zero Upload",
     badgeVariant: "success",
     description:
-      "Paste a cURL command and get idiomatic fetch(), axios, or Python requests code — bearer tokens, cookies, and basic-auth credentials are parsed by your browser and never transmitted.",
-    chips: ["fetch · axios · Python", "Basic auth & JSON bodies", "100 ms live transpile"],
+      "Paste a cURL command and get idiomatic code in eight targets — from fetch() and Python requests to Salesforce Apex HttpRequest. Bearer tokens, cookies, and basic-auth credentials are parsed by your browser and never transmitted.",
+    chips: ["fetch · axios · Python · Apex", "Basic auth & JSON bodies", "100 ms live transpile"],
     icon: Terminal,
     cta: "Open converter",
   },

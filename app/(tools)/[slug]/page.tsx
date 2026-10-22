@@ -37,6 +37,7 @@ const TARGET_BADGES: Record<TranspileTarget, string> = {
   go: "Go net/http Output",
   csharp: "C# HttpClient Output",
   java: "Java OkHttp Output",
+  apex: "Salesforce Apex Output",
 };
 
 const JSON_TARGET_BADGES: Record<string, string> = {

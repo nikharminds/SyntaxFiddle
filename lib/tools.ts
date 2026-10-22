@@ -101,9 +101,9 @@ export const TOOLS: Tool[] = [
   {
     slug: "curl-converter",
     name: "cURL Converter",
-    tagline: "Convert cURL commands to fetch, axios, and Python requests.",
+    tagline: "Convert cURL commands to fetch, axios, Python, Apex, and more.",
     description:
-      "Paste a cURL command and transpile it to idiomatic JavaScript fetch(), axios, or Python requests code — headers, JSON bodies, basic auth, and query strings included. 100% client-side, zero uploads.",
+      "Paste a cURL command and transpile it to idiomatic code in eight targets — JavaScript fetch(), axios, Python requests, PHP Guzzle, Go net/http, C# HttpClient, Java OkHttp, or Salesforce Apex HttpRequest. Headers, JSON bodies, basic auth, and query strings included. 100% client-side, zero uploads.",
     status: "live",
     icon: "curl",
     conversions: [
@@ -114,6 +114,7 @@ export const TOOLS: Tool[] = [
       { label: "cURL to Go", href: "/curl-to-go/" },
       { label: "cURL to C#", href: "/curl-to-csharp/" },
       { label: "cURL to Java", href: "/curl-to-java/" },
+      { label: "cURL to Apex", href: "/curl-to-apex/" },
     ],
     keywords: [
       "curl",
@@ -128,6 +129,8 @@ export const TOOLS: Tool[] = [
       "curl to csharp",
       "curl to java",
       "curl to okhttp",
+      "curl to apex",
+      "curl to salesforce apex",
       "curl to requests",
       "curl to javascript",
       "transpile",
