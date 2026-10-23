@@ -97,7 +97,7 @@ export default function HomePage() {
                   href="/cron"
                   className="inline-flex h-10 items-center gap-2 rounded-lg bg-emerald-500 px-5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400"
                 >
-                  Open Cron Visualizer
+                  Open Cron Tester &amp; Generator
                   <ArrowRight size={15} />
                 </Link>
                 <Link

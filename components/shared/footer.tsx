@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Terminal } from "lucide-react";
 
 const TOOL_LINKS = [
-  { href: "/cron", label: "Cron Expression Visualizer" },
+  { href: "/cron", label: "Cron Expression Tester & Generator" },
   { href: "/csv", label: "CSV & Excel Converter" },
   { href: "/regex", label: "Regex Tester" },
   { href: "/jwt", label: "JWT Decoder" },
@@ -14,6 +14,7 @@ const COMPANY_LINKS = [
   { href: "/about", label: "About" },
   { href: "/privacy", label: "Privacy Policy" },
   { href: "/terms", label: "Terms of Service" },
+  { href: "https://github.com/nikharminds/SyntaxFiddle", label: "GitHub (open source)" },
 ];
 
 export function Footer() {

@@ -35,6 +35,7 @@ const POPULAR_SLUGS = [
   "first-day-of-month",
   "last-day-of-month",
   "aws-eventbridge-every-hour",
+  "aws-eventbridge-daily-at-8am",
   "quartz-every-10-seconds",
   "spring-boot-daily",
   "cloudflare-every-5-minutes",
@@ -52,7 +53,7 @@ export default function CronPage() {
               <Badge variant="outline">Zero-latency parsing</Badge>
             </>
           }
-          title="Cron Expression Visualizer & Simulator"
+          title="Cron Expression Tester & Generator"
           description={
             <>
               Type an expression — validation, the plain-English translation, and the run

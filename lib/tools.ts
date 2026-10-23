@@ -19,7 +19,7 @@ export type Tool = {
 export const TOOLS: Tool[] = [
   {
     slug: "cron",
-    name: "Cron Expression Visualizer",
+    name: "Cron Tester & Generator",
     tagline: "Parse, explain, and simulate cron schedules in plain English.",
     description:
       "An interactive playground for cron expressions with support for Unix, Quartz, AWS EventBridge, and Cloudflare dialects, human-readable explanations, and next-run previews.",

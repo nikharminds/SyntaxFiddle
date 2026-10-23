@@ -44,7 +44,9 @@ const DESCRIPTION_DIALECTS: Record<CronDialect, string> = {
 type Seed = readonly [slug: string, expression: string, name: string, dialect?: CronDialect];
 
 function describe(name: string, expression: string, dialect: CronDialect): string {
-  return `The ${DESCRIPTION_DIALECTS[dialect]} cron expression "${expression}" runs a task ${name.toLowerCase()}. Preview the next run times in your timezone, read the plain-English translation, and copy ready-to-paste snippets for crontab, Node.js, GitHub Actions, and AWS EventBridge.`;
+  const awsWrapper =
+    dialect === "aws" ? ` In an EventBridge rule you write it as cron(${expression}).` : "";
+  return `The ${DESCRIPTION_DIALECTS[dialect]} cron expression "${expression}" runs a task ${name.toLowerCase()}.${awsWrapper} Preview the next run times in your timezone, read the plain-English translation, and copy ready-to-paste snippets for crontab, Node.js, GitHub Actions, and AWS EventBridge.`;
 }
 
 function buildCategory(category: RecipeCategory, seeds: Seed[]): CronRecipe[] {
@@ -70,6 +72,7 @@ const MINUTES: Seed[] = [
   ["every-5-minutes", "*/5 * * * *", "Every 5 Minutes"],
   ["every-6-minutes", "*/6 * * * *", "Every 6 Minutes"],
   ["every-7-minutes", "*/7 * * * *", "Every 7 Minutes"],
+  ["every-8-minutes", "*/8 * * * *", "Every 8 Minutes"],
   ["every-9-minutes", "*/9 * * * *", "Every 9 Minutes"],
   ["every-10-minutes", "*/10 * * * *", "Every 10 Minutes"],
   ["every-12-minutes", "*/12 * * * *", "Every 12 Minutes"],
@@ -89,6 +92,7 @@ const HOURLY: Seed[] = [
   ["every-hour", "0 * * * *", "Every Hour"],
   ["hourly-at-quarter-past", "15 * * * *", "Hourly at Quarter Past"],
   ["hourly-at-half-past", "30 * * * *", "Hourly at Half Past"],
+  ["hourly-at-quarter-to", "45 * * * *", "Hourly at Quarter To"],
   ["every-2-hours", "0 */2 * * *", "Every 2 Hours"],
   ["every-3-hours", "0 */3 * * *", "Every 3 Hours"],
   ["every-4-hours", "0 */4 * * *", "Every 4 Hours"],
@@ -119,11 +123,13 @@ const DAILY: Seed[] = [
   ["daily-at-11am", "0 11 * * *", "Daily at 11 AM"],
   ["daily-at-noon", "0 12 * * *", "Daily at Noon"],
   ["daily-at-1pm", "0 13 * * *", "Daily at 1 PM"],
+  ["daily-at-2pm", "0 14 * * *", "Daily at 2 PM"],
   ["daily-at-3pm", "0 15 * * *", "Daily at 3 PM"],
   ["daily-at-4pm", "0 16 * * *", "Daily at 4 PM"],
   ["daily-at-5pm", "0 17 * * *", "Daily at 5 PM"],
   ["daily-at-6pm", "0 18 * * *", "Daily at 6 PM"],
   ["daily-at-7pm", "0 19 * * *", "Daily at 7 PM"],
+  ["daily-at-8pm", "0 20 * * *", "Daily at 8 PM"],
   ["daily-at-9pm", "0 21 * * *", "Daily at 9 PM"],
   ["daily-at-10pm", "0 22 * * *", "Daily at 10 PM"],
   ["daily-at-11-30pm", "30 23 * * *", "Daily at 11:30 PM"],
@@ -168,6 +174,7 @@ const MONTHLY: Seed[] = [
   ["every-6-months", "0 0 1 */6 *", "Every 6 Months"],
   ["twice-a-year", "0 0 1 1,7 *", "Twice a Year (Jan 1 and Jul 1)"],
   ["yearly-on-january-1st", "0 0 1 1 *", "Yearly on January 1st"],
+  ["never-runs", "0 0 31 2 *", "That Never Runs (February 31st)"],
 ];
 
 const PLATFORM: Seed[] = [
@@ -177,6 +184,8 @@ const PLATFORM: Seed[] = [
   ["aws-eventbridge-every-12-hours", "0 0/12 * * ? *", "Every 12 Hours (AWS EventBridge)", "aws"],
   ["aws-eventbridge-daily-at-midnight", "0 0 * * ? *", "Daily at Midnight (AWS EventBridge)", "aws"],
   ["aws-eventbridge-daily-at-1am", "0 1 * * ? *", "Daily at 1 AM (AWS EventBridge)", "aws"],
+  ["aws-eventbridge-daily-at-8am", "0 8 * * ? *", "Daily at 8 AM (AWS EventBridge)", "aws"],
+  ["aws-eventbridge-daily-at-9am", "0 9 * * ? *", "Daily at 9 AM (AWS EventBridge)", "aws"],
   ["aws-eventbridge-weekdays-at-9am", "0 9 ? * MON-FRI *", "Weekdays at 9 AM (AWS EventBridge)", "aws"],
   ["aws-eventbridge-every-monday-at-9am", "0 9 ? * MON *", "Every Monday at 9 AM (AWS EventBridge)", "aws"],
   ["aws-eventbridge-first-day-of-month", "0 0 1 * ? *", "First Day of Month (AWS EventBridge)", "aws"],

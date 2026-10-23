@@ -45,7 +45,9 @@ export async function generateMetadata({
   if (!recipe) return {};
 
   const analysis = getRecipeAnalysis(slug);
-  const title = `${recipe.expression} - ${recipe.title} | SyntaxFiddle`;
+  const displayExpression =
+    recipe.dialect === "aws" ? `cron(${recipe.expression})` : recipe.expression;
+  const title = `${displayExpression} - ${recipe.title} | SyntaxFiddle`;
   const description = `${analysis.humanReadable}. ${recipe.description}`;
   const url = `${SITE_URL}/cron/${recipe.slug}/`;
 
