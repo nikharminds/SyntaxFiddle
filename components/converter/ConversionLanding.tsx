@@ -9,6 +9,7 @@ import { PrivacyNote } from "@/components/converter/PrivacyNote";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { buildSeoSections } from "@/lib/converter/copy";
+import { getPairExtraFaqs } from "@/lib/converter/pair-copy";
 import {
   relatedConversionPairs,
   type ConversionPair,
@@ -42,6 +43,7 @@ export function buildPairMetadata(pair: ConversionPair): Metadata {
 export function ConversionLanding({ pair }: { pair: ConversionPair }) {
   const related = relatedConversionPairs(pair);
   const sections = buildSeoSections(pair);
+  const faqs = [...pair.faqs, ...getPairExtraFaqs(pair.slug)];
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6">
@@ -129,7 +131,7 @@ export function ConversionLanding({ pair }: { pair: ConversionPair }) {
           Frequently asked questions
         </h2>
         <div className="mt-6 space-y-6">
-          {pair.faqs.map((faq) => (
+          {faqs.map((faq) => (
             <div key={faq.question}>
               <h3 className="text-base font-semibold text-zinc-100">{faq.question}</h3>
               <p className="mt-2 text-sm leading-6 text-zinc-400">{faq.answer}</p>

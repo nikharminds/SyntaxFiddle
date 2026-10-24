@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { DIALECTS } from "@/lib/cron/dialects";
 import { analyzeCronExpression, type CronAnalysisResult } from "@/lib/cron/engine";
+import { getRecipeDeepContent, type RecipeDeepContent } from "@/lib/cron/deep-content";
 import { getRecipe, RECIPES } from "@/lib/cron/recipes";
 import { buildRecipeFaqs, buildRecipeSnippets } from "@/lib/cron/seo";
 import { SITE_URL } from "@/lib/site";
@@ -84,12 +85,14 @@ export default async function CronRecipePage({
   const analysis = getRecipeAnalysis(slug);
   const faqs = buildRecipeFaqs(recipe, analysis.humanReadable, analysis.fields);
   const snippets = buildRecipeSnippets(recipe);
+  const deepContent: RecipeDeepContent | undefined = getRecipeDeepContent(slug);
+  const allFaqs = deepContent ? [...faqs, ...deepContent.extraFaqs] : faqs;
   const dialectLabel = DIALECTS[recipe.dialect].label;
   const url = `${SITE_URL}/cron/${recipe.slug}/`;
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-      <StructuredData recipe={recipe} url={url} faqs={faqs} />
+      <StructuredData recipe={recipe} url={url} faqs={allFaqs} />
 
       <nav aria-label="Breadcrumb">
         <ol className="flex list-none flex-wrap items-center gap-1.5 text-xs text-zinc-500">
@@ -213,12 +216,35 @@ export default async function CronRecipePage({
 
       <AdUnit format="rectangle" className="mt-10" />
 
-      <section aria-labelledby="faq-heading" className="mt-10 max-w-3xl">
+      {deepContent ? (
+        <section aria-labelledby="deep-dive-heading" className="mt-14 max-w-3xl">
+          <h2 id="deep-dive-heading" className="text-xl font-bold tracking-tight text-zinc-100">
+            Running &ldquo;{recipe.expression}&rdquo; in production
+          </h2>
+          <div className="mt-6 space-y-10">
+            {deepContent.sections.map((section) => (
+              <div key={section.heading}>
+                <h3 className="text-base font-semibold text-zinc-100">{section.heading}</h3>
+                {section.body.map((paragraph) => (
+                  <p
+                    key={paragraph.slice(0, 48)}
+                    className="mt-3 text-sm leading-7 text-zinc-400"
+                  >
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <section aria-labelledby="faq-heading" className="mt-14 max-w-3xl">
         <h2 className="text-xl font-bold tracking-tight text-zinc-100" id="faq-heading">
           Frequently asked questions
         </h2>
         <div className="mt-4 space-y-6">
-          {faqs.map((faq) => (
+          {allFaqs.map((faq) => (
             <div key={faq.question}>
               <h3 className="text-base font-semibold text-zinc-100">{faq.question}</h3>
               <p className="mt-2 text-sm leading-6 text-zinc-400">{faq.answer}</p>

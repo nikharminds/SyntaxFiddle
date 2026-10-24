@@ -1,5 +1,13 @@
+import * as XLSX from "xlsx";
 import type { GenerateRequest } from "./protocol";
-import type { ParsedTable, SoqlOptions, SqlOptions, XmlOptions } from "./types";
+import type {
+  CsvOptions,
+  MarkdownOptions,
+  ParsedTable,
+  SoqlOptions,
+  SqlOptions,
+  XmlOptions,
+} from "./types";
 
 const IDENTIFIER_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
 const INTEGER_PATTERN = /^-?\d+$/;
@@ -120,6 +128,111 @@ export function generateSoqlIn(table: ParsedTable, options: SoqlOptions): string
   return parts.join("\n");
 }
 
+export function generateCsv(table: ParsedTable, options?: CsvOptions): string {
+  const delimiter = options?.delimiter ?? ",";
+  const quote = (value: unknown): string => {
+    const text =
+      value === null || value === undefined ? "" : String(value);
+    if (
+      text.includes(delimiter) ||
+      text.includes('"') ||
+      text.includes("\n") ||
+      text.includes("\r") ||
+      text !== text.trim()
+    ) {
+      return `"${text.replace(/"/g, '""')}"`;
+    }
+    return text;
+  };
+  const lines = [table.headers.map(quote).join(delimiter)];
+  for (const row of table.rows) {
+    lines.push(table.headers.map((header) => quote(row[header])).join(delimiter));
+  }
+  return lines.join("\n");
+}
+
+function isNumericText(value: string): boolean {
+  return /^-?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$/.test(value);
+}
+
+export function generateMarkdown(table: ParsedTable, options?: MarkdownOptions): string {
+  const alignNumbers = options?.alignNumbers ?? true;
+  const escapeCell = (value: unknown): string => {
+    const text = value === null || value === undefined ? "" : String(value);
+    return text.replace(/\|/g, "\\|").replace(/\r?\n/g, "<br>");
+  };
+
+  const alignments = table.headers.map((header) => {
+    if (!alignNumbers) return "left";
+    const values = table.rows
+      .map((row) => String(row[header] ?? ""))
+      .filter((value) => value.length > 0);
+    if (values.length === 0) return "left";
+    return values.every(isNumericText) ? "right" : "left";
+  });
+
+  const lines: string[] = [
+    `| ${table.headers.map(escapeCell).join(" | ")} |`,
+    `| ${alignments.map((align) => (align === "right" ? "---:" : "---")).join(" | ")} |`,
+  ];
+  for (const row of table.rows) {
+    lines.push(`| ${table.headers.map((header) => escapeCell(row[header])).join(" | ")} |`);
+  }
+  return lines.join("\n");
+}
+
+const YAML_PLAIN_SAFE = /^[A-Za-z_][A-Za-z0-9_.\-/ ]*$/;
+const YAML_AMBIGUOUS =
+  /^(?:true|false|yes|no|on|off|null|~|-|\?|:|\d|\+|\.|'|"|[[{]&|.*[:#][\s&*!|>%@`]|.*\s$|.*^\s)/s;
+
+function yamlScalar(value: unknown): string {
+  if (value === null || value === undefined || String(value) === "") return '""';
+  if (typeof value === "boolean" || typeof value === "number") return String(value);
+  const text = String(value);
+  if (YAML_AMBIGUOUS.test(text) || !YAML_PLAIN_SAFE.test(text)) {
+    return JSON.stringify(text);
+  }
+  return text;
+}
+
+export function generateYaml(table: ParsedTable): string {
+  if (table.rows.length === 0) return "[]";
+  const lines: string[] = [];
+  for (const row of table.rows) {
+    lines.push(`- ${yamlScalar(table.headers[0] !== undefined ? row[table.headers[0]] : "")}`);
+    for (const header of table.headers.slice(1)) {
+      lines.push(`  ${header}: ${yamlScalar(row[header])}`);
+    }
+  }
+  return lines.join("\n");
+}
+
+/**
+ * Generates a real .xlsx workbook (base64-encoded) with typed cells:
+ * numbers, booleans, and strings keep their types; nulls become empty cells.
+ * Column widths are sized to content (capped at 40 chars).
+ */
+export function generateExcelBase64(table: ParsedTable): string {
+  const aoa: unknown[][] = [
+    table.headers,
+    ...table.rows.map((row) => table.headers.map((header) => row[header] ?? null)),
+  ];
+  const sheet = XLSX.utils.aoa_to_sheet(aoa);
+  sheet["!cols"] = table.headers.map((header) => {
+    let width = String(header).length;
+    for (const row of table.rows) {
+      const value = row[header];
+      if (value !== null && value !== undefined) {
+        width = Math.max(width, String(value).length);
+      }
+    }
+    return { wch: Math.min(Math.max(width + 2, 8), 40) };
+  });
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, sheet, "Sheet1");
+  return XLSX.write(workbook, { bookType: "xlsx", type: "base64" }) as string;
+}
+
 export function runConversion(table: ParsedTable, request: GenerateRequest): string {
   switch (request.target) {
     case "sql":
@@ -130,6 +243,14 @@ export function runConversion(table: ParsedTable, request: GenerateRequest): str
       return generateSoqlIn(table, request.options);
     case "xml":
       return generateXml(table, request.options);
+    case "csv":
+      return generateCsv(table, request.options);
+    case "markdown":
+      return generateMarkdown(table, request.options);
+    case "excel":
+      return generateCsv(table);
+    case "yaml":
+      return generateYaml(table);
   }
 }
 

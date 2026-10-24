@@ -1,5 +1,5 @@
-export type SourceFormat = "csv" | "excel";
-export type TargetFormat = "sql" | "json" | "soql-in" | "xml";
+export type SourceFormat = "csv" | "excel" | "json" | "sql" | "xml";
+export type TargetFormat = "sql" | "json" | "soql-in" | "xml" | "csv" | "markdown" | "yaml" | "excel";
 
 export interface ParsedTable {
   headers: string[];
@@ -23,4 +23,14 @@ export interface SoqlOptions {
 export interface XmlOptions {
   rootElement: string;
   rowElement: string;
+}
+
+export type CsvDelimiter = "," | ";" | "\t" | "|";
+
+export interface CsvOptions {
+  delimiter: CsvDelimiter;
+}
+
+export interface MarkdownOptions {
+  alignNumbers: boolean;
 }

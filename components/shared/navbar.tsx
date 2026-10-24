@@ -17,23 +17,61 @@ const NAV_LINKS = [
   { href: "/curl-converter", label: "cURL Converter", badge: undefined as string | undefined },
 ] as const;
 
-const DATA_SCHEMA_LINKS = [
-  { href: "/json-to-zod/", label: "JSON to Zod" },
-  { href: "/json-to-typescript/", label: "JSON to TypeScript" },
-  { href: "/json-to-pydantic/", label: "JSON to Pydantic" },
-  { href: "/json-to-go-struct/", label: "JSON to Go Struct" },
+const DATA_GROUPS: {
+  label: string;
+  href: string;
+  items: { href: string; label: string }[];
+}[] = [
+  {
+    label: "JSON to Schema",
+    href: "/json-to-schema/",
+    items: [
+      { href: "/json-to-zod/", label: "JSON to Zod" },
+      { href: "/json-to-typescript/", label: "JSON to TypeScript" },
+      { href: "/json-to-pydantic/", label: "JSON to Pydantic" },
+      { href: "/json-to-go-struct/", label: "JSON to Go Struct" },
+    ],
+  },
+  {
+    label: "XML to Schema",
+    href: "/xml-to-schema/",
+    items: [
+      { href: "/xml-to-zod/", label: "XML to Zod" },
+      { href: "/xml-to-typescript/", label: "XML to TypeScript" },
+      { href: "/xml-to-pydantic/", label: "XML to Pydantic" },
+      { href: "/xml-to-go-struct/", label: "XML to Go Struct" },
+    ],
+  },
 ];
 
 const CONVERTER_GROUPS: {
   label: string;
   items: { href: string; label: string }[];
-}[] = (["csv", "excel"] as SourceFormat[]).map((source) => ({
-  label: source === "csv" ? "From CSV" : "From Excel",
-  items: CONVERSION_PAIRS.filter((pair) => pair.source === source).map((pair) => ({
-    href: `/${pair.slug}/`,
-    label: `${pair.sourceLabel} to ${pair.targetLabel}`,
+}[] = [
+  ...( ["csv", "excel"] as SourceFormat[]).map((source) => ({
+    label: source === "csv" ? "From CSV" : "From Excel",
+    items: CONVERSION_PAIRS.filter((pair) => pair.source === source).map((pair) => ({
+      href: `/${pair.slug}/`,
+      label: `${pair.sourceLabel} to ${pair.targetLabel}`,
+    })),
   })),
-}));
+  {
+    label: "From XML",
+    items: CONVERSION_PAIRS.filter((pair) => pair.source === "xml").map((pair) => ({
+      href: `/${pair.slug}/`,
+      label: `${pair.sourceLabel} to ${pair.targetLabel}`,
+    })),
+  },
+  {
+    label: "To Spreadsheet",
+    items: CONVERSION_PAIRS.filter((pair) => pair.source === "json" || pair.source === "sql").map(
+      (pair) => ({
+        href: `/${pair.slug}/`,
+        label: `${pair.sourceLabel} to ${pair.targetLabel}`,
+      }),
+    ),
+  },
+];
 
 type MenuId = "converters" | "data";
 
@@ -54,7 +92,7 @@ export function Navbar() {
     CONVERSION_PAIRS.some(
       (pair) => pathname === `/${pair.slug}` || pathname.startsWith(`/${pair.slug}/`),
     );
-  const dataActive = pathname.startsWith("/json-to");
+  const dataActive = pathname.startsWith("/json-to") || pathname.startsWith("/xml-to");
 
   useEffect(() => {
     if (!openMenu) return;
@@ -202,33 +240,36 @@ export function Navbar() {
             </button>
             <div
               hidden={openMenu !== "data"}
-              className="absolute left-0 top-full z-50 mt-1 w-[300px] rounded-xl border border-zinc-800 bg-zinc-950 p-4 shadow-xl shadow-black/40"
+              className="absolute left-0 top-full z-50 mt-1 w-[440px] rounded-xl border border-zinc-800 bg-zinc-950 p-5 shadow-xl shadow-black/40"
             >
-              <Link
-                href="/json-to-schema/"
-                onClick={closeMenus}
-                className="flex items-center justify-between gap-2 whitespace-nowrap rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20"
-              >
-                JSON to Schema
-                <span aria-hidden>→</span>
-              </Link>
-              <p className="px-1 pb-1.5 pt-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
-                Schema targets
-              </p>
-              <ul className="list-none space-y-0.5">
-                {DATA_SCHEMA_LINKS.map((item) => (
-                  <li key={item.href}>
+              <div className="grid grid-cols-2 gap-5">
+                {DATA_GROUPS.map((group) => (
+                  <div key={group.label}>
                     <Link
-                      href={item.href}
+                      href={group.href}
                       onClick={closeMenus}
-                      aria-current={isActive(item.href) ? "page" : undefined}
-                      className={renderSubLinkClasses(isActive(item.href))}
+                      className="flex items-center justify-between gap-2 whitespace-nowrap rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20"
                     >
-                      {item.label}
+                      {group.label}
+                      <span aria-hidden>→</span>
                     </Link>
-                  </li>
+                    <ul className="mt-2 list-none space-y-0.5">
+                      {group.items.map((item) => (
+                        <li key={item.href}>
+                          <Link
+                            href={item.href}
+                            onClick={closeMenus}
+                            aria-current={isActive(item.href) ? "page" : undefined}
+                            className={renderSubLinkClasses(isActive(item.href))}
+                          >
+                            {item.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -312,40 +353,41 @@ export function Navbar() {
             </button>
             <div
               id="mobile-converters-section"
-              hidden={openSection !== "converters"}
-              className="pb-1"
-            >
-              {CONVERSION_PAIRS.map((pair) => (
-                <Link
-                  key={pair.slug}
-                  href={`/${pair.slug}/`}
-                  onClick={closeMenus}
-                  aria-current={isActive(`/${pair.slug}`) ? "page" : undefined}
-                  className={cn(
-                    "block rounded-md py-1.5 pl-6 pr-3 text-sm transition-colors",
-                    isActive(`/${pair.slug}`)
-                      ? "bg-zinc-900 text-zinc-100"
-                      : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
-                  )}
-                >
-                  {pair.sourceLabel} to {pair.targetLabel}
-                </Link>
-              ))}
-            </div>
-
-            <Link
-              href="/json-to-schema/"
-              onClick={closeMenus}
-              aria-current={isActive("/json-to-schema") ? "page" : undefined}
+              aria-hidden={openSection !== "converters"}
               className={cn(
-                "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                isActive("/json-to-schema")
-                  ? "bg-zinc-900 text-zinc-100"
-                  : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
+                "grid transition-all duration-200 ease-in-out",
+                openSection === "converters"
+                  ? "grid-rows-[1fr] opacity-100"
+                  : "grid-rows-[0fr] opacity-0",
               )}
+              inert={openSection !== "converters"}
             >
-              JSON to Schema
-            </Link>
+              <div className="overflow-hidden">
+                {CONVERTER_GROUPS.map((group) => (
+                  <div key={group.label} className="pt-2">
+                    <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                      {group.label}
+                    </p>
+                    {group.items.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={closeMenus}
+                        aria-current={isActive(item.href) ? "page" : undefined}
+                        className={cn(
+                          "block rounded-md py-1.5 pl-5 pr-3 text-sm transition-colors",
+                          isActive(item.href)
+                            ? "bg-zinc-900 text-zinc-100"
+                            : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
+                        )}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
 
             <button
               type="button"
@@ -366,25 +408,51 @@ export function Navbar() {
             </button>
             <div
               id="mobile-data-section"
-              hidden={openSection !== "data"}
-              className="pb-1"
+              aria-hidden={openSection !== "data"}
+              className={cn(
+                "grid transition-all duration-200 ease-in-out",
+                openSection === "data"
+                  ? "grid-rows-[1fr] opacity-100"
+                  : "grid-rows-[0fr] opacity-0",
+              )}
+              inert={openSection !== "data"}
             >
-              {DATA_SCHEMA_LINKS.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={closeMenus}
-                  aria-current={isActive(item.href) ? "page" : undefined}
-                  className={cn(
-                    "block rounded-md py-1.5 pl-6 pr-3 text-sm transition-colors",
-                    isActive(item.href)
-                      ? "bg-zinc-900 text-zinc-100"
-                      : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
-                  )}
-                >
-                  {item.label}
-                </Link>
-              ))}
+              <div className="overflow-hidden">
+                <div className="grid grid-cols-2 gap-2 pb-1 pt-2">
+                  {DATA_GROUPS.map((group) => (
+                    <div key={group.label}>
+                      <Link
+                        href={group.href}
+                        onClick={closeMenus}
+                        className={cn(
+                          "block rounded-md px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-colors",
+                          isActive(group.href)
+                            ? "text-emerald-400"
+                            : "text-zinc-500 hover:text-zinc-300",
+                        )}
+                      >
+                        {group.label}
+                      </Link>
+                      {group.items.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={closeMenus}
+                          aria-current={isActive(item.href) ? "page" : undefined}
+                          className={cn(
+                            "block rounded-md py-1.5 pl-4 pr-2 text-sm transition-colors",
+                            isActive(item.href)
+                              ? "bg-zinc-900 text-zinc-100"
+                              : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
+                          )}
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <p className="flex items-center gap-2 px-3 pb-1 pt-2 text-xs text-zinc-500">

@@ -1,4 +1,11 @@
-import { parseCsv, parseExcel } from "../lib/converter/parsers";
+import {
+  parseCsv,
+  parseExcel,
+  parseJsonTable,
+  parseSqlInserts,
+  parseXmlTable,
+} from "../lib/converter/parsers";
+import { generateExcelBase64 } from "../lib/converter/generators";
 import { runConversion } from "../lib/converter/generators";
 import type { ParsedTable } from "../lib/converter/types";
 import type {
@@ -19,6 +26,30 @@ ctx.onmessage = async (event: MessageEvent<ConverterWorkerRequest>) => {
   try {
     if (message.type === "parse-csv") {
       const table = await parseCsv(message.text);
+      table.fileName = message.fileName;
+      cache = table;
+      cacheKey = message.id;
+      ctx.postMessage({ id: message.id, ok: true, kind: "parse", table, tableId: message.id });
+      return;
+    }
+    if (message.type === "parse-json") {
+      const table = parseJsonTable(message.text);
+      table.fileName = message.fileName;
+      cache = table;
+      cacheKey = message.id;
+      ctx.postMessage({ id: message.id, ok: true, kind: "parse", table, tableId: message.id });
+      return;
+    }
+    if (message.type === "parse-sql") {
+      const table = parseSqlInserts(message.text);
+      table.fileName = message.fileName;
+      cache = table;
+      cacheKey = message.id;
+      ctx.postMessage({ id: message.id, ok: true, kind: "parse", table, tableId: message.id });
+      return;
+    }
+    if (message.type === "parse-xml") {
+      const table = parseXmlTable(message.text);
       table.fileName = message.fileName;
       cache = table;
       cacheKey = message.id;
@@ -46,7 +77,15 @@ ctx.onmessage = async (event: MessageEvent<ConverterWorkerRequest>) => {
       throw new Error("Parsed table is no longer available — run the conversion again");
     }
     const output = runConversion(table, message.request);
-    ctx.postMessage({ id: message.id, ok: true, kind: "generate", output });
+    const binary =
+      message.request.target === "excel"
+        ? {
+            mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            base64: generateExcelBase64(table),
+            filename: "syntaxfiddle-output.xlsx",
+          }
+        : undefined;
+    ctx.postMessage({ id: message.id, ok: true, kind: "generate", output, binary });
   } catch (error) {
     ctx.postMessage({
       id: message.id,

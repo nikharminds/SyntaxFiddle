@@ -9,6 +9,29 @@ import type { ConverterStatus } from "@/hooks/useConverter";
 import { cn } from "@/lib/utils";
 
 const CSV_ACCEPT_PATTERN = /\.(csv|tsv|txt)$/i;
+const TEXT_ACCEPT_PATTERN = /\.(csv|tsv|txt|json|ndjson|sql|ddl|xml)$/i;
+
+const PLACEHOLDERS: Record<"csv" | "json" | "sql" | "xml", string> = {
+  csv: "Paste CSV or TSV text here — delimiters (, ; tab |) are detected automatically.\n\nOr drop a .csv / .tsv / .txt file onto this pane.",
+  json: 'Paste JSON here — an array of objects, a single object, an array of arrays,\nor an object of column arrays. Nested objects are flattened with dot paths.\n\nExample:\n[{"name": "Ada", "role": "admin"}]',
+  sql: "Paste INSERT INTO ... VALUES statements here — multi-row tuples and\nmultiple statements are merged into one table.\n\nExample:\nINSERT INTO users (id, name) VALUES (1, 'Ada'), (2, 'Grace');",
+  xml: 'Paste XML here — the repeated record element (e.g. <book> inside <books>)\nbecomes the table rows, with attributes as @-prefixed columns.\n\nExample:\n<books><book id="1"><title>Ada</title></book></books>', 
+};
+
+const PASTE_ARIA: Record<"csv" | "json" | "sql" | "xml", string> = {
+  csv: "CSV input",
+  json: "JSON input",
+  sql: "SQL input",
+  xml: "XML input",
+};
+
+const SOURCE_BADGES: Record<SourceFormat, string> = {
+  csv: "CSV text",
+  excel: "Excel file",
+  json: "JSON text",
+  sql: "SQL INSERTs",
+  xml: "XML document",
+};
 
 function formatBytes(bytes: number): string {
   if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -44,7 +67,7 @@ export function InputPane({
   const busy = status === "parsing" || status === "generating";
 
   const readDroppedFile = (file: File) => {
-    if (CSV_ACCEPT_PATTERN.test(file.name) && source === "csv") {
+    if (source !== "excel" && TEXT_ACCEPT_PATTERN.test(file.name)) {
       onCsvFileDrop(file);
     } else {
       onFileChange(file);
@@ -78,7 +101,7 @@ export function InputPane({
         <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">
           Input
         </h2>
-        <Badge variant="outline">{source === "csv" ? "CSV text" : "Excel file"}</Badge>
+        <Badge variant="outline">{SOURCE_BADGES[source]}</Badge>
       </div>
 
       <div
@@ -88,13 +111,13 @@ export function InputPane({
         onDragLeave={onDragLeave}
         onDrop={onDrop}
       >
-        {source === "csv" ? (
+        {source !== "excel" ? (
           <textarea
             value={csvText}
             onChange={(event) => onCsvTextChange(event.target.value)}
             spellCheck={false}
-            aria-label="CSV input"
-            placeholder={"Paste CSV or TSV text here — delimiters (, ; tab |) are detected automatically.\n\nOr drop a .csv / .tsv / .txt file onto this pane."}
+            aria-label={PASTE_ARIA[source as "csv" | "json" | "sql" | "xml"]}
+            placeholder={PLACEHOLDERS[source as "csv" | "json" | "sql" | "xml"]}
             className="h-full min-h-[320px] w-full resize-none rounded-lg border border-zinc-800 bg-zinc-950 p-3 font-mono text-xs leading-5 text-zinc-200 placeholder:text-zinc-600 focus:border-emerald-500/50 focus:outline-none"
           />
         ) : (
@@ -148,7 +171,7 @@ export function InputPane({
           }}
         />
 
-        {dragging && source === "csv" ? (
+        {dragging && source !== "excel" ? (
           <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-dashed border-emerald-500/60 bg-zinc-950/90">
             <p className="text-sm font-medium text-emerald-300">
               Drop the file to load it into the editor

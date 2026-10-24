@@ -8,6 +8,8 @@ import { generateGo } from "./generators/go";
 import { generateCsharp } from "./generators/csharp";
 import { generateJava } from "./generators/java";
 import { generateApex } from "./generators/apex";
+import { generatePowershell } from "./generators/powershell";
+import { generateHttpie } from "./generators/httpie";
 
 export type TranspileTarget =
   | "fetch"
@@ -17,7 +19,9 @@ export type TranspileTarget =
   | "go"
   | "csharp"
   | "java"
-  | "apex";
+  | "apex"
+  | "powershell"
+  | "httpie";
 
 export { parseCurl, CurlParseError, isCurlParseError } from "./parser";
 export type { ParsedCurlRequest } from "./parser";
@@ -29,6 +33,8 @@ export { generateGo } from "./generators/go";
 export { generateCsharp } from "./generators/csharp";
 export { generateJava } from "./generators/java";
 export { generateApex } from "./generators/apex";
+export { generatePowershell } from "./generators/powershell";
+export { generateHttpie } from "./generators/httpie";
 
 const GENERATORS: Record<TranspileTarget, (request: ParsedCurlRequest) => string> = {
   fetch: generateFetch,
@@ -39,13 +45,15 @@ const GENERATORS: Record<TranspileTarget, (request: ParsedCurlRequest) => string
   csharp: generateCsharp,
   java: generateJava,
   apex: generateApex,
+  powershell: generatePowershell,
+  httpie: generateHttpie,
 };
 
 export function transpileCurl(curlCommand: string, target: TranspileTarget): string {
   const generator = GENERATORS[target];
   if (!generator) {
     throw new Error(
-      `Unsupported transpile target "${String(target)}". Expected one of: fetch, axios, python, php, go, csharp, java, apex.`,
+      `Unsupported transpile target "${String(target)}". Expected one of: fetch, axios, python, php, go, csharp, java, apex, powershell, httpie.`,
     );
   }
   return generator(parseCurl(curlCommand));

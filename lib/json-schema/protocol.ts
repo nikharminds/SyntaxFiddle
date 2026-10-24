@@ -18,6 +18,16 @@ export interface JsonInferRequest {
   rootName: string;
 }
 
+export interface XmlInferRequest {
+  id: number;
+  type: "infer-xml";
+  xml: string;
+  target: SchemaTarget;
+  rootName: string;
+}
+
+export type InferRequest = JsonInferRequest | XmlInferRequest;
+
 export type JsonInferResponse =
   | {
       id: number;

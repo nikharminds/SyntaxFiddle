@@ -190,15 +190,17 @@ export default function RegexTesterPage() {
 
       <section aria-labelledby="regex-related-heading" className="mt-14">
         <h2 id="regex-related-heading" className="text-xl font-bold tracking-tight text-zinc-100">
-          Related tools
+          Test another regex flavor
         </h2>
         <Card className="mt-5 p-4 sm:p-5">
           <ul className="grid list-none gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {[
+              { href: "/regex/mysql/", label: "MySQL Regex Tester (REGEXP)" },
+              { href: "/regex/python/", label: "Python Regex Tester (re)" },
+              { href: "/regex/php/", label: "PHP Regex Tester (PCRE)" },
+              { href: "/regex/java/", label: "Java Regex Tester" },
+              { href: "/regex/dotnet/", label: "C# / .NET Regex Tester" },
               { href: "/jwt-decoder/", label: "JWT Decoder — Secure & Offline" },
-              { href: "/regex/", label: "Regex Tester workspace" },
-              { href: "/cron/", label: "Cron Expression Visualizer" },
-              { href: "/json-to-schema/", label: "JSON to Schema Converter" },
             ].map((tool) => (
               <li key={tool.href}>
                 <Link

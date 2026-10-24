@@ -1,5 +1,15 @@
 import Link from "next/link";
-import { ArrowRight, Braces, Cloud, Database, FileCode2, type LucideIcon } from "lucide-react";
+import {
+  ArrowRight,
+  Braces,
+  Cloud,
+  Database,
+  FileCode2,
+  FileSpreadsheet,
+  FileText,
+  Table,
+  type LucideIcon,
+} from "lucide-react";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { CONVERSION_PAIRS } from "@/lib/converter/routes";
@@ -10,6 +20,10 @@ const TARGET_ICONS: Record<TargetFormat, LucideIcon> = {
   json: Braces,
   "soql-in": Cloud,
   xml: FileCode2,
+  csv: Table,
+  markdown: FileText,
+  yaml: FileCode2,
+  excel: FileSpreadsheet,
 };
 
 const TARGET_TAGLINES: Record<TargetFormat, string> = {
@@ -17,6 +31,10 @@ const TARGET_TAGLINES: Record<TargetFormat, string> = {
   json: "Array-of-objects export with type preservation and minify toggle.",
   "soql-in": "Deduped, escaped WHERE IN clauses chunked at 200 values.",
   xml: "Well-formed documents with configurable root and row elements.",
+  csv: "RFC 4180 quoting with comma, semicolon, tab, or pipe delimiters.",
+  markdown: "GitHub-flavored pipe tables with numeric right-alignment.",
+  yaml: "Block-style sequence of maps with correct scalar quoting.",
+  excel: "Real .xlsx workbook with typed cells and content-sized columns.",
 };
 
 const TARGET_BADGES: Record<TargetFormat, { label: string; variant: BadgeVariant }[]> = {
@@ -36,6 +54,22 @@ const TARGET_BADGES: Record<TargetFormat, { label: string; variant: BadgeVariant
     { label: "Zero Upload", variant: "success" },
     { label: "Edge Native", variant: "info" },
   ],
+  csv: [
+    { label: "Zero Upload", variant: "success" },
+    { label: "Edge Native", variant: "info" },
+  ],
+  markdown: [
+    { label: "Zero Upload", variant: "success" },
+    { label: "Edge Native", variant: "info" },
+  ],
+  yaml: [
+    { label: "Zero Upload", variant: "success" },
+    { label: "Edge Native", variant: "info" },
+  ],
+  excel: [
+    { label: "Zero Upload", variant: "success" },
+    { label: "Typed Cells", variant: "info" },
+  ],
 };
 
 export function TabularConverters() {
@@ -53,9 +87,10 @@ export function TabularConverters() {
             Tabular Data Converters
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-            Eight dedicated CSV and Excel converters, each pre-configured for its
-            target format and statically exported to the CDN edge. Paste or drop
-            data, convert instantly — nothing ever leaves your browser.
+            Nineteen dedicated converters across CSV, Excel, JSON, SQL, and XML inputs,
+            each pre-configured for its target format and statically exported to
+            the CDN edge. Paste or drop data, convert instantly — nothing ever
+            leaves your browser.
           </p>
         </div>
         <Link

@@ -53,7 +53,7 @@ export const CURL_SEO_TARGETS: CurlSeoTarget[] = [
     description:
       "Paste a cURL command and instantly convert it to idiomatic JavaScript fetch(), axios, or Python requests code. 100% client-side — commands, headers, and tokens never leave your browser.",
     heroDescription:
-      "One input, eight targets: paste any cURL command and switch between fetch(), axios, Python requests, PHP Guzzle, Go, C#, Java OkHttp, and Salesforce Apex output instantly. The parser understands quoting rules, line continuations, data flags, and basic auth — and the whole pipeline runs offline in your browser.",
+      "One input, ten targets: paste any cURL command and switch between fetch(), axios, Python requests, PHP Guzzle, Go, C#, Java OkHttp, PowerShell, HTTPie, and Salesforce Apex output instantly. The parser understands quoting rules, line continuations, data flags, and basic auth — and the whole pipeline runs offline in your browser.",
     keywords: [
       "curl converter",
       "curl to code",
@@ -120,7 +120,7 @@ export const CURL_SEO_TARGETS: CurlSeoTarget[] = [
       {
         question: "Which programming languages can I convert cURL to?",
         answer:
-          "Eight targets are supported: JavaScript fetch(), axios, Python requests, PHP Guzzle, Go net/http, C# HttpClient, Java OkHttp, and Salesforce Apex HttpRequest. Dedicated landing pages for each target are linked below.",
+          "Ten targets are supported: JavaScript fetch(), axios, Python requests, PHP Guzzle, Go net/http, C# HttpClient, Java OkHttp, PowerShell Invoke-RestMethod, HTTPie, and Salesforce Apex HttpRequest. Dedicated landing pages for each target are linked below.",
       },
       {
         question: "What happens if my cURL command is malformed?",
@@ -305,6 +305,20 @@ export const CURL_SEO_TARGETS: CurlSeoTarget[] = [
           "Like curl, axios follows redirects for GET/HEAD by default; -k/--insecure and other TLS flags have no safe equivalent in the browser and are ignored. A GET with body data is converted to query parameters because servers and fetch-based runtimes reject GET bodies.",
         ],
       },
+      {
+        heading: "Error handling the axios way: AxiosError, validateStatus, and typed failures",
+        body: [
+          "axios throws on every non-2xx status by default — behavior curl does not have — so the honest conversion of a curl command into production axios code adds a try/catch around the call and inspects the thrown AxiosError: error.response (the server answered with a 4xx/5xx), error.request (no answer arrived), and error.code (timeout, connection reset, and the ERR_ family). That triage replaces curl's exit codes: curl --fail is roughly validateStatus restricted to <400, and curl's silent timeout is axios's error.code === 'ECONNABORTED' with the config.timeout you set on the instance.",
+          "When a 404 or 4xx is an expected outcome rather than an exception, validateStatus moves the decision into the config object — validateStatus: (status) => status < 500 — so the response flows into your then-branch with its status intact. Both patterns attach naturally to the generated axios.request(config) shape: add the key to the config object, wrap the call, and the snippet graduates from request-replicator to production citizen without restructuring.",
+        ],
+      },
+      {
+        heading: "Interceptors, retries, and shared instances",
+        body: [
+          "The config-object output composes cleanly with axios's extension points. Retry logic belongs in an adapter or an interceptor — response interceptors on a shared instance see every failed request in one place, with error.config carrying the original config object this converter emitted, making a bounded retry loop a few lines rather than a rewrite. Auth refresh is the canonical interceptor use case: a 401 interceptor re-fetches a token, mutates config.headers.Authorization, and replays the original request — impossible to express in a single curl command, natural in the axios model.",
+          "For anything beyond a one-off script, lift the generated config into a shared axios.create({...}) instance: baseURL from the command's origin, timeout from your SLO, headers common to every call. The per-request config the converter produces transfers unchanged — method, url, params, data — because axios.create defaults and per-request configs merge exactly the way the two-layer structure suggests. TypeScript users get the rest for free: annotate with axios.request<ResponseShape>(config) and the interceptor-augmented instance keeps its types.",
+        ],
+      },
     ],
     faqs: [
       {
@@ -326,6 +340,16 @@ export const CURL_SEO_TARGETS: CurlSeoTarget[] = [
         question: "Does the axios output include TypeScript types?",
         answer:
           "The snippet is plain, type-checkable JavaScript that works unchanged in TypeScript. For typed responses, annotate with a generic such as axios.request<MyType>(config).",
+      },
+      {
+        question: "How do I handle 404 and other 4xx responses without a try/catch?",
+        answer:
+          "Add validateStatus to the generated config object — validateStatus: (status) => status < 500 — and axios resolves the promise for 4xx responses instead of throwing, handing you response.status in the then-branch. That is the idiomatic translation of curl's behavior, where every response regardless of status prints and the exit code is the only signal. Keep the try/catch for genuine network failures, which no validateStatus can absorb.",
+      },
+      {
+        question: "How do I add retry logic to the generated axios code?",
+        answer:
+          "Attach a response interceptor to a shared axios instance: it receives error.config (the exact config object this converter emits), increments a retry counter stored on the config, and re-calls axios.request(error.config) with a delay — bounded to 2-3 attempts for idempotent verbs only (GET, PUT, DELETE; not POST unless your API deduplicates). axios-retry packages the same pattern if you prefer a dependency; either way the generated config never changes, because retries compose at the instance level, not the request level.",
       },
       {
         question: "Is my cURL command uploaded anywhere?",
@@ -920,6 +944,208 @@ export const CURL_SEO_TARGETS: CurlSeoTarget[] = [
         question: "Why does the generated callout fail with an 'unauthorized endpoint' error?",
         answer:
           "Salesforce blocks callouts to hosts that are not whitelisted. Add the endpoint under Setup → Remote Site Settings, or configure a Named Credential and reference it as callout:My_Credential in setEndpoint — the rest of the generated code works unchanged.",
+      },
+    ],
+  },
+  {
+    slug: "curl-to-powershell",
+    target: "powershell",
+    title: "cURL to PowerShell Converter (Invoke-RestMethod) | SyntaxFiddle",
+    heading: "cURL to PowerShell Converter — Invoke-RestMethod, Splatting-Ready",
+    description:
+      "Convert cURL commands to Windows PowerShell Invoke-RestMethod calls instantly — splatted parameter hashtables, here-string bodies, and basic auth pre-encoded. 100% client-side, nothing is uploaded.",
+    heroDescription:
+      "Paste a cURL command and get production-shaped PowerShell: an @{} parameter hashtable splatted into Invoke-RestMethod, JSON bodies in single-quoted here-strings (no interpolation), headers as a hashtable, and -u credentials pre-encoded as a Basic Authorization header. The whole conversion runs offline in your browser.",
+    keywords: [
+      "curl to powershell",
+      "curl to powershell converter",
+      "convert curl to powershell",
+      "curl to invoke-restmethod",
+      "curl to invoke-webrequest",
+      "curl powershell online",
+      "curl to pwsh",
+      "powershell http request generator",
+      "convert curl command to powershell",
+      "curl to windows",
+    ],
+    featureList: [
+      "Emits an @{} parameter hashtable splatted with @params — the idiomatic PowerShell 7 shape",
+      "Bodies embedded in single-quoted here-strings: no interpolation, JSON stays verbatim",
+      "Headers as a PowerShell hashtable with single-quote escaping handled",
+      "-u basic auth pre-encoded into an Authorization: Basic header at conversion time",
+      "Invoke-RestMethod output piped through ConvertTo-Json for readable printing",
+    ],
+    facts: [
+      PRIVACY_FACT,
+      SPEED_FACT,
+      {
+        icon: "code" as const,
+        title: "Splatting-native output",
+        description:
+          "A parameter hashtable you can extend with TimeoutSec, MaximumRedirection, or -SslProtocol in one line.",
+      },
+    ],
+    sections: [
+      {
+        heading: "How cURL maps to Invoke-RestMethod",
+        body: [
+          "PowerShell's Invoke-RestMethod is the REST-native sibling of Invoke-WebRequest: it sends the request and parses the response for you — JSON arrives as objects, not strings — which is why the generated snippet ends with $response | ConvertTo-Json -Depth 10 rather than response-body plumbing. The converter maps your command onto a $params = @{...} hashtable — Uri, Method, Headers, Body, ContentType — and splats it with Invoke-RestMethod @params, the community style that keeps the call readable and trivially extensible with TimeoutSec, RetryCount logic, or session variables.",
+          "Method names follow PowerShell's convention (Get, Post, Put, Patch, Delete, Head, Options; custom verbs pass through as written), and the Content-Type header routes into the -ContentType parameter the cmdlet actually consumes, matching how Invoke-RestMethod separates content headers from request headers. A GET with no body emits just Uri and Method — no dead parameters — and query strings survive verbatim in the URL exactly as curl would send them.",
+        ],
+      },
+      {
+        heading: "Here-strings, quoting, and the '@' edge case",
+        body: [
+          "The generated body uses a single-quoted here-string (@' ... '@) — PowerShell's verbatim multi-line literal with no interpolation — so JSON payloads appear exactly as they travel, with $characters and backslashes immune to PowerShell's parser. Header values and the URL use single-quoted strings with apostrophes doubled per PowerShell rules, the same escaping discipline the other generators apply for their languages. The one pathological input — a body containing a line that starts with '@ — falls back to a single-quoted one-line literal so the here-string can never terminate early.",
+          "PowerShell's parsing quirk worth knowing when you adapt the snippet: the closing '@ of a here-string must be at the start of a line with nothing before it — which the generated formatting guarantees — and Invoke-RestMethod sends the here-string's bytes untouched, including the leading and trailing newlines the literal adds around your payload. Servers ignore trailing newlines in practice; the pedantically exact can trim inside the hashtable assignment.",
+        ],
+      },
+      {
+        heading: "Auth, TLS, and Windows PowerShell 5.1 versus PowerShell 7",
+        body: [
+          "Basic auth from -u — or credentials embedded in the URL — is base64-encoded at conversion time and emitted as an Authorization header entry in the Headers hashtable, byte-identical to what curl sends with no runtime encoding code in the snippet. Explicit Authorization headers (bearer tokens) pass through untouched, and when both exist the precomputed Basic header is suppressed to avoid sending two credentials. PowerShell's -Authentication Basic -Credential alternative needs a PSCredential object and prompts interactively in some hosts — the header form is the copy-paste-safe one.",
+          "The output targets PowerShell 7+ (pwsh) on any OS and works unchanged on Windows PowerShell 5.1 for plain http/https endpoints. The 5.1 caveats live in TLS: older hosts default to TLS 1.0/1.1 and need [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 before the call, and some corporate proxies require -Proxy credentials. PowerShell 7 defaults sensibly and adds -SslProtocol and -SkipCertificateCheck for the -k/--insecure cases curl users ask about — one added hashtable line each.",
+        ],
+      },
+      {
+        heading: "From snippet to script: errors, pagination, and reuse",
+        body: [
+          "Wrap the call in try/catch for production use: Invoke-RestMethod throws on non-2xx (like curl --fail, unlike plain curl), and the catch receives $_.Exception.Response with status code and headers for retry decisions. The splat shape makes the natural next steps one-liners: add TimeoutSec = 30 for curl's --max-time, MaximumRedirection for --max-redirs, and -MaximumRetryCount with -RetryIntervalSec for the retry behavior curl users usually hand-roll.",
+          "For repeated calls, lift $params into a function or a configuration file and splat from there; the hashtable composes with PowerShell's parameter binding exactly the way it reads. Response handling is already idiomatic — Invoke-RestMethod returns parsed objects, so $response.items | Where-Object {...} works directly — and ConvertTo-Json -Depth 10 in the snippet exists purely so a raw run prints something readable in the console.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Does this converter produce Invoke-WebRequest or Invoke-RestMethod?",
+        answer:
+          "Invoke-RestMethod — the REST-optimized cmdlet that parses JSON, XML, and form responses into objects automatically. It is the right default for API calls and the closest single-command equivalent to curl's request-plus-body workflow. Invoke-WebRequest remains the tool for raw HTML scraping and full response-object access (status codes, headers, raw content); converting the generated hashtable between the two is a cmdlet-name swap because the parameters match.",
+      },
+      {
+        question: "Is the output for Windows PowerShell 5.1 or PowerShell 7?",
+        answer:
+          "Both, for standard http/https requests — the generated splat and here-string syntax run unchanged in either. Two 5.1-specific gaps to know: older hosts may need [Net.ServicePointManager]::SecurityProtocol set to TLS 1.2 before the call, and -SslProtocol / -SkipCertificateCheck (the curl -k equivalents) exist only in PowerShell 7. On any OS with pwsh installed, the snippet works as generated.",
+      },
+      {
+        question: "How is basic auth (-u) converted for PowerShell?",
+        answer:
+          "The user:password pair is base64-encoded during conversion and emitted as an Authorization: Basic entry inside the Headers hashtable — byte-identical to what curl puts on the wire, with zero runtime encoding code to maintain. If your command already carries an Authorization header (a bearer token, for example), it passes through untouched and the generated Basic header is skipped so two credentials never collide.",
+      },
+      {
+        question: "Why is my JSON body in an @'...'@ here-string?",
+        answer:
+          "Single-quoted here-strings are PowerShell's verbatim literal: nothing interpolates, so $variables, backslashes, and quotes in your payload survive untouched — the same guarantee JSON needs. The alternative (a double-quoted string) would interpolate $tokens and require escaping every quote; the here-string keeps the payload copy-paste-safe and diff-friendly. The closing '@ always sits at the start of its line, exactly as PowerShell requires.",
+      },
+      {
+        question: "How do I add a timeout or retry to the generated command?",
+        answer:
+          "Add hashtable entries — that is the point of the splat shape. TimeoutSec = 30 reproduces curl's --max-time; -MaximumRetryCount 3 -RetryIntervalSec 2 (switch-style parameters appended after @params) adds bounded retries; MaximumRedirection covers --max-redirs. Because $params is just a hashtable, versioning it in a config file or passing different values per environment is plain PowerShell, not a converter feature.",
+      },
+      {
+        question: "Is my cURL command uploaded anywhere during conversion?",
+        answer:
+          "No. The converter is a static page that transpiles entirely in your browser — commands with production tokens, cookies, or basic-auth credentials are never transmitted, stored, or logged.",
+      },
+    ],
+  },
+  {
+    slug: "curl-to-httpie",
+    target: "httpie",
+    title: "cURL to HTTPie Converter — Idiomatic CLI Commands | SyntaxFiddle",
+    heading: "cURL to HTTPie Converter — Idiomatic Terminal Commands",
+    description:
+      "Convert cURL commands to readable HTTPie commands instantly: JSON bodies become key=value items, headers become Name:value tokens, and basic auth uses --auth. 100% client-side.",
+    heroDescription:
+      "Paste a cURL command and get the HTTPie equivalent that humans actually enjoy typing: JSON payloads as key=value and key:=value items instead of escaped --data strings, headers as Name:value tokens, -u credentials mapped to --auth, and non-JSON bodies passed verbatim with --raw. Conversion runs entirely in your browser.",
+    keywords: [
+      "curl to httpie",
+      "curl to httpie converter",
+      "convert curl to httpie",
+      "curl to http",
+      "httpie command generator",
+      "curl to httpie online",
+      "httpie equivalent",
+      "translate curl to httpie",
+      "httpie syntax converter",
+      "curl vs httpie",
+    ],
+    featureList: [
+      "JSON bodies become HTTPie items: key=value for strings, key:=value for numbers, booleans, and nested JSON",
+      "Headers as Name:value tokens in the command line, no -H flags",
+      "-u basic auth mapped to --auth user:pass",
+      "Non-JSON bodies passed verbatim through --raw",
+      "GET requests emit the bare http URL form; methods appear only when needed",
+    ],
+    facts: [
+      PRIVACY_FACT,
+      SPEED_FACT,
+      {
+        icon: "terminal" as const,
+        title: "Human-readable output",
+        description:
+          "The command HTTPie users would have written by hand — items, not flags.",
+      },
+    ],
+    sections: [
+      {
+        heading: "How cURL maps to HTTPie syntax",
+        body: [
+          "HTTPie's whole reason to exist is that API calls should read like English: http POST api.example.com/todos title=Ship done:=false sends JSON with the right Content-Type — no -X, no -H 'Content-Type: application/json', no shell-escaped --data blob. The converter applies each of those translations: the verb becomes a bare argument (omitted entirely for GET, HTTPie's default), every -H flag becomes a Name:value token, and the URL keeps its query string verbatim.",
+          "JSON bodies get the deepest translation. A --data-raw '{\"title\": \"Ship it\", \"done\": false}' becomes title='Ship it' done:=false — strings as key=value items, non-strings (numbers, booleans, null, nested arrays and objects) as key:=value with the JSON preserved. HTTPie assembles the object, sets Content-Type: application/json, and serializes it — which is why the converter drops the Content-Type header when items take over. Any JSON body that is not a flat object of scalars (arrays, deeply nested roots) falls back to --raw, HTTPie's escape hatch for verbatim payloads.",
+        ],
+      },
+      {
+        heading: "Auth, forms, and what maps to what",
+        body: [
+          "Basic auth is a first-class citizen in HTTPie: -u user:pass becomes --auth user:pass, and HTTPie sends the Authorization header without you encoding anything. Bearer tokens stay as header tokens (Authorization:'Bearer ...') because that is the idiomatic HTTPie spelling too. Form data (--data 'a=1&b=2' with the urlencoded content type) maps to --raw or to a=form style depending on shape; HTTPie's = signals form fields just as : signals JSON raw values, and the converter keeps the wire format faithful either way.",
+          "The flags that disappear are the point: -X vanishes into the bare verb, -H into tokens, -d into items, -s into nothing (HTTPie colorizes and formats responses by default), and --compressed into HTTPie's transparent gzip handling. Flags with no HTTPie equivalent — curl's intricate --resolve, --connect-to, DNS pinning — have no honest translation and simply do not appear; the generated command is the readable core of your request, not a flag-for-flag simulation.",
+        ],
+      },
+      {
+        heading: "Running, downloading, and streaming with HTTPie",
+        body: [
+          "The generated command is complete terminal syntax: install HTTPie (pip install httpie, brew install httpie, or your package manager), paste, and run. Responses arrive syntax-highlighted with headers and body separated by default — the --verbose curl users reach for is effectively always on. Add --download when the endpoint returns a file (HTTPie shows a progress bar and names the output), and --stream for server-sent events and chunked endpoints where curl users would add -N.",
+          "For API exploration, the item syntax compounds nicely after conversion: add query parameters as key==value directly in the command, append --json to force JSON for GETs, and use --offline --print=H to preview the exact request HTTPie would send — the local echo of what you just converted. Sessions (--session=name) persist auth and cookies across calls, replacing curl's cookie-jar flag gymnastics with one readable switch.",
+        ],
+      },
+      {
+        heading: "When to stay with curl (and how this tool respects that)",
+        body: [
+          "curl remains the right tool for scripts that must run everywhere — it ships on effectively every Unix-like box, in every container image, and in CI runners where installing HTTPie is friction. HTTPie shines at the interactive end: exploring an API, debugging a webhook, teaching a teammate a request. Converting between them is not choosing a side; it is moving a request description between the tool that scripted it and the tool that displays it best.",
+          "This converter keeps the translation conservative for that reason: nothing is invented, nothing is dropped silently, and the wire semantics — method, URL, headers, body bytes — are preserved exactly. When a construct has no HTTPie form, the output says so rather than approximating. The command you paste out of here behaves like the command you pasted in, just in the syntax designed for humans.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Why did my -H 'Content-Type: application/json' disappear?",
+        answer:
+          "Because HTTPie sets it automatically when JSON items are used. When your body converts to key=value / key:=value items, HTTPie assembles the JSON object and sends the correct Content-Type itself — an explicit header would be redundant. For non-JSON bodies (XML, plain text, arbitrary payloads) the converter keeps all headers and passes the body through --raw verbatim.",
+      },
+      {
+        question: "What is the difference between key=value, key:=value, and key==value?",
+        answer:
+          "key=value sends a JSON string field, key:=value sends a raw JSON value (number, boolean, null, nested object or array), and key==value appends a URL query parameter. done:=true sends the JSON boolean true while done=true would send the string \"true\" — the := form is how numbers and booleans survive conversion from your curl JSON body intact.",
+      },
+      {
+        question: "How does basic auth (-u) convert to HTTPie?",
+        answer:
+          "-u user:pass becomes --auth user:pass. HTTPie builds and sends the Authorization: Basic header at runtime — no base64 step for you to manage — and prompts for the password interactively if you omit it after --auth, which is the convenient pattern for terminals (use --auth-type and session persistence for repeated calls). Bearer tokens convert as an Authorization header token, matching idiomatic HTTPie usage.",
+      },
+      {
+        question: "Why does my GET command have no method in it?",
+        answer:
+          "Because GET is HTTPie's default: http example.com/api is a GET request, and adding the word GET would be noise. The converter omits the method for GET and includes it (POST, PUT, PATCH, DELETE, and anything custom) for every other verb — the same convention HTTPie's own documentation uses. If you prefer the explicit form, adding the method word to the generated command is always safe.",
+      },
+      {
+        question: "What happens to flags like -k, -s, and --compressed?",
+        answer:
+          "They dissolve into HTTPie's defaults or dedicated flags. -s (silent) maps to nothing because HTTPie formats rather than dumps output; --compressed is handled transparently for gzip responses; -k (insecure TLS) has --verify=no in HTTPie when you truly need it — the converter leaves TLS verification on, the safe default, and the flag is a one-token addition if your environment requires it.",
+      },
+      {
+        question: "Is my cURL command uploaded anywhere during conversion?",
+        answer:
+          "No. The page is static and the transpiler runs entirely in your browser — commands containing tokens, cookies, or credentials never leave your machine.",
       },
     ],
   },

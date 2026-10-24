@@ -7,6 +7,7 @@ import { PageHero } from "@/components/shared/page-hero";
 import { ToolSchema } from "@/components/schema/ToolSchema";
 import { CurlConverterWorkspace } from "@/components/tools/curl-converter/workspace";
 import { JsonConverterWorkspace } from "@/components/tools/json-converter/workspace";
+import { XmlConverterWorkspace } from "@/components/tools/xml-converter/workspace";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { CURL_SEO_TARGETS, getCurlSeoTarget } from "@/lib/curl/seo-targets";
@@ -17,11 +18,19 @@ import {
   JSON_SCHEMA_SEO_TARGETS,
 } from "@/lib/json-schema/seo-targets";
 import type { JsonSchemaSeoFactIcon } from "@/lib/json-schema/seo-targets";
+import {
+  getXmlSchemaSeoTarget,
+  XML_SCHEMA_SEO_TARGETS,
+} from "@/lib/xml-schema/seo-targets";
+import type { XmlSchemaSeoFactIcon } from "@/lib/xml-schema/seo-targets";
 import { SITE_URL } from "@/lib/site";
 
 export const dynamicParams = false;
 
-const FACT_ICONS: Record<CurlSeoFactIcon | JsonSchemaSeoFactIcon, typeof Lock> = {
+const FACT_ICONS: Record<
+  CurlSeoFactIcon | JsonSchemaSeoFactIcon | XmlSchemaSeoFactIcon,
+  typeof Lock
+> = {
   lock: Lock,
   zap: Zap,
   terminal: Terminal,
@@ -38,6 +47,8 @@ const TARGET_BADGES: Record<TranspileTarget, string> = {
   csharp: "C# HttpClient Output",
   java: "Java OkHttp Output",
   apex: "Salesforce Apex Output",
+  powershell: "PowerShell Output",
+  httpie: "HTTPie Command Output",
 };
 
 const JSON_TARGET_BADGES: Record<string, string> = {
@@ -49,11 +60,14 @@ const JSON_TARGET_BADGES: Record<string, string> = {
 
 type Landing =
   | { kind: "curl"; data: (typeof CURL_SEO_TARGETS)[number] }
-  | { kind: "json-schema"; data: (typeof JSON_SCHEMA_SEO_TARGETS)[number] };
+  | { kind: "json-schema"; data: (typeof JSON_SCHEMA_SEO_TARGETS)[number] }
+  | { kind: "xml-schema"; data: (typeof XML_SCHEMA_SEO_TARGETS)[number] };
 
 function resolveLanding(slug: string): Landing | undefined {
   const jsonTarget = getJsonSchemaSeoTarget(slug);
   if (jsonTarget) return { kind: "json-schema", data: jsonTarget };
+  const xmlTarget = getXmlSchemaSeoTarget(slug);
+  if (xmlTarget) return { kind: "xml-schema", data: xmlTarget };
   const curlTarget = getCurlSeoTarget(slug);
   if (curlTarget) return { kind: "curl", data: curlTarget };
   return undefined;
@@ -63,6 +77,7 @@ export function generateStaticParams(): { slug: string }[] {
   return [
     ...CURL_SEO_TARGETS.map((target) => ({ slug: target.slug })),
     ...JSON_SCHEMA_SEO_TARGETS.map((target) => ({ slug: target.slug })),
+    ...XML_SCHEMA_SEO_TARGETS.map((target) => ({ slug: target.slug })),
   ];
 }
 
@@ -81,7 +96,9 @@ export async function generateMetadata({
   const privacyDescription =
     landing.kind === "curl"
       ? `${data.description} Free, offline, and zero-upload — conversion happens entirely in your browser.`
-      : `${data.description} Zero-upload by design: your JSON never leaves this browser tab.`;
+      : landing.kind === "xml-schema"
+        ? `${data.description} Zero-upload by design: your XML never leaves this browser tab.`
+        : `${data.description} Zero-upload by design: your JSON never leaves this browser tab.`;
 
   return {
     title: { absolute: data.title },
@@ -119,11 +136,13 @@ export default async function ToolLandingPage({
   const isCurl = kind === "curl";
   const relatedTargets = isCurl
     ? CURL_SEO_TARGETS.filter((entry) => entry.slug !== data.slug)
-    : JSON_SCHEMA_SEO_TARGETS.filter((entry) => entry.slug !== data.slug);
+    : landing.kind === "xml-schema"
+      ? XML_SCHEMA_SEO_TARGETS.filter((entry) => entry.slug !== data.slug)
+      : JSON_SCHEMA_SEO_TARGETS.filter((entry) => entry.slug !== data.slug);
   const targetBadge = isCurl
     ? data.target
       ? TARGET_BADGES[data.target]
-      : "7 Code Targets"
+      : "10 Code Targets"
     : JSON_TARGET_BADGES[data.target] ?? "Schema Output";
 
   return (
@@ -170,11 +189,19 @@ export default async function ToolLandingPage({
       </header>
 
       <section
-        aria-label={isCurl ? "cURL converter workspace" : "JSON to schema workspace"}
+        aria-label={
+          isCurl
+            ? "cURL converter workspace"
+            : landing.kind === "xml-schema"
+              ? "XML to schema workspace"
+              : "JSON to schema workspace"
+        }
         className="mt-8"
       >
         {isCurl ? (
           <CurlConverterWorkspace initialTarget={data.target ?? "fetch"} />
+        ) : landing.kind === "xml-schema" ? (
+          <XmlConverterWorkspace defaultTab={data.target} />
         ) : (
           <JsonConverterWorkspace defaultTab={data.target} />
         )}

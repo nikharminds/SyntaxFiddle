@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { CopyButton } from "@/components/shared/copy-button";
 import { useToast } from "@/components/ui/toast";
 import type { ParsedTable, TargetFormat } from "@/lib/converter/types";
+import type { ConverterBinary } from "@/lib/converter/protocol";
 import type { ConverterStatus } from "@/hooks/useConverter";
 import { cn } from "@/lib/utils";
 
@@ -18,9 +19,12 @@ export type ConverterOptionsState = {
   soqlField: string;
   xmlRoot: string;
   xmlRow: string;
+  csvDelimiter: "," | ";" | "\t" | "|";
+  markdownAlign: boolean;
 };
 
 export type OutputPaneProps = {
+  binary?: ConverterBinary | null;
   target: TargetFormat;
   status: ConverterStatus;
   output: string | null;
@@ -29,7 +33,9 @@ export type OutputPaneProps = {
   onOptionsChange: (patch: Partial<ConverterOptionsState>) => void;
 };
 
-type OutputLanguage = "sql" | "json" | "soql" | "xml";
+type OutputLanguage = "sql" | "json" | "soql" | "xml" | "csv" | "markdown" | "yaml";
+
+export type ConverterBinaryDownload = ConverterBinary;
 
 type TokenKind = "plain" | "string" | "comment" | "keyword" | "number";
 
@@ -49,6 +55,9 @@ const KEYWORDS: Record<OutputLanguage, ReadonlySet<string>> = {
   json: new Set(["true", "false", "null"]),
   soql: new Set(["IN", "OR", "AND", "SELECT", "WHERE", "FROM", "NOT"]),
   xml: new Set(),
+  csv: new Set(),
+  markdown: new Set(),
+  yaml: new Set(["true", "false", "null"]),
 };
 
 const TOKEN_PATTERN =
@@ -64,6 +73,14 @@ function languageForTarget(target: TargetFormat): OutputLanguage {
       return "soql";
     case "xml":
       return "xml";
+    case "csv":
+      return "csv";
+    case "markdown":
+      return "markdown";
+    case "yaml":
+      return "yaml";
+    case "excel":
+      return "csv";
   }
 }
 
@@ -139,6 +156,10 @@ const DOWNLOAD_EXTENSION: Record<TargetFormat, string> = {
   json: "json",
   "soql-in": "txt",
   xml: "xml",
+  csv: "csv",
+  markdown: "md",
+  yaml: "yaml",
+  excel: "xlsx",
 };
 
 const TARGET_LABELS: Record<TargetFormat, string> = {
@@ -146,7 +167,18 @@ const TARGET_LABELS: Record<TargetFormat, string> = {
   json: "JSON",
   "soql-in": "SOQL IN Clause",
   xml: "XML",
+  csv: "CSV",
+  markdown: "Markdown Table",
+  yaml: "YAML",
+  excel: "Excel workbook (.xlsx)",
 };
+
+const CSV_DELIMITER_OPTIONS: { value: "," | ";" | "\t" | "|"; label: string }[] = [
+  { value: ",", label: "Comma ( , )" },
+  { value: ";", label: "Semicolon ( ; )" },
+  { value: "\t", label: "Tab (TSV)" },
+  { value: "|", label: "Pipe ( | )" },
+];
 
 const MAX_PREVIEW_LINES = 1500;
 
@@ -154,6 +186,7 @@ export function OutputPane({
   target,
   status,
   output,
+  binary,
   table,
   options,
   onOptionsChange,
@@ -169,7 +202,15 @@ export function OutputPane({
   const onDownload = () => {
     if (!output) return;
     const extension = DOWNLOAD_EXTENSION[target];
-    const blob = new Blob([output], { type: "text/plain;charset=utf-8" });
+    const blob =
+      target === "excel" && binary
+        ? (() => {
+            const raw = atob(binary.base64);
+            const bytes = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; i += 1) bytes[i] = raw.charCodeAt(i);
+            return new Blob([bytes], { type: binary.mime });
+          })()
+        : new Blob([output], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -256,6 +297,38 @@ export function OutputPane({
               />
             </label>
           </>
+        ) : null}
+
+        {target === "csv" ? (
+          <label className="min-w-[160px] max-w-[220px] space-y-1.5">
+            <span className={LABEL_CLASS}>Delimiter</span>
+            <select
+              value={options.csvDelimiter}
+              onChange={(event) =>
+                onOptionsChange({
+                  csvDelimiter: event.target.value as "," | ";" | "\t" | "|",
+                })
+              }
+              className={INPUT_CLASS}
+            >
+              {CSV_DELIMITER_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+
+        {target === "markdown" ? (
+          <div className="flex items-center gap-2 pb-1.5">
+            <Switch
+              checked={options.markdownAlign}
+              onChange={(value) => onOptionsChange({ markdownAlign: value })}
+              label="Right-align numeric columns"
+            />
+            <span className={LABEL_CLASS}>Right-align numeric columns</span>
+          </div>
         ) : null}
 
         {target === "xml" ? (

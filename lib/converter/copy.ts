@@ -1,4 +1,5 @@
 import type { ConversionPair } from "./routes";
+import { getPairDeepSections } from "./pair-copy";
 
 export type SeoSection = {
   heading: string;
@@ -21,6 +22,27 @@ const SOURCE_SECTIONS: Record<
     body: [
       "The workbook is decoded entirely in your browser: the first worksheet is selected, its first row is treated as the header row, and every remaining row becomes a record. Both modern .xlsx files and the legacy .xls format are accepted, up to the 15MB client-side cap.",
       "Unlike CSV, spreadsheet cells carry real types — and that flows through the whole pipeline. Numeric amounts and true/false booleans survive into conversion natively, so SQL output gets genuine INTEGER and BOOLEAN columns instead of quoted strings, and JSON output gets numbers instead of text. Blank rows are skipped automatically, and anything over 1MB is parsed inside a background Web Worker so the tab stays fully interactive while large books decode.",
+    ],
+  },
+  json: {
+    heading: "JSON shape detection — arrays, objects, and flattening",
+    body: [
+      "The parser accepts the four shapes real JSON data arrives in: an array of objects (the canonical form — every API list endpoint), a single object (one row), an array of arrays (positional columns, first row as header), and an object of arrays (column name to values, the plotly/ dataframe encoding). No configuration is needed — the shape is detected structurally, and anything outside those forms is rejected with a precise message instead of a wrong answer.",
+      "Nested objects are flattened with dot paths — user.name becomes its own column named user.name — and array values serialize to their JSON text, so a nested API response converts without losing structure. Null becomes an empty cell, and numbers and booleans keep their native types into typed outputs. Headers are the union of keys in first-seen order, so records with missing fields convert with blanks rather than errors.",
+    ],
+  },
+  sql: {
+    heading: "INSERT statement parsing — literal values only",
+    body: [
+      "The parser reads INSERT INTO ... VALUES statements the way an import reviewer would: it extracts the column list (quoted or unquoted identifiers), every value tuple in multi-row VALUES lists, and every statement in the paste. String literals honor SQL's doubled-quote escaping (O''Brien becomes O'Brien), NULL becomes an empty cell, TRUE/FALSE become native booleans, and numeric literals keep their exact text. Statements without a column list infer positional names (column_1, column_2) from the row width.",
+      "The deliberate boundary: values must be literals. SELECT statements, placeholders/parameter markers, and subqueries have no tabular value to extract, and the parser says so plainly rather than guessing. Output from this site's own CSV/Excel-to-SQL converters round-trips perfectly — the CREATE TABLE block is skipped and the INSERT tuples parse back to the original rows, making the pair a lossless JSON-to-SQL-to-CSV bridge when you need one.",
+    ],
+  },
+  xml: {
+    heading: "Record extraction from XML documents",
+    body: [
+      "The parser reads the XML document in your browser, then locates the repeating record element depth-first — the <book> inside <books>, the <item> inside <channel>, the row element inside every export format ever shipped. That element becomes the table: one row per occurrence, with attributes surfacing as @-prefixed columns and nested elements flattening to dot paths exactly like the JSON parser. Namespaces are kept as written, so atom:feed never silently collides with a local feed element.",
+      "Scalar values are sniffed conservatively — true/false and round-trippable numbers convert to native types, while leading-zero identifiers and version strings stay text. When no repeating element exists, the converter rejects the document with a precise message instead of guessing which element you meant, and malformed XML reports the line and column so you fix the document rather than debug the output.",
     ],
   },
 };
@@ -93,6 +115,46 @@ const XML_SECTIONS: SeoSection[] = [
   },
 ];
 
+const CSV_TARGET_SECTIONS: SeoSection[] = [
+  {
+    heading: "RFC 4180 quoting and delimiter control",
+    body: [
+      "The generated CSV follows RFC 4180 exactly: fields containing the delimiter, a double quote, a line break, or leading/trailing whitespace are wrapped in quotes with internal quotes doubled — the escaping every spreadsheet, database loader, and pandas read_csv honors identically. Fields that need no quoting are emitted bare, so a clean table converts to visually clean CSV rather than a wall of unnecessary quotation marks.",
+      "The delimiter is a first-class option: comma (the default), semicolon (European spreadsheet exports), tab (TSV for shell pipelines and Excel paste), and pipe (legacy database dumps). Switching delimiters re-quotes on the fly — a field that was safe bare next to a comma gets quoted the moment you pick semicolons — so the output is always valid for the dialect you selected, never just a find-and-replace.",
+    ],
+  },
+];
+
+const MARKDOWN_TARGET_SECTIONS: SeoSection[] = [
+  {
+    heading: "GitHub-Flavored Markdown tables, escaped correctly",
+    body: [
+      "The output is a GitHub-Flavored Markdown pipe table — the format rendered natively by GitHub, GitLab, Bitbucket, and virtually every documentation site generator. Header row, delimiter row, then one line per record: exactly what READMEs and PR descriptions expect. Cells containing pipes are escaped as \\| and embedded line breaks become <br>, the two characters that would otherwise break the table structure.",
+      "Numeric columns are right-aligned automatically when the alignment option is on: every value in a column is checked, and only columns that are entirely numeric get the ---: delimiter — amounts line up under their header the way spreadsheets align them. Text columns stay left-aligned with the plain --- form, so mixed tables look intentional rather than uniformly flush-left.",
+    ],
+  },
+];
+
+const YAML_TARGET_SECTIONS: SeoSection[] = [
+  {
+    heading: "Block-style YAML with honest scalar quoting",
+    body: [
+      "The output is a block sequence of mappings — the YAML shape configuration files, docker-compose services, and Ansible inventories actually use, not flow-style JSON-in-YAML. Each row becomes a list item with one key per line, indented consistently, so the file diffs cleanly in code review and survives YAML linters that reject flow collections.",
+      "Scalar quoting is where YAML converters usually go wrong, and this one is deliberate: strings that would parse as something else — true/false, yes/no, on/off, null, numbers, or values containing colons and hashes — are emitted double-quoted, while safe strings stay bare and readable. Empty cells become \"\" rather than a bare nothing, because bare emptiness in YAML is null, not an empty string — the distinction that breaks naive converters' round-trips.",
+    ],
+  },
+];
+
+const EXCEL_TARGET_SECTIONS: SeoSection[] = [
+  {
+    heading: "A real .xlsx workbook, not CSV wearing an extension",
+    body: [
+      "The download is a genuine Office Open XML workbook: cells carry types, not text. Numbers land as numeric cells that Excel aggregates with SUM and AVERAGE, booleans land as TRUE/FALSE cells, and nulls become empty cells rather than the string 'null' — so filters, pivots, and charts behave the instant the file opens. Column widths are sized to content (capped at 40 characters) so the first impression is a readable sheet, not a wall of ####.",
+      "The preview pane shows the equivalent CSV while the workbook generates, so you can sanity-check the data before downloading. Everything — parsing, row extraction, workbook generation — runs in the same client-side pipeline as every other target, guarded by the worker and the 15MB cap.",
+    ],
+  },
+];
+
 const TARGET_SECTIONS: Record<
   ConversionPair["target"],
   SeoSection[]
@@ -101,6 +163,10 @@ const TARGET_SECTIONS: Record<
   json: JSON_SECTIONS,
   "soql-in": SOQL_SECTIONS,
   xml: XML_SECTIONS,
+  csv: CSV_TARGET_SECTIONS,
+  markdown: MARKDOWN_TARGET_SECTIONS,
+  yaml: YAML_TARGET_SECTIONS,
+  excel: EXCEL_TARGET_SECTIONS,
 };
 
 const PRIVACY_SECTION: SeoSection = {
@@ -117,6 +183,10 @@ function buildLimitsSection(pair: ConversionPair): SeoSection {
     json: "For API payloads and config embeds, prefer minified JSON; for review workflows and diffs, keep pretty-printing on.",
     "soql-in": "Remember the SOQL IN clause draws from a single column — put your IDs in one column, one per row, and let the chunker handle the rest.",
     xml: "If a downstream system validates against a specific root element name, set it in the option bar before converting so the document validates on the first try.",
+    csv: "Pick the delimiter your consumer expects before copying — switching it later means re-checking which fields got quoted.",
+    markdown: "Disable numeric right-alignment if your target renderer ignores the ---: form and renders it literally.",
+    yaml: "Paste the output into a YAML linter when targeting strict consumers — the quoting rules here favor correctness over minimalism.",
+    excel: "Open the downloaded .xlsx in Excel, Numbers, or LibreOffice — typed cells and sized columns are already in place, so pivot tables work on first open.",
   };
   return {
     heading: "Limits and practical tips",
@@ -126,15 +196,32 @@ function buildLimitsSection(pair: ConversionPair): SeoSection {
   };
 }
 
+const SOURCE_INTRO: Record<ConversionPair["source"], string> = {
+  csv: "raw delimited text",
+  excel: "Excel workbooks",
+  json: "JSON payloads",
+  sql: "SQL INSERT statements",
+  xml: "XML documents",
+};
+
+const SOURCE_INSTRUCTIONS: Record<ConversionPair["source"], string> = {
+  csv: "Paste rows straight from a spreadsheet, text editor, or database CLI into the input pane, or drop a .csv/.tsv file onto it.",
+  excel: "Drop a .xlsx or .xls workbook onto the input pane — the first worksheet is picked up automatically.",
+  json: "Paste an array of objects (or a single object) into the input pane — nested objects are flattened with dot paths automatically.",
+  sql: "Paste INSERT INTO ... VALUES statements into the input pane — multi-row tuples and multiple statements are merged.",
+  xml: "Paste an XML document into the input pane — the repeated record element becomes the rows, with attributes as @-prefixed columns.",
+};
+
 export function buildSeoSections(pair: ConversionPair): SeoSection[] {
   return [
     {
       heading: `How ${pair.sourceLabel} to ${pair.targetLabel} conversion works`,
       body: [
-        `${pair.title} runs ${pair.source === "csv" ? "raw delimited text" : "Excel workbooks"} through a deterministic, fully client-side pipeline and produces ${pair.targetLabel} output in a single pass — no round-trips, no queues, no waiting on someone else's server. ${pair.source === "csv" ? "Paste rows straight from a spreadsheet, text editor, or database CLI into the input pane, or drop a .csv/.tsv file onto it." : "Drop a .xlsx or .xls workbook onto the input pane — the first worksheet is picked up automatically."} Press Run Conversion (or just pause typing — the studio parses as you go), and the generated output appears on the right with line numbers, syntax highlighting, and one-click copy or download.`,
+        `${pair.title} runs ${SOURCE_INTRO[pair.source]} through a deterministic, fully client-side pipeline and produces ${pair.targetLabel} output in a single pass — no round-trips, no queues, no waiting on someone else's server. ${SOURCE_INSTRUCTIONS[pair.source]} Press Run Conversion (or just pause typing — the studio parses as you go), and the generated output appears on the right with line numbers, syntax highlighting, and one-click copy or download.`,
       ],
     },
     SOURCE_SECTIONS[pair.source],
+    ...getPairDeepSections(pair.slug),
     ...TARGET_SECTIONS[pair.target],
     PRIVACY_SECTION,
     buildLimitsSection(pair),

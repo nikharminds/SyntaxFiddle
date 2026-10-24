@@ -1,13 +1,21 @@
 "use client";
 
 import * as React from "react";
-import { parseCsv, parseExcel } from "@/lib/converter/parsers";
-import { runConversion } from "@/lib/converter/generators";
+import {
+  parseCsv,
+  parseExcel,
+  parseJsonTable,
+  parseSqlInserts,
+  parseXmlTable,
+} from "@/lib/converter/parsers";
+import { generateExcelBase64, runConversion } from "@/lib/converter/generators";
 import type { ParsedTable } from "@/lib/converter/types";
 import type {
   ConverterWorkerRequest,
   ConverterWorkerResponse,
+  ConverterBinary,
   GenerateRequest,
+  TextParseFormat,
 } from "@/lib/converter/protocol";
 
 export type ConverterStatus = "idle" | "parsing" | "generating" | "ready" | "error";
@@ -42,6 +50,7 @@ export function useConverter() {
   const [error, setError] = React.useState<string | null>(null);
   const [table, setTable] = React.useState<ParsedTable | null>(null);
   const [output, setOutput] = React.useState<string | null>(null);
+  const [binary, setBinary] = React.useState<ConverterBinary | null>(null);
 
   const workerRef = React.useRef<Worker | null>(null);
   const workerFailedRef = React.useRef(false);
@@ -135,6 +144,7 @@ export function useConverter() {
     setStatus("error");
     setError(decodeError(new Error(message)));
     setOutput(null);
+    setBinary(null);
   }, []);
 
   const applyTable = React.useCallback((parsed: ParsedTable, workerTableId: number | null) => {
@@ -142,15 +152,21 @@ export function useConverter() {
     tableRef.current = parsed;
     setTable(parsed);
     setOutput(null);
+    setBinary(null);
   }, []);
 
   const parseText = React.useCallback(
-    async (text: string, fileName?: string, options?: { silent?: boolean }) => {
+    async (
+      text: string,
+      fileName?: string,
+      options?: { silent?: boolean; format?: TextParseFormat },
+    ) => {
       const run = ++runRef.current;
       const trimmed = text.trim();
+      const format = options?.format ?? "csv";
       if (trimmed.length === 0) {
         if (!options?.silent) {
-          fail("The pasted CSV appears to be empty — paste some rows first.");
+          fail("The pasted input appears to be empty — paste some content first.");
         }
         return;
       }
@@ -162,6 +178,22 @@ export function useConverter() {
       }
       setStatus("parsing");
       setError(null);
+
+      const parseMain = (): ParsedTable | Promise<ParsedTable> => {
+        if (format === "json") return parseJsonTable(text);
+        if (format === "sql") return parseSqlInserts(text);
+        if (format === "xml") return parseXmlTable(text);
+        return parseCsv(text);
+      };
+      const workerType =
+        format === "json"
+          ? "parse-json"
+          : format === "sql"
+            ? "parse-sql"
+            : format === "xml"
+              ? "parse-xml"
+              : "parse-csv";
+
       const useWorker = text.length > WORKER_THRESHOLD_BYTES;
       try {
         let parsed: ParsedTable;
@@ -169,21 +201,21 @@ export function useConverter() {
         if (useWorker) {
           const result = await runWithWorkerFallback(
             () =>
-              callWorker((id) => ({ id, type: "parse-csv", text, fileName })) as Promise<
+              callWorker((id) => ({ id, type: workerType as "parse-csv", text, fileName })) as Promise<
                 ConverterWorkerResponse & { ok: true; kind: "parse" }
               >,
             async () => ({
               id: -1,
               ok: true as const,
               kind: "parse" as const,
-              table: await parseCsv(text),
+              table: await parseMain(),
               tableId: null as number | null,
             }),
           );
           parsed = result.table;
           workerTableId = result.tableId ?? null;
         } else {
-          parsed = await parseCsv(text);
+          parsed = await parseMain();
           parsed.fileName = fileName;
         }
         if (run !== runRef.current) return;
@@ -261,6 +293,7 @@ export function useConverter() {
       const currentTable = tableRef.current;
       if (!currentTable) return;
       const run = ++runRef.current;
+      setBinary(null);
       setStatus("generating");
       setError(null);
       const useWorker =
@@ -268,6 +301,7 @@ export function useConverter() {
         currentTable.rows.length > WORKER_GENERATE_ROW_THRESHOLD;
       try {
         let generated: string;
+        let workerBinary: ConverterBinary | null = null;
         if (useWorker) {
           const workerTableId = workerTableIdRef.current;
           const result = await runWithWorkerFallback(
@@ -284,14 +318,25 @@ export function useConverter() {
               ok: true as const,
               kind: "generate" as const,
               output: runConversion(currentTable, request),
+              binary: undefined,
             }),
           );
           generated = result.output;
+          workerBinary = result.binary ?? null;
         } else {
           generated = runConversion(currentTable, request);
         }
         if (run !== runRef.current) return;
         setOutput(generated);
+        setBinary(
+          request.target === "excel"
+            ? workerBinary ?? {
+                mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                base64: generateExcelBase64(currentTable),
+                filename: "syntaxfiddle-output.xlsx",
+              }
+            : workerBinary,
+        );
         setStatus("ready");
       } catch (error) {
         if (run !== runRef.current) return;
@@ -310,7 +355,19 @@ export function useConverter() {
     setError(null);
     setTable(null);
     setOutput(null);
+    setBinary(null);
   }, []);
 
-  return { status, error, table, output, parseText, parseFile, generate, clear, fail };
+  return {
+    status,
+    error,
+    table,
+    output,
+    binary,
+    parseText,
+    parseFile,
+    generate,
+    clear,
+    fail,
+  };
 }

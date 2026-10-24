@@ -38,6 +38,8 @@ const TARGETS: Array<{ value: TranspileTarget; label: string }> = [
   { value: "go", label: "Go" },
   { value: "csharp", label: "C#" },
   { value: "java", label: "Java" },
+  { value: "powershell", label: "PowerShell" },
+  { value: "httpie", label: "HTTPie" },
   { value: "apex", label: "Apex" },
 ];
 
@@ -50,6 +52,8 @@ const TARGET_LABELS: Record<TranspileTarget, string> = {
   csharp: "C# HttpClient",
   java: "Java OkHttp",
   apex: "Salesforce Apex",
+  powershell: "PowerShell Invoke-RestMethod",
+  httpie: "HTTPie",
 };
 
 type OutputTokenKind = "plain" | "string" | "comment" | "keyword" | "number";
@@ -101,6 +105,14 @@ const APEX_KEYWORDS = new Set([
   "String", "Integer", "Boolean", "List", "Map", "Set",
 ]);
 
+const POWERSHELL_KEYWORDS = new Set([
+  "param", "if", "else", "elseif", "foreach", "for", "while", "switch",
+  "try", "catch", "finally", "throw", "return", "function", "filter",
+  "Invoke-RestMethod", "Invoke-WebRequest", "ConvertTo-Json",
+  "ConvertFrom-Json", "Write-Host", "Write-Output", "new-object",
+  "true", "false", "null",
+]);
+
 const TARGET_KEYWORDS: Record<TranspileTarget, ReadonlySet<string>> = {
   fetch: JS_KEYWORDS,
   axios: JS_KEYWORDS,
@@ -110,6 +122,8 @@ const TARGET_KEYWORDS: Record<TranspileTarget, ReadonlySet<string>> = {
   csharp: C_LIKE_KEYWORDS,
   java: C_LIKE_KEYWORDS,
   apex: APEX_KEYWORDS,
+  powershell: POWERSHELL_KEYWORDS,
+  httpie: new Set<string>(["http", "--raw", "--auth", "--check-status"]),
 };
 
 const OUTPUT_TOKEN_PATTERN =

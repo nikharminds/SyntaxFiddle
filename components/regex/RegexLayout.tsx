@@ -5,14 +5,16 @@ import {
   AlertCircle,
   Eraser,
   FlaskConical,
+  Languages,
   Loader2,
   ShieldAlert,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { useRegex } from "@/hooks/useRegex";
+import { useRegex, type RegexSample } from "@/hooks/useRegex";
 import { REGEX_ALLOWED_FLAGS } from "@/lib/regex/engine";
 import type { RegexFailure, RegexMatch } from "@/lib/regex/engine";
+import { translateDialectPattern, type RegexDialectId } from "@/lib/regex/dialects";
 import { cn } from "@/lib/utils";
 
 const EDITOR_METRICS = "whitespace-pre-wrap break-words p-4 font-mono text-[13px] leading-6";
@@ -171,7 +173,98 @@ function FailureAlert({ failure }: { failure: RegexFailure }) {
   );
 }
 
-export function RegexLayout() {
+function TranslationBanner({
+  dialect,
+  pattern,
+  flags,
+  notices,
+}: {
+  dialect: RegexDialectId;
+  pattern: string;
+  flags: string;
+  notices: string[];
+}) {
+  const dialectLabel: Record<RegexDialectId, string> = {
+    mysql: "MySQL",
+    python: "Python",
+    php: "PHP (PCRE)",
+    java: "Java",
+    dotnet: ".NET",
+  };
+  return (
+    <div className="rounded-xl border border-sky-500/30 bg-sky-500/10 p-4">
+      <div className="flex items-start gap-3">
+        <Languages size={18} className="mt-0.5 shrink-0 text-sky-400" aria-hidden />
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-sky-200">
+            {dialectLabel[dialect]} pattern translated for live evaluation
+          </p>
+          <p className="mt-1 break-all font-mono text-xs leading-6 text-sky-200/80">
+            /{pattern}/{flags}
+          </p>
+          {notices.length > 0 ? (
+            <ul className="mt-3 list-disc space-y-1.5 pl-4">
+              {notices.slice(0, 4).map((notice) => (
+                <li key={notice} className="text-xs leading-5 text-sky-100/80">
+                  {notice}
+                </li>
+              ))}
+              {notices.length > 4 ? (
+                <li className="text-xs text-sky-100/60">
+                  +{notices.length - 4} more translation notes
+                </li>
+              ) : null}
+            </ul>
+          ) : (
+            <p className="mt-1.5 text-xs leading-5 text-sky-100/70">
+              No rewrites were needed — this pattern is valid JavaScript RegExp as written.
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DialectBlockedAlert({ message }: { message: string }) {
+  return (
+    <div
+      role="alert"
+      className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4"
+    >
+      <ShieldAlert size={18} className="mt-0.5 shrink-0 text-amber-400" />
+      <div>
+        <p className="text-sm font-semibold text-amber-300">
+          Not translatable to the evaluation engine
+        </p>
+        <p className="mt-0.5 text-sm leading-6 text-amber-200/80">{message}</p>
+      </div>
+    </div>
+  );
+}
+
+export type RegexLayoutProps = {
+  dialect?: RegexDialectId;
+  sample?: RegexSample;
+};
+
+export function RegexLayout({ dialect, sample }: RegexLayoutProps) {
+  const defaultSample: RegexSample = {
+    initialPattern: SAMPLE_PATTERN,
+    initialFlags: SAMPLE_FLAGS,
+    initialTestString: SAMPLE_TEXT,
+  };
+  const effectiveSample = sample ?? defaultSample;
+
+  const transform = React.useMemo(
+    () =>
+      dialect
+        ? (pattern: string, flags: string) =>
+            translateDialectPattern(dialect, pattern, flags)
+        : undefined,
+    [dialect],
+  );
+
   const {
     pattern,
     setPattern,
@@ -180,14 +273,16 @@ export function RegexLayout() {
     testString,
     setTestString,
     result,
+    translation,
     isEvaluating,
     executionMode,
     clear,
     loadSample,
   } = useRegex({
-    initialPattern: SAMPLE_PATTERN,
-    initialFlags: SAMPLE_FLAGS,
-    initialTestString: SAMPLE_TEXT,
+    initialPattern: effectiveSample.initialPattern,
+    initialFlags: effectiveSample.initialFlags,
+    initialTestString: effectiveSample.initialTestString,
+    transform,
   });
 
   const overlayRef = React.useRef<HTMLDivElement>(null);
@@ -206,7 +301,7 @@ export function RegexLayout() {
   };
 
   const onLoadSample = () => {
-    loadSample({ initialPattern: SAMPLE_PATTERN, initialFlags: SAMPLE_FLAGS, initialTestString: SAMPLE_TEXT });
+    loadSample(effectiveSample);
   };
 
   return (
@@ -296,6 +391,17 @@ export function RegexLayout() {
       </Card>
 
       {failure ? <FailureAlert failure={failure} /> : null}
+      {translation && !translation.ok ? (
+        <DialectBlockedAlert message={translation.message} />
+      ) : null}
+      {dialect && translation && translation.ok && translation.notices.length > 0 ? (
+        <TranslationBanner
+          dialect={dialect}
+          pattern={translation.jsPattern}
+          flags={translation.jsFlags}
+          notices={translation.notices}
+        />
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="overflow-hidden">

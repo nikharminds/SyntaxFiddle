@@ -3,7 +3,10 @@
 import * as React from "react";
 import {
   AlertCircle,
+  Braces,
+  Database,
   Eraser,
+  FileCode2,
   FileSpreadsheet,
   FileText,
   FlaskConical,
@@ -33,6 +36,9 @@ const TARGET_OPTIONS: { value: TargetFormat; label: string }[] = [
   { value: "sql", label: "SQL" },
   { value: "soql-in", label: "Salesforce SOQL IN Clause" },
   { value: "xml", label: "XML" },
+  { value: "csv", label: "CSV" },
+  { value: "markdown", label: "Markdown Table" },
+  { value: "yaml", label: "YAML" },
 ];
 
 const DEFAULT_OPTIONS: ConverterOptionsState = {
@@ -43,6 +49,32 @@ const DEFAULT_OPTIONS: ConverterOptionsState = {
   soqlField: "Id",
   xmlRoot: "root",
   xmlRow: "row",
+  csvDelimiter: ",",
+  markdownAlign: true,
+};
+
+const PASTE_FORMAT_BY_SOURCE: Record<
+  "csv" | "json" | "sql" | "xml",
+  "csv" | "json" | "sql" | "xml"
+> = {
+  csv: "csv",
+  json: "json",
+  sql: "sql",
+  xml: "xml",
+};
+
+const PLACEHOLDERS: Record<"csv" | "json" | "sql", string> = {
+  csv: "Paste CSV or TSV text here — delimiters (, ; tab |) are detected automatically.\n\nOr drop a .csv / .tsv / .txt file onto this pane.",
+  json: 'Paste JSON here — an array of objects, a single object, an array of arrays,\nor an object of column arrays. Nested objects are flattened with dot paths.\n\nExample:\n[{"name": "Ada", "role": "admin"}]',
+  sql: "Paste INSERT INTO ... VALUES statements here — multi-row tuples and\nmultiple statements are merged into one table.\n\nExample:\nINSERT INTO users (id, name) VALUES (1, 'Ada'), (2, 'Grace');",
+};
+
+const SOURCE_BADGES: Record<SourceFormat, string> = {
+  csv: "CSV text",
+  excel: "Excel file",
+  json: "JSON text",
+  sql: "SQL INSERTs",
+  xml: "XML document",
 };
 
 function buildRequest(
@@ -77,6 +109,14 @@ function buildRequest(
           rowElement: options.xmlRow.trim() || "row",
         },
       };
+    case "csv":
+      return { target, options: { delimiter: options.csvDelimiter } };
+    case "markdown":
+      return { target, options: { alignNumbers: options.markdownAlign } };
+    case "yaml":
+      return { target, options: {} };
+    case "excel":
+      return { target, options: {} };
   }
 }
 
@@ -97,18 +137,22 @@ export function ConverterLayout({
   const [options, setOptions] = React.useState<ConverterOptionsState>(DEFAULT_OPTIONS);
 
   const busy = converter.status === "parsing" || converter.status === "generating";
+  const isPasteSource = source !== "excel";
   const canRun =
-    !busy && (source === "csv" ? csvText.trim().length > 0 : file !== null);
+    !busy && (isPasteSource ? csvText.trim().length > 0 : file !== null);
 
   const onOptionsChange = React.useCallback((patch: Partial<ConverterOptionsState>) => {
     setOptions((current) => ({ ...current, ...patch }));
   }, []);
 
   React.useEffect(() => {
-    if (source !== "csv") return;
+    if (source === "excel") return;
     if (csvText.trim().length === 0) return;
     const timer = window.setTimeout(() => {
-      void converter.parseText(csvText, undefined, { silent: true });
+      void converter.parseText(csvText, undefined, {
+        silent: true,
+        format: PASTE_FORMAT_BY_SOURCE[source as "csv" | "json" | "sql" | "xml"],
+      });
     }, 600);
     return () => window.clearTimeout(timer);
   }, [csvText, source, converter.parseText]);
@@ -137,7 +181,7 @@ export function ConverterLayout({
     if (next === source) return;
     setSource(next);
     converter.clear();
-    if (next === "csv") setFile(null);
+    if (next !== "excel") setFile(null);
   };
 
   const onCsvTextChange = (text: string) => {
@@ -147,7 +191,9 @@ export function ConverterLayout({
   const onCsvFileDrop = async (dropped: File) => {
     const text = await dropped.text();
     setCsvText(text);
-    await converter.parseText(text, dropped.name);
+    await converter.parseText(text, dropped.name, {
+      format: PASTE_FORMAT_BY_SOURCE[source as "csv" | "json" | "sql" | "xml"],
+    });
   };
 
   const onFileChange = (selected: File) => {
@@ -156,8 +202,10 @@ export function ConverterLayout({
   };
 
   const onRun = () => {
-    if (source === "csv") {
-      void converter.parseText(csvText);
+    if (source !== "excel") {
+      void converter.parseText(csvText, undefined, {
+        format: PASTE_FORMAT_BY_SOURCE[source as "csv" | "json" | "sql" | "xml"],
+      });
     } else if (file) {
       void converter.parseFile(file);
     }
@@ -191,8 +239,11 @@ export function ConverterLayout({
             >
               {(
                 [
-                  { value: "csv", label: "CSV (Paste / Drop)", icon: FileText },
-                  { value: "excel", label: "Excel (.xlsx, .xls)", icon: FileSpreadsheet },
+                  { value: "csv", label: "CSV", icon: FileText },
+                  { value: "excel", label: "Excel", icon: FileSpreadsheet },
+                  { value: "json", label: "JSON", icon: Braces },
+                  { value: "sql", label: "SQL", icon: Database },
+                  { value: "xml", label: "XML", icon: FileCode2 },
                 ] as const
               ).map(({ value, label, icon: Icon }) => (
                 <button
@@ -297,6 +348,7 @@ export function ConverterLayout({
           table={converter.table}
         />
         <OutputPane
+          binary={converter.binary}
           target={target}
           status={converter.status}
           output={converter.output}

@@ -8,6 +8,7 @@ const TOOL_LINKS = [
   { href: "/jwt", label: "JWT Decoder" },
   { href: "/curl-converter", label: "cURL Converter" },
   { href: "/json-to-schema", label: "JSON to Schema Converter" },
+  { href: "/xml-to-schema", label: "XML to Schema Converter" },
 ];
 
 const COMPANY_LINKS = [

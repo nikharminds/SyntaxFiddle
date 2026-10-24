@@ -1,8 +1,10 @@
 import type { ConversionPair } from "@/lib/converter/routes";
+import { getPairExtraFaqs } from "@/lib/converter/pair-copy";
 import { SITE_URL } from "@/lib/site";
 
 export function ConverterSchema({ pair }: { pair: ConversionPair }) {
   const url = `${SITE_URL}/${pair.slug}/`;
+  const faqs = [...pair.faqs, ...getPairExtraFaqs(pair.slug)];
   const schema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -29,7 +31,7 @@ export function ConverterSchema({ pair }: { pair: ConversionPair }) {
       },
       {
         "@type": "FAQPage",
-        mainEntity: pair.faqs.map((faq) => ({
+        mainEntity: faqs.map((faq) => ({
           "@type": "Question",
           name: faq.question,
           acceptedAnswer: {
