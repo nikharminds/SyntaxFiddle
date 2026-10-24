@@ -33,16 +33,40 @@ customer exports, internal schedules, and live auth tokens.
 | Tool | What it does |
 | --- | --- |
 | [Cron Expression Tester & Generator](https://syntaxfiddle.com/cron/) | Parse, explain, and simulate cron schedules across **Unix, Quartz, AWS EventBridge, and Cloudflare** dialects — plain-English translation, run timeline, timezone-aware next runs, and 100+ [ready-made cron recipes](https://syntaxfiddle.com/cron/every-5-minutes/). |
-| [CSV & Excel Converter](https://syntaxfiddle.com/csv/) | Convert spreadsheets to typed SQL INSERT statements, clean JSON, Salesforce SOQL `IN` clauses, or XML — with delimiter sniffing and column type inference. |
-| [cURL Converter](https://syntaxfiddle.com/curl-converter/) | Transpile cURL commands to idiomatic [fetch](https://syntaxfiddle.com/curl-to-fetch/), [axios](https://syntaxfiddle.com/curl-to-axios/), [Python requests](https://syntaxfiddle.com/curl-to-python/), [PHP](https://syntaxfiddle.com/curl-to-php/), [Go](https://syntaxfiddle.com/curl-to-go/), [C#](https://syntaxfiddle.com/curl-to-csharp/), [Java](https://syntaxfiddle.com/curl-to-java/), and [Salesforce Apex](https://syntaxfiddle.com/curl-to-apex/). Headers, JSON bodies, basic auth included. |
-| [Regex Tester](https://syntaxfiddle.com/regex/) | Evaluate patterns with live match highlighting, capture groups, and flags — sandboxed in a Web Worker with ReDoS protection. |
-| [JWT Decoder](https://syntaxfiddle.com/jwt/) | Inspect JSON Web Tokens locally: color-coded segments, syntax-highlighted claims, and expiry checks. Decode-only, zero network calls. |
+| [Conversion Studio](https://syntaxfiddle.com/csv/) | **19 dedicated converters** across CSV, Excel, JSON, SQL, and XML — [CSV→JSON](https://syntaxfiddle.com/csv-to-json/), [CSV→SQL](https://syntaxfiddle.com/csv-to-sql/), [CSV→SOQL](https://syntaxfiddle.com/csv-to-soql/), [CSV→XML](https://syntaxfiddle.com/csv-to-xml/), [CSV→Markdown](https://syntaxfiddle.com/csv-to-markdown/), [CSV→YAML](https://syntaxfiddle.com/csv-to-yaml/), [Excel→SQL](https://syntaxfiddle.com/excel-to-sql/), [Excel→JSON](https://syntaxfiddle.com/excel-to-json/), [Excel→XML](https://syntaxfiddle.com/excel-to-xml/), [Excel→SOQL](https://syntaxfiddle.com/excel-to-soql/), [Excel→Markdown](https://syntaxfiddle.com/excel-to-markdown/), [Excel→YAML](https://syntaxfiddle.com/excel-to-yaml/), [JSON→CSV](https://syntaxfiddle.com/json-to-csv/), [JSON→Excel](https://syntaxfiddle.com/json-to-excel/), [SQL→CSV](https://syntaxfiddle.com/sql-to-csv/), [SQL→Excel](https://syntaxfiddle.com/sql-to-excel/), [XML→JSON](https://syntaxfiddle.com/xml-to-json/), [XML→CSV](https://syntaxfiddle.com/xml-to-csv/), and [XML→Excel](https://syntaxfiddle.com/xml-to-excel/) — real typed `.xlsx` output, delimiter sniffing, column type inference, 100% client-side. |
+| [cURL Converter](https://syntaxfiddle.com/curl-converter/) | Transpile cURL commands to idiomatic code in **10 targets**: [fetch](https://syntaxfiddle.com/curl-to-fetch/), [axios](https://syntaxfiddle.com/curl-to-axios/), [Python requests](https://syntaxfiddle.com/curl-to-python/), [PHP](https://syntaxfiddle.com/curl-to-php/), [Go](https://syntaxfiddle.com/curl-to-go/), [C#](https://syntaxfiddle.com/curl-to-csharp/), [Java](https://syntaxfiddle.com/curl-to-java/), [Salesforce Apex](https://syntaxfiddle.com/curl-to-apex/), [PowerShell](https://syntaxfiddle.com/curl-to-powershell/), and [HTTPie](https://syntaxfiddle.com/curl-to-httpie/). Headers, JSON bodies, basic auth included. |
+| [Regex Tester](https://syntaxfiddle.com/regex-tester/) | Evaluate patterns with live match highlighting, capture groups, and flags — sandboxed in a Web Worker with ReDoS protection. Dialect modes for [MySQL](https://syntaxfiddle.com/regex/mysql/), [Python](https://syntaxfiddle.com/regex/python/), [PHP/PCRE](https://syntaxfiddle.com/regex/php/), [Java](https://syntaxfiddle.com/regex/java/), and [.NET](https://syntaxfiddle.com/regex/dotnet/) translate flavor-specific syntax to JS with per-construct notices — untranslatable constructs are blocked, never silently mis-matched. |
+| [JWT Decoder](https://syntaxfiddle.com/jwt-decoder/) | Inspect JSON Web Tokens locally: color-coded segments, syntax-highlighted claims, and expiry checks. Decode-only, zero network calls. |
 | [JSON to Schema Converter](https://syntaxfiddle.com/json-to-schema/) | Infer types from raw JSON into [Zod](https://syntaxfiddle.com/json-to-zod/), [TypeScript](https://syntaxfiddle.com/json-to-typescript/), [Pydantic](https://syntaxfiddle.com/json-to-pydantic/), and [Go structs](https://syntaxfiddle.com/json-to-go-struct/). |
+| [XML to Schema Converter](https://syntaxfiddle.com/xml-to-schema/) | Same four targets from XML documents — [XML→Zod](https://syntaxfiddle.com/xml-to-zod/), [XML→TypeScript](https://syntaxfiddle.com/xml-to-typescript/), [XML→Pydantic](https://syntaxfiddle.com/xml-to-pydantic/), and [XML→Go structs](https://syntaxfiddle.com/xml-to-go-struct/), with `@attr` conventions, repeated-element arrays, and CDATA preserved. |
+
+## Popular cron recipes
+
+Every recipe ships with plain-English explanation, next-run previews, and platform-specific
+equivalents (systemd timers, Kubernetes CronJobs, Vercel Cron, Celery beat):
+
+[every minute](https://syntaxfiddle.com/cron/every-minute/) ·
+[every 15 minutes](https://syntaxfiddle.com/cron/every-15-minutes/) ·
+[every 30 minutes](https://syntaxfiddle.com/cron/every-30-minutes/) ·
+[every hour](https://syntaxfiddle.com/cron/every-hour/) ·
+[daily at midnight](https://syntaxfiddle.com/cron/daily-at-midnight/) ·
+[daily at 9am](https://syntaxfiddle.com/cron/daily-at-9am/) ·
+[weekdays at 9am](https://syntaxfiddle.com/cron/weekdays-at-9am/) ·
+[every Monday](https://syntaxfiddle.com/cron/every-monday/) ·
+[first day of month](https://syntaxfiddle.com/cron/first-day-of-month/) ·
+[last day of month](https://syntaxfiddle.com/cron/last-day-of-month/) ·
+[weekends at noon](https://syntaxfiddle.com/cron/weekends-at-noon/) ·
+[quarterly](https://syntaxfiddle.com/cron/quarterly/)
+
+— plus 120+ more on the [cron recipes hub](https://syntaxfiddle.com/cron/), including
+[Quartz](https://syntaxfiddle.com/cron/quartz-every-second/),
+[AWS EventBridge](https://syntaxfiddle.com/cron/aws-eventbridge-every-5-minutes/), and
+[Cloudflare Cron](https://syntaxfiddle.com/cron/cloudflare-every-hour/) dialect recipes.
 
 ## How it works
 
 - **Static export, zero backend** — every page is pre-rendered HTML at build time (`next build` → `./out`), served from any CDN edge. No cold starts, no server round trips, nothing to attack.
-- **Deterministic TypeScript engines** — the cron engine (4 dialects), CSV/Excel parser, cURL transpiler, and JSON type-inferrer are hand-written, code-split per route, and covered by **235+ unit tests**.
+- **Deterministic TypeScript engines** — the cron engine (4 dialects), the CSV/Excel/JSON/SQL/XML converter engines, the cURL transpiler, the XML parser, and the JSON/XML type-inferrers are hand-written, code-split per route, and covered by **370+ unit tests**.
 - **Web Workers for heavy lifting** — regex evaluation and file conversion run off the main thread, with ReDoS protection on pattern input.
 - **Privacy by architecture, not by policy** — we cannot log what we never receive.
 
@@ -107,7 +131,10 @@ labels. Hacktoberfest PRs are welcome.
 ## Security & privacy
 
 All processing happens locally in the browser. No input data, telemetry, or personal
-information is transmitted or logged. Found a vulnerability? See
+information is transmitted or logged — read the full
+[privacy policy](https://syntaxfiddle.com/privacy/) and
+[terms of service](https://syntaxfiddle.com/terms/), and
+[about the project](https://syntaxfiddle.com/about/). Found a vulnerability? See
 [SECURITY.md](SECURITY.md) for responsible disclosure.
 
 ## License
