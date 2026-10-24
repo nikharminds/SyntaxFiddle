@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Terminal } from "lucide-react";
+import { CodeXml } from "lucide-react";
 
 const TOOL_LINKS = [
   { href: "/cron", label: "Cron Expression Tester & Generator" },
@@ -25,7 +25,7 @@ export function Footer() {
         <div className="md:col-span-2">
           <div className="flex items-center gap-2.5">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900">
-              <Terminal size={16} className="text-emerald-400" />
+              <CodeXml size={16} className="text-emerald-400" />
             </span>
             <span className="text-base font-semibold tracking-tight text-zinc-100">SyntaxFiddle</span>
           </div>

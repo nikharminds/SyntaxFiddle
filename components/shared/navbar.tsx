@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Menu, ShieldCheck, Terminal, X } from "lucide-react";
+import { ChevronDown, CodeXml, Menu, ShieldCheck, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { CONVERSION_PAIRS } from "@/lib/converter/routes";
@@ -148,7 +148,7 @@ export function Navbar() {
           className="flex items-center gap-2.5 rounded-md text-zinc-100 transition-colors hover:text-emerald-400"
         >
           <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900">
-            <Terminal size={16} className="text-emerald-400" />
+            <CodeXml size={16} className="text-emerald-400" />
           </span>
           <span className="text-base font-semibold tracking-tight">SyntaxFiddle</span>
         </Link>

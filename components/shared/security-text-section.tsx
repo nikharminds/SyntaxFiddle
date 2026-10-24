@@ -1,5 +1,13 @@
 import Link from "next/link";
-import { ArrowRight, Braces, FileJson, KeyRound, Terminal, WifiOff, type LucideIcon } from "lucide-react";
+import {
+  ArrowRight,
+  Braces,
+  FileJson,
+  KeyRound,
+  SquareTerminal,
+  WifiOff,
+  type LucideIcon,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
@@ -45,7 +53,7 @@ const SECURITY_TOOLS: SecurityTool[] = [
     description:
       "Paste a cURL command and get idiomatic code in eight targets — from fetch() and Python requests to Salesforce Apex HttpRequest. Bearer tokens, cookies, and basic-auth credentials are parsed by your browser and never transmitted.",
     chips: ["fetch · axios · Python · Apex", "Basic auth & JSON bodies", "100 ms live transpile"],
-    icon: Terminal,
+    icon: SquareTerminal,
     cta: "Open converter",
   },
   {
