@@ -1,6 +1,4 @@
-import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { CodeSnippets } from "@/components/cron/code-snippets";
 import { CronPlayground } from "@/components/cron/cron-playground";
@@ -12,19 +10,13 @@ import { Card } from "@/components/ui/card";
 import { DIALECTS } from "@/lib/cron/dialects";
 import { analyzeCronExpression, type CronAnalysisResult } from "@/lib/cron/engine";
 import { getRecipeDeepContent, type RecipeDeepContent } from "@/lib/cron/deep-content";
-import { getRecipe, RECIPES } from "@/lib/cron/recipes";
+import { getRecipe, type CronRecipe } from "@/lib/cron/recipes";
 import { buildRecipeFaqs, buildRecipeSnippets } from "@/lib/cron/seo";
 import { SITE_URL } from "@/lib/site";
 
-export const dynamicParams = false;
-
-export function generateStaticParams(): { slug: string }[] {
-  return RECIPES.map((recipe) => ({ slug: recipe.slug }));
-}
-
 const ANALYSIS_CACHE = new Map<string, CronAnalysisResult>();
 
-function getRecipeAnalysis(slug: string): CronAnalysisResult {
+export function getRecipeAnalysis(slug: string): CronAnalysisResult {
   const cached = ANALYSIS_CACHE.get(slug);
   if (cached) return cached;
   const recipe = getRecipe(slug);
@@ -36,56 +28,11 @@ function getRecipeAnalysis(slug: string): CronAnalysisResult {
   return result;
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const { slug } = await params;
-  const recipe = getRecipe(slug);
-  if (!recipe) return {};
-
-  const analysis = getRecipeAnalysis(slug);
-  const displayExpression =
-    recipe.dialect === "aws" ? `cron(${recipe.expression})` : recipe.expression;
-  const title = `${displayExpression} - ${recipe.title} | SyntaxFiddle`;
-  const description = `${analysis.humanReadable}. ${recipe.description}`;
-  const url = `${SITE_URL}/cron/${recipe.slug}/`;
-
-  return {
-    title: { absolute: title },
-    description,
-    alternates: { canonical: url },
-    openGraph: {
-      title,
-      description,
-      url,
-      type: "website",
-      siteName: "SyntaxFiddle",
-      images: [{ url: `${SITE_URL}/og/cron.jpg`, width: 1200, height: 630, alt: title }],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [`${SITE_URL}/og/cron.jpg`],
-    },
-  };
-}
-
-export default async function CronRecipePage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  const recipe = getRecipe(slug);
-  if (!recipe) notFound();
-
-  const analysis = getRecipeAnalysis(slug);
+export function CronRecipeView({ recipe }: { recipe: CronRecipe }) {
+  const analysis = getRecipeAnalysis(recipe.slug);
   const faqs = buildRecipeFaqs(recipe, analysis.humanReadable, analysis.fields);
   const snippets = buildRecipeSnippets(recipe);
-  const deepContent: RecipeDeepContent | undefined = getRecipeDeepContent(slug);
+  const deepContent: RecipeDeepContent | undefined = getRecipeDeepContent(recipe.slug);
   const allFaqs = deepContent ? [...faqs, ...deepContent.extraFaqs] : faqs;
   const dialectLabel = DIALECTS[recipe.dialect].label;
   const url = `${SITE_URL}/cron/${recipe.slug}/`;

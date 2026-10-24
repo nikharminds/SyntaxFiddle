@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 import { RECIPES, type RecipeCategory } from "@/lib/cron/recipes";
+import { getAllConverterSlugs } from "@/lib/config/converters";
+import { CRON_SCHEDULES } from "@/lib/config/cron-schedules";
 import { CONVERSION_PAIRS } from "@/lib/converter/routes";
 import { CURL_SEO_TARGETS } from "@/lib/curl/seo-targets";
 import { JSON_SCHEMA_SEO_TARGETS } from "@/lib/json-schema/seo-targets";
@@ -72,13 +74,40 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }),
   );
 
-  return [
+  const cronScheduleRoutes: MetadataRoute.Sitemap = CRON_SCHEDULES.map((schedule) => ({
+    url: `${SITE_URL}/cron/${schedule.slug}/`,
+    changeFrequency: "monthly",
+    priority: 0.7,
+  }));
+
+  const toolsRoutes: MetadataRoute.Sitemap = [
+    { url: `${SITE_URL}/tools/`, changeFrequency: "weekly", priority: 0.9 },
+    ...getAllConverterSlugs().map((slug) => ({
+      url: `${SITE_URL}/tools/${slug}/`,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    })),
+  ];
+
+  const allEntries: MetadataRoute.Sitemap = [
     ...staticRoutes,
     ...conversionRoutes,
     ...recipeRoutes,
+    ...cronScheduleRoutes,
     ...curlRoutes,
     ...xmlSchemaRoutes,
     ...jsonSchemaRoutes,
     ...regexFlavorRoutes,
+    ...toolsRoutes,
   ];
+
+  // A URL may only appear once in the sitemap — registries are guarded
+  // against slug collisions, but this Set guarantees valid XML if one slips
+  // through.
+  const seenUrls = new Set<string>();
+  return allEntries.filter((entry) => {
+    if (seenUrls.has(entry.url)) return false;
+    seenUrls.add(entry.url);
+    return true;
+  });
 }

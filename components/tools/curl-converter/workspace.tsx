@@ -23,11 +23,11 @@ import { cn } from "@/lib/utils";
 const COPY_FEEDBACK_MS = 2000;
 
 const JSON_SCHEMA_CTA: Partial<Record<TranspileTarget, { href: string; label: string }>> = {
-  fetch: { href: "/json-to-zod/", label: "Zod schema" },
+  fetch: { href: "/tools/json-to-zod/", label: "Zod schema" },
   axios: { href: "/json-to-typescript/", label: "TypeScript interface" },
-  python: { href: "/json-to-pydantic/", label: "Pydantic model" },
+  python: { href: "/tools/json-to-pydantic/", label: "Pydantic model" },
   go: { href: "/json-to-go-struct/", label: "Go struct" },
-  apex: { href: "/json-to-zod/", label: "Zod schema" },
+  apex: { href: "/tools/json-to-zod/", label: "Zod schema" },
 };
 
 const TARGETS: Array<{ value: TranspileTarget; label: string }> = [
@@ -192,9 +192,13 @@ const EDITOR_METRICS = "h-full w-full resize-none bg-transparent p-4 font-mono t
 
 export type CurlConverterWorkspaceProps = {
   initialTarget?: TranspileTarget;
+  initialCommand?: string;
 };
 
-export function CurlConverterWorkspace({ initialTarget = "fetch" }: CurlConverterWorkspaceProps) {
+export function CurlConverterWorkspace({
+  initialTarget = "fetch",
+  initialCommand,
+}: CurlConverterWorkspaceProps) {
   const toast = useToast();
   const {
     command,
@@ -206,7 +210,7 @@ export function CurlConverterWorkspace({ initialTarget = "fetch" }: CurlConverte
     request,
     clear,
     loadCommand,
-  } = useCurlConverter({ initialTarget });
+  } = useCurlConverter({ initialTarget, initialCommand });
 
   const [copied, setCopied] = React.useState(false);
   const copyTimer = React.useRef<number | null>(null);

@@ -26,9 +26,9 @@ const DATA_GROUPS: {
     label: "JSON to Schema",
     href: "/json-to-schema/",
     items: [
-      { href: "/json-to-zod/", label: "JSON to Zod" },
+      { href: "/tools/json-to-zod/", label: "JSON to Zod" },
       { href: "/json-to-typescript/", label: "JSON to TypeScript" },
-      { href: "/json-to-pydantic/", label: "JSON to Pydantic" },
+      { href: "/tools/json-to-pydantic/", label: "JSON to Pydantic" },
       { href: "/json-to-go-struct/", label: "JSON to Go Struct" },
     ],
   },
@@ -48,6 +48,17 @@ const CONVERTER_GROUPS: {
   label: string;
   items: { href: string; label: string }[];
 }[] = [
+  {
+    label: "From cURL",
+    items: [
+      { href: "/tools/curl-to-javascript-fetch/", label: "cURL to JavaScript fetch()" },
+      { href: "/tools/curl-to-python-requests/", label: "cURL to Python requests" },
+      { href: "/tools/curl-to-salesforce-apex/", label: "cURL to Salesforce Apex" },
+      { href: "/curl-to-go/", label: "cURL to Go net/http" },
+      { href: "/curl-to-csharp/", label: "cURL to C# HttpClient" },
+      { href: "/curl-to-php/", label: "cURL to PHP Guzzle" },
+    ],
+  },
   ...( ["csv", "excel"] as SourceFormat[]).map((source) => ({
     label: source === "csv" ? "From CSV" : "From Excel",
     items: CONVERSION_PAIRS.filter((pair) => pair.source === source).map((pair) => ({
@@ -89,6 +100,8 @@ export function Navbar() {
   const convertersActive =
     pathname === "/csv" ||
     pathname.startsWith("/csv/") ||
+    pathname.startsWith("/curl-") ||
+    pathname.startsWith("/tools/") ||
     CONVERSION_PAIRS.some(
       (pair) => pathname === `/${pair.slug}` || pathname.startsWith(`/${pair.slug}/`),
     );
@@ -363,29 +376,31 @@ export function Navbar() {
               inert={openSection !== "converters"}
             >
               <div className="overflow-hidden">
-                {CONVERTER_GROUPS.map((group) => (
-                  <div key={group.label} className="pt-2">
-                    <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
-                      {group.label}
-                    </p>
-                    {group.items.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={closeMenus}
-                        aria-current={isActive(item.href) ? "page" : undefined}
-                        className={cn(
-                          "block rounded-md py-1.5 pl-5 pr-3 text-sm transition-colors",
-                          isActive(item.href)
-                            ? "bg-zinc-900 text-zinc-100"
-                            : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
-                        )}
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-                  </div>
-                ))}
+                <div className="grid grid-cols-2 gap-2 pb-1 pt-2">
+                  {CONVERTER_GROUPS.map((group) => (
+                    <div key={group.label}>
+                      <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                        {group.label}
+                      </p>
+                      {group.items.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={closeMenus}
+                          aria-current={isActive(item.href) ? "page" : undefined}
+                          className={cn(
+                            "block rounded-md py-1.5 pl-4 pr-2 text-sm transition-colors",
+                            isActive(item.href)
+                              ? "bg-zinc-900 text-zinc-100"
+                              : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
+                          )}
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 

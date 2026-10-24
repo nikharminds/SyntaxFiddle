@@ -12,6 +12,7 @@ import {
   JSON_SCHEMA_FAQS,
 } from "@/lib/json-schema/copy";
 import { JSON_SCHEMA_SEO_TARGETS } from "@/lib/json-schema/seo-targets";
+import { CONVERTER_ROUTES } from "@/lib/config/converters";
 import { SITE_URL } from "@/lib/site";
 
 const PAGE_URL = `${SITE_URL}/json-to-schema/`;
@@ -156,15 +157,29 @@ export default function JsonToSchemaPage() {
         </h2>
         <Card className="mt-5 p-4 sm:p-5">
           <ul className="grid list-none gap-2 sm:grid-cols-2">
-            {JSON_SCHEMA_SEO_TARGETS.map((target) => (
-              <li key={target.slug}>
+            {[
+              ...JSON_SCHEMA_SEO_TARGETS.map((target) => ({
+                href: `/${target.slug}/`,
+                label: target.heading.split("—")[0]?.trim(),
+              })),
+              ...["json-to-zod", "json-to-pydantic"].flatMap((slug) => {
+                const route = CONVERTER_ROUTES[slug];
+                return route
+                  ? [
+                      {
+                        href: `/tools/${slug}/`,
+                        label: `${route.sourceName} to ${route.targetName}`,
+                      },
+                    ]
+                  : [];
+              }),
+            ].map((link) => (
+              <li key={link.href}>
                 <Link
-                  href={`/${target.slug}/`}
+                  href={link.href}
                   className="flex items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-300 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
                 >
-                  <span className="font-medium">
-                    {target.heading.split("—")[0]?.trim()}
-                  </span>
+                  <span className="font-medium">{link.label}</span>
                   <ArrowRight size={14} className="shrink-0 text-zinc-600" />
                 </Link>
               </li>

@@ -37,3 +37,5 @@ pnpm-debug.log*
 
 # testing
 coverage/
+AGENTS.md
+opencode.jsonc

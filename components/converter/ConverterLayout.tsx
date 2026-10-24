@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import * as XLSX from "xlsx";
 import {
   AlertCircle,
   Braces,
@@ -30,6 +31,90 @@ const SAMPLE_CSV = `Id,Name,Industry,Employees,IsActive,Website
 001xx000003DGA7AA9,"Wonka Industries, Ltd.",Food and Beverage,512,false,wonka.example.com
 001xx000003DGA8AA,"Hooli Cloud",Technology,975,true,hooli.example.com
 001xx000003DGA9AB,Strickland Propane,Energy,44,false,strickland.example.com`;
+
+const SAMPLE_SPREADSHEET_ROWS: (string | number | boolean)[][] = [
+  ["Id", "Name", "Industry", "Employees", "IsActive", "Website"],
+  ["001xx000003DGA2AA4", "Acme Manufacturing", "Manufacturing", 1500, true, "acme.example.com"],
+  ["001xx000003DGA3AA5", "Globex Corp", "Logistics", 4200, true, "globex.example.com"],
+  ["001xx000003DGA4AA6", "Initech Solutions", "Technology", 85, false, ""],
+  ["001xx000003DGA5AA7", "Umbrella Health", "Healthcare", 23000, true, "umbrella.example.com"],
+];
+
+const SAMPLE_JSON = JSON.stringify(
+  [
+    {
+      Id: "001xx000003DGA2AA4",
+      Name: "Acme Manufacturing",
+      Industry: "Manufacturing",
+      Employees: 1500,
+      IsActive: true,
+      Website: "acme.example.com",
+    },
+    {
+      Id: "001xx000003DGA3AA5",
+      Name: "Globex Corp",
+      Industry: "Logistics",
+      Employees: 4200,
+      IsActive: true,
+      Website: "globex.example.com",
+    },
+    {
+      Id: "001xx000003DGA4AA6",
+      Name: "Initech Solutions",
+      Industry: "Technology",
+      Employees: 85,
+      IsActive: false,
+      Website: "",
+    },
+  ],
+  null,
+  2,
+);
+
+const SAMPLE_SQL = `INSERT INTO accounts (Id, Name, Industry, Employees, IsActive, Website) VALUES
+  ('001xx000003DGA2AA4', 'Acme Manufacturing', 'Manufacturing', 1500, true, 'acme.example.com'),
+  ('001xx000003DGA3AA5', 'Globex Corp', 'Logistics', 4200, true, 'globex.example.com'),
+  ('001xx000003DGA4AA6', 'Initech Solutions', 'Technology', 85, false, '');`;
+
+const SAMPLE_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<accounts>
+  <account>
+    <Id>001xx000003DGA2AA4</Id>
+    <Name>Acme Manufacturing</Name>
+    <Industry>Manufacturing</Industry>
+    <Employees>1500</Employees>
+    <IsActive>true</IsActive>
+    <Website>acme.example.com</Website>
+  </account>
+  <account>
+    <Id>001xx000003DGA3AA5</Id>
+    <Name>Globex Corp</Name>
+    <Industry>Logistics</Industry>
+    <Employees>4200</Employees>
+    <IsActive>true</IsActive>
+    <Website>globex.example.com</Website>
+  </account>
+</accounts>`;
+
+const SAMPLE_TEXT_BY_SOURCE: Record<
+  "csv" | "json" | "sql" | "xml",
+  { text: string; filename: string }
+> = {
+  csv: { text: SAMPLE_CSV, filename: "sample-accounts.csv" },
+  json: { text: SAMPLE_JSON, filename: "sample-accounts.json" },
+  sql: { text: SAMPLE_SQL, filename: "sample-accounts.sql" },
+  xml: { text: SAMPLE_XML, filename: "sample-accounts.xml" },
+};
+
+function buildSampleWorkbook(): File {
+  const sheet = XLSX.utils.aoa_to_sheet(SAMPLE_SPREADSHEET_ROWS);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, sheet, "Accounts");
+  const bytes = XLSX.write(workbook, { bookType: "xlsx", type: "array" }) as ArrayBuffer;
+  return new File([bytes], "sample-accounts.xlsx", {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+}
 
 const TARGET_OPTIONS: { value: TargetFormat; label: string }[] = [
   { value: "json", label: "JSON" },
@@ -123,18 +208,25 @@ function buildRequest(
 export type ConverterLayoutProps = {
   initialSource?: SourceFormat;
   initialTarget?: TargetFormat;
+  initialText?: string;
+  initialOptions?: Partial<ConverterOptionsState>;
 };
 
 export function ConverterLayout({
   initialSource = "csv",
   initialTarget = "json",
+  initialText = "",
+  initialOptions,
 }: ConverterLayoutProps) {
   const converter = useConverter();
   const [source, setSource] = React.useState<SourceFormat>(initialSource);
   const [target, setTarget] = React.useState<TargetFormat>(initialTarget);
-  const [csvText, setCsvText] = React.useState("");
+  const [csvText, setCsvText] = React.useState(initialText);
   const [file, setFile] = React.useState<File | null>(null);
-  const [options, setOptions] = React.useState<ConverterOptionsState>(DEFAULT_OPTIONS);
+  const [options, setOptions] = React.useState<ConverterOptionsState>({
+    ...DEFAULT_OPTIONS,
+    ...initialOptions,
+  });
 
   const busy = converter.status === "parsing" || converter.status === "generating";
   const isPasteSource = source !== "excel";
@@ -219,9 +311,17 @@ export function ConverterLayout({
   };
 
   const onLoadSample = () => {
-    setSource("csv");
-    setCsvText(SAMPLE_CSV);
-    void converter.parseText(SAMPLE_CSV, "sample-accounts.csv");
+    if (source === "excel") {
+      const workbook = buildSampleWorkbook();
+      setFile(workbook);
+      void converter.parseFile(workbook);
+      return;
+    }
+    const sample = SAMPLE_TEXT_BY_SOURCE[source];
+    setCsvText(sample.text);
+    void converter.parseText(sample.text, sample.filename, {
+      format: PASTE_FORMAT_BY_SOURCE[source],
+    });
   };
 
   return (

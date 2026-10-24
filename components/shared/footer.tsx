@@ -9,6 +9,7 @@ const TOOL_LINKS = [
   { href: "/curl-converter", label: "cURL Converter" },
   { href: "/json-to-schema", label: "JSON to Schema Converter" },
   { href: "/xml-to-schema", label: "XML to Schema Converter" },
+  { href: "/tools", label: "Developer Tools Directory" },
 ];
 
 const COMPANY_LINKS = [

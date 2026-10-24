@@ -65,22 +65,12 @@ function buildCategory(category: RecipeCategory, seeds: Seed[]): CronRecipe[] {
 }
 
 const MINUTES: Seed[] = [
-  ["every-minute", "* * * * *", "Every Minute"],
-  ["every-2-minutes", "*/2 * * * *", "Every 2 Minutes"],
-  ["every-3-minutes", "*/3 * * * *", "Every 3 Minutes"],
-  ["every-4-minutes", "*/4 * * * *", "Every 4 Minutes"],
-  ["every-5-minutes", "*/5 * * * *", "Every 5 Minutes"],
   ["every-6-minutes", "*/6 * * * *", "Every 6 Minutes"],
   ["every-7-minutes", "*/7 * * * *", "Every 7 Minutes"],
   ["every-8-minutes", "*/8 * * * *", "Every 8 Minutes"],
   ["every-9-minutes", "*/9 * * * *", "Every 9 Minutes"],
-  ["every-10-minutes", "*/10 * * * *", "Every 10 Minutes"],
   ["every-12-minutes", "*/12 * * * *", "Every 12 Minutes"],
-  ["every-15-minutes", "*/15 * * * *", "Every 15 Minutes"],
-  ["every-20-minutes", "*/20 * * * *", "Every 20 Minutes"],
   ["every-25-minutes", "*/25 * * * *", "Every 25 Minutes"],
-  ["every-30-minutes", "*/30 * * * *", "Every 30 Minutes"],
-  ["every-45-minutes", "*/45 * * * *", "Every 45 Minutes"],
   ["every-even-minute", "0-59/2 * * * *", "Every Even Minute"],
   ["every-15-minutes-offset", "7-59/15 * * * *", "Every 15 Minutes Starting at :07"],
   ["every-10-minutes-between-9am-and-5pm", "*/10 9-17 * * *", "Every 10 Minutes Between 9 AM and 5 PM"],
@@ -89,17 +79,10 @@ const MINUTES: Seed[] = [
 ];
 
 const HOURLY: Seed[] = [
-  ["every-hour", "0 * * * *", "Every Hour"],
   ["hourly-at-quarter-past", "15 * * * *", "Hourly at Quarter Past"],
   ["hourly-at-half-past", "30 * * * *", "Hourly at Half Past"],
   ["hourly-at-quarter-to", "45 * * * *", "Hourly at Quarter To"],
-  ["every-2-hours", "0 */2 * * *", "Every 2 Hours"],
-  ["every-3-hours", "0 */3 * * *", "Every 3 Hours"],
-  ["every-4-hours", "0 */4 * * *", "Every 4 Hours"],
   ["every-5-hours", "0 */5 * * *", "Every 5 Hours"],
-  ["every-6-hours", "0 */6 * * *", "Every 6 Hours"],
-  ["every-8-hours", "0 */8 * * *", "Every 8 Hours"],
-  ["every-12-hours", "0 */12 * * *", "Every 12 Hours"],
   ["every-2-hours-offset", "15 */2 * * *", "Every 2 Hours Starting at :15"],
   ["every-4-hours-offset", "30 */4 * * *", "Every 4 Hours Starting at :30"],
   ["hourly-between-9am-and-5pm", "0 9-17 * * *", "Hourly Between 9 AM and 5 PM"],
@@ -144,18 +127,9 @@ const DAILY: Seed[] = [
 ];
 
 const WEEKLY: Seed[] = [
-  ["every-monday", "0 0 * * 1", "Every Monday"],
-  ["every-monday-at-9am", "0 9 * * 1", "Every Monday at 9 AM"],
-  ["every-tuesday", "0 0 * * 2", "Every Tuesday"],
   ["every-tuesday-at-noon", "0 12 * * 2", "Every Tuesday at Noon"],
-  ["every-wednesday", "0 0 * * 3", "Every Wednesday"],
-  ["every-thursday", "0 0 * * 4", "Every Thursday"],
   ["every-thursday-at-noon", "0 12 * * 4", "Every Thursday at Noon"],
-  ["every-friday", "0 0 * * 5", "Every Friday"],
-  ["every-friday-at-5pm", "0 17 * * 5", "Every Friday at 5 PM"],
-  ["every-saturday", "0 0 * * 6", "Every Saturday"],
   ["every-saturday-at-9am", "0 9 * * 6", "Every Saturday at 9 AM"],
-  ["every-sunday", "0 0 * * 0", "Every Sunday"],
   ["every-sunday-at-noon", "0 12 * * 0", "Every Sunday at Noon"],
   ["every-monday-wednesday-and-friday", "0 0 * * 1,3,5", "Every Monday, Wednesday and Friday"],
   ["every-tuesday-and-thursday", "0 0 * * 2,4", "Every Tuesday and Thursday"],
@@ -163,15 +137,10 @@ const WEEKLY: Seed[] = [
 ];
 
 const MONTHLY: Seed[] = [
-  ["first-day-of-month", "0 0 1 * *", "First Day of Month"],
-  ["first-day-of-month-at-9am", "0 9 1 * *", "First Day of Month at 9 AM"],
   ["on-the-15th", "0 0 15 * *", "On the 15th of Every Month"],
   ["on-the-1st-and-15th", "0 0 1,15 * *", "On the 1st and 15th of Every Month"],
-  ["last-day-of-month", "0 0 12 L * ?", "Last Day of Month", "quartz"],
   ["month-end-guard", "59 23 28-31 * *", "At 23:59 on Days 28-31 (Month-End Guard)"],
   ["quarterly", "0 0 1 1,4,7,10 *", "Quarterly (First Day of Jan, Apr, Jul, Oct)"],
-  ["every-3-months", "0 0 1 */3 *", "Every 3 Months"],
-  ["every-6-months", "0 0 1 */6 *", "Every 6 Months"],
   ["twice-a-year", "0 0 1 1,7 *", "Twice a Year (Jan 1 and Jul 1)"],
   ["yearly-on-january-1st", "0 0 1 1 *", "Yearly on January 1st"],
   ["never-runs", "0 0 31 2 *", "That Never Runs (February 31st)"],

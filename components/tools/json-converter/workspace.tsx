@@ -104,15 +104,17 @@ function formatBytes(bytes: number): string {
 
 export type JsonConverterWorkspaceProps = {
   defaultTab?: SchemaTarget;
+  initialJson?: string;
 };
 
 export function JsonConverterWorkspace({
   defaultTab = "zod",
+  initialJson = "",
 }: JsonConverterWorkspaceProps) {
   const toast = useToast();
   const { status, code, error, stats, infer } = useJsonInfer();
 
-  const [json, setJson] = React.useState("");
+  const [json, setJson] = React.useState(initialJson);
   const [target, setTarget] = React.useState<SchemaTarget>(
     TARGETS.some((entry) => entry.value === defaultTab) ? defaultTab : "zod",
   );

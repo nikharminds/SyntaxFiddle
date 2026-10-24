@@ -5,15 +5,16 @@ import {
   RECIPE_DEEP_CONTENT,
 } from "../deep-content";
 import { getRecipe } from "../recipes";
+import { getCronSchedule } from "../../config/cron-schedules";
 
 describe("cron deep content", () => {
   it("targets at least ten head-term recipes", () => {
     expect(Object.keys(RECIPE_DEEP_CONTENT).length).toBeGreaterThanOrEqual(10);
   });
 
-  it("only references recipes that exist", () => {
+  it("only references pages that exist (recipe or schedule)", () => {
     for (const slug of deepContentSlugs()) {
-      expect(getRecipe(slug), slug).toBeDefined();
+      expect(getRecipe(slug) ?? getCronSchedule(slug), slug).toBeDefined();
     }
   });
 

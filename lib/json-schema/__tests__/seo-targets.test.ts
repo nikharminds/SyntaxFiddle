@@ -6,9 +6,7 @@ import {
 } from "../seo-targets";
 
 const EXPECTED_TITLES: Record<string, string> = {
-  "json-to-zod": "JSON to Zod Schema Generator (Secure & Offline) | SyntaxFiddle",
   "json-to-typescript": "JSON to TypeScript Interface Converter (Zero-Upload)",
-  "json-to-pydantic": "JSON to Pydantic BaseModel (Offline) | SyntaxFiddle",
   "json-to-go-struct": "JSON to Go Struct Converter | SyntaxFiddle",
 };
 
@@ -21,13 +19,20 @@ function prose(target: (typeof JSON_SCHEMA_SEO_TARGETS)[number]): string {
 }
 
 describe("json-to-schema SEO targets", () => {
-  it("covers the four required landing pages with exact titles", () => {
+  it("covers the remaining landing pages with exact titles", () => {
     expect(JSON_SCHEMA_TARGET_SLUGS).toEqual(
       Object.keys(EXPECTED_TITLES),
     );
     for (const target of JSON_SCHEMA_SEO_TARGETS) {
       expect(target.title).toBe(EXPECTED_TITLES[target.slug]);
     }
+  });
+
+  it("no longer serves slugs migrated to the /tools/ registry", () => {
+    expect(JSON_SCHEMA_TARGET_SLUGS).not.toContain("json-to-zod");
+    expect(JSON_SCHEMA_TARGET_SLUGS).not.toContain("json-to-pydantic");
+    expect(getJsonSchemaSeoTarget("json-to-zod")).toBeUndefined();
+    expect(getJsonSchemaSeoTarget("json-to-pydantic")).toBeUndefined();
   });
 
   it("maps every slug to a valid workspace target", () => {

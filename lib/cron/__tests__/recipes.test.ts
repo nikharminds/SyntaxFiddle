@@ -9,8 +9,8 @@ import {
 } from "../recipes";
 
 describe("recipe dataset integrity", () => {
-  it("ships at least 120 recipes", () => {
-    expect(RECIPES.length).toBeGreaterThanOrEqual(120);
+  it("ships at least 90 recipes", () => {
+    expect(RECIPES.length).toBeGreaterThanOrEqual(90);
   });
 
   it("has unique, URL-safe slugs", () => {
@@ -48,9 +48,9 @@ describe("recipe dataset integrity", () => {
 
 describe("dialect conversion helpers", () => {
   it("passes Unix recipes through unchanged", () => {
-    const recipe = getRecipe("every-5-minutes");
+    const recipe = getRecipe("every-6-minutes");
     expect(recipe).toBeDefined();
-    expect(unixEquivalentExpression(recipe!)).toBe("*/5 * * * *");
+    expect(unixEquivalentExpression(recipe!)).toBe("*/6 * * * *");
   });
 
   it("keeps day-of-week names when porting AWS to Unix", () => {
