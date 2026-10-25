@@ -57,7 +57,12 @@ export const JSON_SCHEMA_FAQS = [
   {
     question: "Which schema targets can I generate from JSON?",
     answer:
-      "Four targets are supported: Zod schemas for runtime validation, TypeScript interfaces for compile-time types, Pydantic v2 BaseModel classes for Python, and Go structs with encoding/json tags. Dedicated landing pages for each target are linked below the workspace, and every target is generated from the same inferred type tree.",
+      "Four targets are supported: Zod schemas for runtime validation, TypeScript interfaces for compile-time types, Pydantic v2 BaseModel classes for Python, and Go structs with encoding/json tags. Each one is a typed data structure generated from the same inferred type tree, so pick the structure that matches your stack. Dedicated landing pages for each target are linked below the workspace.",
+  },
+  {
+    question: "Does this turn JSON into a JSON Schema document or another structure?",
+    answer:
+      "It converts JSON into executable structures rather than the JSON Schema draft format: a Zod schema, TypeScript interfaces, Pydantic v2 models, or Go structs. Each target describes the same structure a JSON Schema would — required fields, optionals, unions, and date formats — expressed natively in the language you will actually run. If you are validating JSON in JavaScript, the generated Zod schema fills exactly the role a standalone JSON Schema file would, with runtime parsing included.",
   },
   {
     question: "How are mixed arrays like [1, \"a\", true] handled?",
