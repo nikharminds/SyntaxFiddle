@@ -1,30 +1,9 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  Braces,
-  Cloud,
-  Database,
-  FileCode2,
-  FileSpreadsheet,
-  FileText,
-  Table,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { CONVERSION_PAIRS } from "@/lib/converter/routes";
 import type { TargetFormat } from "@/lib/converter/types";
-
-const TARGET_ICONS: Record<TargetFormat, LucideIcon> = {
-  sql: Database,
-  json: Braces,
-  "soql-in": Cloud,
-  xml: FileCode2,
-  csv: Table,
-  markdown: FileText,
-  yaml: FileCode2,
-  excel: FileSpreadsheet,
-};
 
 const TARGET_TAGLINES: Record<TargetFormat, string> = {
   sql: "Typed CREATE TABLE plus multi-row INSERTs batched at 500.",
@@ -104,7 +83,6 @@ export function TabularConverters() {
 
       <ul className="mt-8 grid list-none gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {CONVERSION_PAIRS.map((pair) => {
-          const Icon = TARGET_ICONS[pair.target];
           return (
             <li key={pair.slug}>
               <Card hover className="h-full">
@@ -112,10 +90,6 @@ export function TabularConverters() {
                   href={`/${pair.slug}/`}
                   className="flex h-full flex-col gap-3 p-5 focus-visible:outline-none"
                 >
-                  <div className="flex items-center justify-between">
-                    <Badge variant="outline">{pair.sourceLabel}</Badge>
-                    <Icon size={16} className="text-emerald-400" />
-                  </div>
                   <h3 className="text-sm font-semibold tracking-tight text-zinc-100">
                     {pair.sourceLabel} to {pair.targetLabel}
                   </h3>

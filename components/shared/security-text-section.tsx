@@ -101,18 +101,20 @@ export function SecurityTextSection() {
                   href={tool.href}
                   className="flex h-full flex-col gap-4 p-6 focus-visible:outline-none"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10">
-                      <Icon size={20} className="text-emerald-400" />
-                    </span>
-                    <Badge variant={tool.badgeVariant}>{tool.badge}</Badge>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10">
+                        <Icon size={18} className="text-emerald-400" />
+                      </span>
+                      <h3 className="text-lg font-semibold tracking-tight text-zinc-100">
+                        {tool.name}
+                      </h3>
+                    </div>
+                    <Badge variant={tool.badgeVariant} className="shrink-0">
+                      {tool.badge}
+                    </Badge>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold tracking-tight text-zinc-100">
-                      {tool.name}
-                    </h3>
-                    <p className="mt-2 text-sm leading-6 text-zinc-400">{tool.description}</p>
-                  </div>
+                  <p className="text-sm leading-6 text-zinc-400">{tool.description}</p>
                   <ul className="flex flex-wrap gap-1.5" aria-hidden="true">
                     {tool.chips.map((chip) => (
                       <li

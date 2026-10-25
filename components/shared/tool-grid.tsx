@@ -53,22 +53,22 @@ function FeaturedToolCard({ tool }: { tool: Tool }) {
         href={toolHref(tool)}
         className="flex h-full flex-col gap-4 p-6 focus-visible:outline-none"
       >
-        <div className="flex items-start justify-between gap-4">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10">
-            <Icon size={20} className="text-emerald-400" />
-          </span>
-          <div className="flex items-center gap-2">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10">
+              <Icon size={18} className="text-emerald-400" />
+            </span>
+            <h3 className="text-lg font-semibold tracking-tight text-zinc-100">
+              {tool.name}
+            </h3>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
             <Badge variant="info">Featured</Badge>
-            <StatusBadge status={tool.status} />
+            {tool.status !== "live" ? <StatusBadge status={tool.status} /> : null}
           </div>
         </div>
 
-        <div>
-          <h3 className="text-lg font-semibold tracking-tight text-zinc-100">
-            {tool.name}
-          </h3>
-          <p className="mt-2 text-sm leading-6 text-zinc-400">{tool.description}</p>
-        </div>
+        <p className="text-sm leading-6 text-zinc-400">{tool.description}</p>
 
         <div className="flex flex-wrap items-center gap-2" aria-hidden="true">
           {SAMPLE_EXPRESSIONS.map((expression) => (
@@ -119,16 +119,16 @@ function ToolCard({ tool }: { tool: Tool }) {
         href={toolHref(tool)}
         className="flex flex-1 flex-col gap-4 p-6 focus-visible:outline-none"
       >
-        <div className="flex items-start justify-between gap-4">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10">
-            <Icon size={20} className="text-emerald-400" />
-          </span>
-          <StatusBadge status={tool.status} />
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10">
+              <Icon size={18} className="text-emerald-400" />
+            </span>
+            <h3 className="text-lg font-semibold tracking-tight text-zinc-100">{tool.name}</h3>
+          </div>
+          {tool.status !== "live" ? <StatusBadge status={tool.status} /> : null}
         </div>
-        <div>
-          <h3 className="text-lg font-semibold tracking-tight text-zinc-100">{tool.name}</h3>
-          <p className="mt-2 text-sm leading-6 text-zinc-400">{tool.description}</p>
-        </div>
+        <p className="text-sm leading-6 text-zinc-400">{tool.description}</p>
         <span className="mt-auto inline-flex items-center gap-1.5 text-sm font-medium text-emerald-400">
           Open tool
           <ArrowRight size={15} />
