@@ -6,6 +6,7 @@ import {
   getAllConverterSlugs,
   type SeoConverterRoute,
 } from "@/lib/config/converters";
+import { SITE_URL } from "@/lib/site";
 
 const TOOL_TYPE_SECTIONS: { toolType: SeoConverterRoute["toolType"]; heading: string }[] = [
   { toolType: "curl", heading: "cURL Converters" },
@@ -13,11 +14,30 @@ const TOOL_TYPE_SECTIONS: { toolType: SeoConverterRoute["toolType"]; heading: st
   { toolType: "csv", heading: "CSV Converters" },
 ];
 
+const PAGE_TITLE = "Developer Tools Directory | SyntaxFiddle";
+const PAGE_DESCRIPTION =
+  "Every SyntaxFiddle converter in one directory — cURL to code, JSON to schemas, and CSV to SOQL. 100% client-side, zero upload, free forever.";
+
 export const metadata: Metadata = {
-  title: { absolute: "Developer Tools Directory | SyntaxFiddle" },
-  description:
-    "Every SyntaxFiddle converter in one directory — cURL to code, JSON to schemas, and CSV to SOQL. 100% client-side, zero upload, free forever.",
+  title: { absolute: PAGE_TITLE },
+  description: PAGE_DESCRIPTION,
   alternates: { canonical: "/tools/" },
+  openGraph: {
+    title: PAGE_TITLE,
+    description: PAGE_DESCRIPTION,
+    url: `${SITE_URL}/tools/`,
+    siteName: "SyntaxFiddle",
+    type: "website",
+    images: [
+      { url: `${SITE_URL}/og/site.jpg`, width: 1200, height: 630, alt: "SyntaxFiddle Developer Tools" },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: PAGE_TITLE,
+    description: PAGE_DESCRIPTION,
+    images: [`${SITE_URL}/og/site.jpg`],
+  },
 };
 
 export default function ToolsIndexPage() {

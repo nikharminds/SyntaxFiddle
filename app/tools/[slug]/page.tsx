@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowRight, FileCode2, Lock, Zap } from "lucide-react";
 import { ConverterWorkbench } from "@/components/tools/converter-workbench";
+import { PageHero } from "@/components/shared/page-hero";
+import { Badge } from "@/components/ui/badge";
 import {
   CONVERTER_ROUTES,
   getAllConverterSlugs,
@@ -25,6 +27,8 @@ export async function generateMetadata({
   const route = CONVERTER_ROUTES[slug];
   if (!route) return {};
 
+  const ogImage = `${SITE_URL}/og/${route.slug}.jpg`;
+
   return {
     title: { absolute: route.metaTitle },
     description: route.metaDescription,
@@ -36,6 +40,13 @@ export async function generateMetadata({
       url: `${SITE_URL}/tools/${route.slug}/`,
       siteName: "SyntaxFiddle",
       type: "website",
+      images: [{ url: ogImage, width: 1200, height: 630, alt: route.h1 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: route.metaTitle,
+      description: route.metaDescription,
+      images: [ogImage],
     },
   };
 }
@@ -119,15 +130,38 @@ export default async function ToolConverterPage({
       </nav>
 
       <header className="mt-6">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-100 sm:text-4xl">
-          {route.h1}
-        </h1>
-        <p className="mt-4 max-w-3xl text-base leading-7 text-zinc-400">{route.tagline}</p>
-        <p className="mt-4 inline-flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm font-medium text-emerald-300">
-          <ShieldCheck size={16} className="shrink-0" aria-hidden />
-          Parsed 100% locally in your browser. 0 bytes sent to any server. Completely
-          private.
-        </p>
+        <PageHero
+          badges={
+            <>
+              <Badge variant="success">100% Client-Side</Badge>
+              <Badge variant="outline">Zero Upload</Badge>
+              <Badge variant="outline">
+                {route.sourceName} → {route.targetName}
+              </Badge>
+            </>
+          }
+          title={route.h1}
+          description={route.tagline}
+          facts={[
+            {
+              icon: Lock,
+              title: "Zero upload, ever",
+              description: `This ${route.sourceName} → ${route.targetName} conversion runs entirely in your browser — nothing touches a server.`,
+            },
+            {
+              icon: Zap,
+              title: "Instant & unlimited",
+              description:
+                "No sign-up, no quotas — paste your input and copy the result immediately, free forever.",
+            },
+            {
+              icon: FileCode2,
+              title: `Idiomatic ${route.targetName}`,
+              description:
+                "Output follows the target's own conventions — ready to paste straight into your project.",
+            },
+          ]}
+        />
       </header>
 
       <section

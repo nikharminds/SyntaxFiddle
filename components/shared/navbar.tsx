@@ -14,7 +14,6 @@ const NAV_LINKS = [
   { href: "/cron", label: "Cron Visualizer", badge: undefined as string | undefined },
   { href: "/regex-tester", label: "Regex", badge: undefined as string | undefined },
   { href: "/jwt-decoder", label: "JWT", badge: undefined as string | undefined },
-  { href: "/curl-converter", label: "cURL Converter", badge: undefined as string | undefined },
 ] as const;
 
 const DATA_GROUPS: {
@@ -44,21 +43,23 @@ const DATA_GROUPS: {
   },
 ];
 
+const CURL_TARGET_LINKS: { href: string; label: string; short: string }[] = [
+  { href: "/tools/curl-to-javascript-fetch/", label: "cURL to JavaScript fetch()", short: "To fetch()" },
+  { href: "/curl-to-axios/", label: "cURL to Axios", short: "To Axios" },
+  { href: "/tools/curl-to-python-requests/", label: "cURL to Python requests", short: "To Python" },
+  { href: "/curl-to-php/", label: "cURL to PHP Guzzle", short: "To PHP" },
+  { href: "/curl-to-go/", label: "cURL to Go net/http", short: "To Go" },
+  { href: "/curl-to-csharp/", label: "cURL to C# HttpClient", short: "To C#" },
+  { href: "/curl-to-java/", label: "cURL to Java OkHttp", short: "To Java" },
+  { href: "/tools/curl-to-salesforce-apex/", label: "cURL to Salesforce Apex", short: "To Apex" },
+  { href: "/curl-to-powershell/", label: "cURL to PowerShell", short: "To PowerShell" },
+  { href: "/curl-to-httpie/", label: "cURL to HTTPie", short: "To HTTPie" },
+];
+
 const CONVERTER_GROUPS: {
   label: string;
   items: { href: string; label: string }[];
 }[] = [
-  {
-    label: "From cURL",
-    items: [
-      { href: "/tools/curl-to-javascript-fetch/", label: "cURL to JavaScript fetch()" },
-      { href: "/tools/curl-to-python-requests/", label: "cURL to Python requests" },
-      { href: "/tools/curl-to-salesforce-apex/", label: "cURL to Salesforce Apex" },
-      { href: "/curl-to-go/", label: "cURL to Go net/http" },
-      { href: "/curl-to-csharp/", label: "cURL to C# HttpClient" },
-      { href: "/curl-to-php/", label: "cURL to PHP Guzzle" },
-    ],
-  },
   ...( ["csv", "excel"] as SourceFormat[]).map((source) => ({
     label: source === "csv" ? "From CSV" : "From Excel",
     items: CONVERSION_PAIRS.filter((pair) => pair.source === source).map((pair) => ({
@@ -84,28 +85,35 @@ const CONVERTER_GROUPS: {
   },
 ];
 
-type MenuId = "converters" | "data";
+type MenuId = "curl" | "converters" | "data";
 
 export function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<MenuId | null>(null);
   const [openSection, setOpenSection] = useState<MenuId | null>(null);
+  const curlRef = useRef<HTMLDivElement>(null);
   const convertersRef = useRef<HTMLDivElement>(null);
   const dataRef = useRef<HTMLDivElement>(null);
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 
+  const curlActive =
+    pathname === "/curl-converter" ||
+    pathname.startsWith("/curl-converter/") ||
+    pathname.startsWith("/curl-") ||
+    pathname.startsWith("/tools/curl-to-");
   const convertersActive =
     pathname === "/csv" ||
     pathname.startsWith("/csv/") ||
-    pathname.startsWith("/curl-") ||
-    pathname.startsWith("/tools/") ||
     CONVERSION_PAIRS.some(
       (pair) => pathname === `/${pair.slug}` || pathname.startsWith(`/${pair.slug}/`),
     );
-  const dataActive = pathname.startsWith("/json-to") || pathname.startsWith("/xml-to");
+  const dataActive =
+    pathname.startsWith("/json-to") ||
+    pathname.startsWith("/xml-to") ||
+    pathname.startsWith("/tools/json-to");
 
   useEffect(() => {
     if (!openMenu) return;
@@ -115,6 +123,7 @@ export function Navbar() {
     const onClick = (event: MouseEvent) => {
       const target = event.target as Node;
       if (convertersRef.current?.contains(target)) return;
+      if (curlRef.current?.contains(target)) return;
       if (dataRef.current?.contains(target)) return;
       setOpenMenu(null);
     };
@@ -182,6 +191,55 @@ export function Navbar() {
               ) : null}
             </Link>
           ))}
+
+          <div ref={curlRef} className="relative">
+            <button
+              type="button"
+              aria-expanded={openMenu === "curl"}
+              aria-haspopup="true"
+              onClick={() => setOpenMenu(openMenu === "curl" ? null : "curl")}
+              className={renderDesktopLinkClasses(openMenu === "curl" || curlActive)}
+            >
+              cURL Converter
+              <ChevronDown
+                size={14}
+                className={cn("transition-transform", openMenu === "curl" && "rotate-180")}
+              />
+            </button>
+            <div
+              hidden={openMenu !== "curl"}
+              className="absolute left-0 top-full z-50 mt-1 w-[380px] rounded-xl border border-zinc-800 bg-zinc-950 p-4 shadow-xl shadow-black/40"
+            >
+              <Link
+                href="/curl-converter/"
+                onClick={closeMenus}
+                className="flex items-center justify-between gap-2 whitespace-nowrap rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20"
+              >
+                cURL Converter — All 10 Targets
+                <span aria-hidden>→</span>
+              </Link>
+              <div className="mt-3 grid grid-cols-2 gap-x-4">
+                {[CURL_TARGET_LINKS.slice(0, 5), CURL_TARGET_LINKS.slice(5)].map(
+                  (column, columnIndex) => (
+                    <ul key={columnIndex} className="list-none space-y-0.5">
+                      {column.map((item) => (
+                        <li key={item.href}>
+                          <Link
+                            href={item.href}
+                            onClick={closeMenus}
+                            aria-current={isActive(item.href) ? "page" : undefined}
+                            className={renderSubLinkClasses(isActive(item.href))}
+                          >
+                            {item.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ),
+                )}
+              </div>
+            </div>
+          </div>
 
           <div ref={convertersRef} className="relative">
             <button
@@ -346,6 +404,63 @@ export function Navbar() {
             >
               Conversion Studio
             </Link>
+
+            <button
+              type="button"
+              aria-expanded={openSection === "curl"}
+              aria-controls="mobile-curl-section"
+              onClick={() => toggleSection("curl")}
+              className="mt-1 flex w-full items-center justify-between rounded-md px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 transition-colors hover:text-zinc-300"
+            >
+              cURL Converter
+              <ChevronDown
+                size={14}
+                aria-hidden
+                className={cn(
+                  "transition-transform",
+                  openSection === "curl" && "rotate-180",
+                )}
+              />
+            </button>
+            <div
+              id="mobile-curl-section"
+              aria-hidden={openSection !== "curl"}
+              className={cn(
+                "grid transition-all duration-200 ease-in-out",
+                openSection === "curl"
+                  ? "grid-rows-[1fr] opacity-100"
+                  : "grid-rows-[0fr] opacity-0",
+              )}
+              inert={openSection !== "curl"}
+            >
+              <div className="overflow-hidden">
+                <div className="grid grid-cols-2 gap-2 pb-1 pt-2">
+                  <Link
+                    href="/curl-converter/"
+                    onClick={closeMenus}
+                    className="col-span-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-center text-xs font-semibold text-emerald-300 transition-colors hover:bg-emerald-500/20"
+                  >
+                    cURL Converter — All 10 Targets
+                  </Link>
+                  {CURL_TARGET_LINKS.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={closeMenus}
+                      aria-current={isActive(item.href) ? "page" : undefined}
+                      className={cn(
+                        "block rounded-md py-1.5 pl-4 pr-2 text-sm transition-colors",
+                        isActive(item.href)
+                          ? "bg-zinc-900 text-zinc-100"
+                          : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
+                      )}
+                    >
+                      {item.short}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
 
             <button
               type="button"
