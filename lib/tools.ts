@@ -152,6 +152,28 @@ export const TOOLS: Tool[] = [
     ],
   },
   {
+    slug: "soql-formatter",
+    name: "SOQL Formatter",
+    tagline: "Format and beautify Salesforce SOQL queries — 100% offline.",
+    description:
+      "Paste any SOQL query and get cleanly indented, keyword-capitalized output in real time. Native handling of subqueries, __c / __r / __mdt field paths, TYPEOF, and WITH SECURITY_ENFORCED — formatted in a Web Worker, zero uploads.",
+    status: "live",
+    icon: "database",
+    badges: ["Salesforce", "Apex", "Offline"],
+    keywords: [
+      "soql",
+      "soql formatter",
+      "soql beautifier",
+      "salesforce",
+      "apex",
+      "query formatter",
+      "soql prettifier",
+      "format soql",
+      "soql indent",
+      "developer console",
+    ],
+  },
+  {
     slug: "json-to-schema",
     href: "/json-to-schema/",
     name: "JSON to Schema Converter",

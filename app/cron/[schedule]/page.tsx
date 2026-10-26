@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, CalendarClock } from "lucide-react";
 import parser from "cron-parser";
+import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { CronRecipeView, getRecipeAnalysis } from "./recipe-view";
 import { CronMacroLanding } from "./macro-view";
 import {
@@ -200,25 +201,13 @@ function ScheduleLanding({ schedule }: { schedule: CronScheduleRoute }) {
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
       <ScheduleStructuredData schedule={schedule} />
 
-      <nav aria-label="Breadcrumb">
-        <ol className="flex list-none flex-wrap items-center gap-1.5 text-xs text-zinc-500">
-          <li>
-            <Link href="/" className="transition-colors hover:text-emerald-400">
-              Home
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li>
-            <Link href="/cron/" className="transition-colors hover:text-emerald-400">
-              Cron Directory
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li aria-current="page" className="text-zinc-300">
-            {schedule.humanReadable}
-          </li>
-        </ol>
-      </nav>
+      <Breadcrumbs
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Cron Directory", href: "/cron/" },
+          { label: schedule.humanReadable },
+        ]}
+      />
 
       <header className="mt-6 max-w-3xl">
         <h1 className="font-mono text-3xl font-bold tracking-wider text-emerald-400 sm:text-4xl">

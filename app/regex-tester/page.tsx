@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Cpu, Highlighter, ShieldCheck } from "lucide-react";
+import { ArrowRight, Cpu, Highlighter, ShieldCheck } from "lucide-react";
 import { AdUnit } from "@/components/ads/AdUnit";
+import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { PageHero } from "@/components/shared/page-hero";
 import { RegexLayout } from "@/components/regex/RegexLayout";
 import { ToolSchema } from "@/components/schema/ToolSchema";
@@ -73,17 +74,13 @@ export default function RegexTesterPage() {
         faqs={REGEX_FAQS}
       />
 
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-zinc-500">
-        <Link
-          href="/regex/"
-          className="inline-flex items-center gap-1 transition-colors hover:text-emerald-400"
-        >
-          <ArrowLeft size={13} />
-          Regex Tester workspace
-        </Link>
-        <span aria-hidden>/</span>
-        <span className="text-zinc-400">Guide, cheat sheet &amp; FAQ</span>
-      </nav>
+      <Breadcrumbs
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Regex Tester", href: "/regex/" },
+          { label: "Guide, cheat sheet & FAQ" },
+        ]}
+      />
 
       <header className="mt-6">
         <PageHero

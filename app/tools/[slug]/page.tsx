@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowRight, FileCode2, Lock, Zap } from "lucide-react";
 import { ConverterWorkbench } from "@/components/tools/converter-workbench";
 import { PageHero } from "@/components/shared/page-hero";
+import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { Badge } from "@/components/ui/badge";
 import {
   CONVERTER_ROUTES,
@@ -109,25 +110,13 @@ export default async function ToolConverterPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(buildStructuredData(route, url)) }}
       />
 
-      <nav aria-label="Breadcrumb">
-        <ol className="flex list-none flex-wrap items-center gap-1.5 text-xs text-zinc-500">
-          <li>
-            <Link href="/" className="transition-colors hover:text-emerald-400">
-              Home
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li>
-            <Link href="/tools/" className="transition-colors hover:text-emerald-400">
-              Tools
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li aria-current="page" className="text-zinc-300">
-            {route.h1}
-          </li>
-        </ol>
-      </nav>
+      <Breadcrumbs
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Tools", href: "/tools/" },
+          { label: route.h1 },
+        ]}
+      />
 
       <header className="mt-6">
         <PageHero
@@ -281,6 +270,18 @@ export default async function ToolConverterPage({
                 </li>
               );
             })}
+            {/* Salesforce-bound traffic gets a path to the SOQL formatter. */}
+            {route.slug === "curl-to-salesforce-apex" ? (
+              <li>
+                <Link
+                  href="/soql-formatter/"
+                  className="flex items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-300 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
+                >
+                  <span className="font-medium">SOQL Formatter &amp; Beautifier</span>
+                  <ArrowRight size={14} className="shrink-0 text-zinc-600" />
+                </Link>
+              </li>
+            ) : null}
           </ul>
         </section>
       </article>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, FileCode2, Lock, ShieldCheck, Terminal, Zap } from "lucide-react";
 import { AdUnit } from "@/components/ads/AdUnit";
+import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { PageHero } from "@/components/shared/page-hero";
 import { RegexLayout } from "@/components/regex/RegexLayout";
 import { ToolSchema } from "@/components/schema/ToolSchema";
@@ -82,25 +83,13 @@ export default async function RegexFlavorPage({
         faqs={content.faqs}
       />
 
-      <nav aria-label="Breadcrumb">
-        <ol className="flex list-none flex-wrap items-center gap-1.5 text-xs text-zinc-500">
-          <li>
-            <Link href="/" className="transition-colors hover:text-emerald-400">
-              Home
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li>
-            <Link href="/regex-tester/" className="transition-colors hover:text-emerald-400">
-              Regex Tester
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li aria-current="page" className="text-zinc-300">
-            {meta.label}
-          </li>
-        </ol>
-      </nav>
+      <Breadcrumbs
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Regex Tester", href: "/regex-tester/" },
+          { label: meta.label },
+        ]}
+      />
 
       <header className="mt-6">
         <PageHero

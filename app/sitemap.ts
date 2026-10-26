@@ -32,6 +32,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/csv/`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${SITE_URL}/regex-tester/`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${SITE_URL}/jwt-decoder/`, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${SITE_URL}/soql-formatter/`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${SITE_URL}/json-to-schema/`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${SITE_URL}/xml-to-schema/`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${SITE_URL}/about/`, changeFrequency: "yearly", priority: 0.3 },

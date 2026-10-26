@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Database, ShieldCheck, Zap } from "lucide-react";
+import { ArrowRight, Database, ShieldCheck, Zap } from "lucide-react";
 import { AdUnit } from "@/components/ads/AdUnit";
+import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { ConverterLayout } from "@/components/converter/ConverterLayout";
 import { ConverterSchema } from "@/components/converter/ConverterSchema";
 import { PageHero } from "@/components/shared/page-hero";
@@ -49,19 +50,13 @@ export function ConversionLanding({ pair }: { pair: ConversionPair }) {
     <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6">
       <ConverterSchema pair={pair} />
 
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-zinc-500">
-        <Link
-          href="/csv/"
-          className="inline-flex items-center gap-1 transition-colors hover:text-emerald-400"
-        >
-          <ArrowLeft size={13} />
-          CSV &amp; Excel Converter
-        </Link>
-        <span aria-hidden>/</span>
-        <span className="text-zinc-400">
-          {pair.sourceLabel} to {pair.targetLabel}
-        </span>
-      </nav>
+      <Breadcrumbs
+        items={[
+          { label: "Home", href: "/" },
+          { label: "CSV & Excel Converter", href: "/csv/" },
+          { label: `${pair.sourceLabel} to ${pair.targetLabel}` },
+        ]}
+      />
 
       <header className="mt-6">
         <PageHero
@@ -159,6 +154,19 @@ export function ConversionLanding({ pair }: { pair: ConversionPair }) {
                 </Link>
               </li>
             ))}
+            {/* Cross-link the SOQL formatter on pages that generate SOQL —
+                high topical relevance + internal link equity for that tool. */}
+            {pair.target === "soql-in" ? (
+              <li>
+                <Link
+                  href="/soql-formatter/"
+                  className="flex items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-300 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
+                >
+                  <span className="font-medium">SOQL Formatter &amp; Beautifier</span>
+                  <ArrowRight size={14} className="shrink-0 text-zinc-600" />
+                </Link>
+              </li>
+            ) : null}
           </ul>
         </Card>
       </section>

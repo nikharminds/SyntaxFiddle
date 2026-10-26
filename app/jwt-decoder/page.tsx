@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, EyeOff, KeyRound, WifiOff } from "lucide-react";
+import { ArrowRight, EyeOff, KeyRound, WifiOff } from "lucide-react";
 import { AdUnit } from "@/components/ads/AdUnit";
 import { JwtLayout } from "@/components/jwt/JwtLayout";
 import { SecurityNotice } from "@/components/jwt/SecurityNotice";
+import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { PageHero } from "@/components/shared/page-hero";
 import { ToolSchema } from "@/components/schema/ToolSchema";
 import { Badge } from "@/components/ui/badge";
@@ -68,17 +69,13 @@ export default function JwtDecoderPage() {
         faqs={JWT_FAQS}
       />
 
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-zinc-500">
-        <Link
-          href="/jwt/"
-          className="inline-flex items-center gap-1 transition-colors hover:text-emerald-400"
-        >
-          <ArrowLeft size={13} />
-          JWT Decoder workspace
-        </Link>
-        <span aria-hidden>/</span>
-        <span className="text-zinc-400">Guide &amp; FAQ</span>
-      </nav>
+      <Breadcrumbs
+        items={[
+          { label: "Home", href: "/" },
+          { label: "JWT Decoder", href: "/jwt/" },
+          { label: "Guide & FAQ" },
+        ]}
+      />
 
       <header className="mt-6">
         <PageHero

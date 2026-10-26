@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, CalendarClock, Clock, Repeat, ServerCog } from "lucide-react";
 import parser from "cron-parser";
+import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import {
   CRON_MACRO_PAGES,
   type CronMacroPage,
@@ -108,25 +109,14 @@ export function CronMacroLanding({ macroPage }: { macroPage: CronMacroPage }) {
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
       <MacroStructuredData macroPage={macroPage} />
 
-      <nav aria-label="Breadcrumb">
-        <ol className="flex list-none flex-wrap items-center gap-1.5 text-xs text-zinc-500">
-          <li>
-            <Link href="/" className="transition-colors hover:text-emerald-400">
-              Home
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li>
-            <Link href="/cron/" className="transition-colors hover:text-emerald-400">
-              Cron Directory
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li aria-current="page" className="font-mono text-zinc-300">
-            {macroPage.macro}
-          </li>
-        </ol>
-      </nav>
+      <Breadcrumbs
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Cron Directory", href: "/cron/" },
+          { label: macroPage.macro },
+        ]}
+        currentPageClassName="font-mono text-zinc-300"
+      />
 
       <div className="mt-6 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
         <header className="max-w-3xl">

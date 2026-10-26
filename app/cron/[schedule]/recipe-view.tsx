@@ -5,6 +5,7 @@ import { CronPlayground } from "@/components/cron/cron-playground";
 import { RelatedRecipes } from "@/components/cron/related-recipes";
 import { StructuredData } from "@/components/cron/structured-data";
 import { AdUnit } from "@/components/ads/AdUnit";
+import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { DIALECTS } from "@/lib/cron/dialects";
@@ -41,25 +42,13 @@ export function CronRecipeView({ recipe }: { recipe: CronRecipe }) {
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
       <StructuredData recipe={recipe} url={url} faqs={allFaqs} />
 
-      <nav aria-label="Breadcrumb">
-        <ol className="flex list-none flex-wrap items-center gap-1.5 text-xs text-zinc-500">
-          <li>
-            <Link href="/" className="transition-colors hover:text-emerald-400">
-              Home
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li>
-            <Link href="/cron/" className="transition-colors hover:text-emerald-400">
-              Cron Directory
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li aria-current="page" className="text-zinc-300">
-            {recipe.title}
-          </li>
-        </ol>
-      </nav>
+      <Breadcrumbs
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Cron Directory", href: "/cron/" },
+          { label: recipe.title },
+        ]}
+      />
 
       <header className="mt-6 max-w-3xl">
         <div className="flex flex-wrap items-center gap-2">
