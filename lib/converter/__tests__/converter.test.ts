@@ -12,14 +12,16 @@ import { CONVERSION_PAIRS, getConversionPair } from "../routes";
 import { buildSeoSections } from "../copy";
 
 describe("conversion pair registry", () => {
-  it("generates 19 unique slugs covering every source and target", () => {
-    expect(CONVERSION_PAIRS).toHaveLength(19);
-    expect(new Set(CONVERSION_PAIRS.map((pair) => pair.slug)).size).toBe(19);
+  it("generates 20 unique slugs covering every source and target", () => {
+    expect(CONVERSION_PAIRS).toHaveLength(20);
+    expect(new Set(CONVERSION_PAIRS.map((pair) => pair.slug)).size).toBe(20);
     expect(getConversionPair("xml-to-json")?.target).toBe("json");
     expect(getConversionPair("json-to-excel")?.target).toBe("excel");
     expect(getConversionPair("excel-to-markdown")?.target).toBe("markdown");
     expect(getConversionPair("excel-to-yaml")?.source).toBe("excel");
     expect(getConversionPair("json-to-csv")?.target).toBe("csv");
+    expect(getConversionPair("json-to-yaml")?.source).toBe("json");
+    expect(getConversionPair("json-to-yaml")?.target).toBe("yaml");
     expect(getConversionPair("sql-to-csv")?.source).toBe("sql");
     expect(getConversionPair("csv-to-json")?.target).toBe("json");
     expect(getConversionPair("excel-to-soql")?.target).toBe("soql-in");

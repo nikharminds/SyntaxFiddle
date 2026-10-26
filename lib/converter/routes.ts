@@ -16,6 +16,11 @@ export type ConversionPair = {
   description: string;
   keywords: string[];
   faqs: ConversionFaq[];
+  /**
+   * Pair-specific Open Graph image under /public/og. Falls back to the
+   * shared /og/csv.jpg when omitted.
+   */
+  ogImage?: string;
 };
 
 type BuildTarget = Extract<TargetFormat, "json" | "sql" | "soql-in" | "xml">;
@@ -122,7 +127,7 @@ function buildPair(source: BuildSource, target: BuildTarget): ConversionPair {
       {
         question: "Which conversion directions are supported?",
         answer:
-          "The studio converts CSV or Excel into SQL INSERT statements, JSON, Salesforce SOQL IN clauses, and XML — plus the reverse directions: JSON and SQL to CSV and Excel, XML to JSON, CSV and Excel, and CSV and Excel to Markdown tables and YAML. Nineteen dedicated converters in total, each with its own pre-configured page, and the full studio at /csv/ lets you switch formats without losing your input.",
+          "The studio converts CSV or Excel into SQL INSERT statements, JSON, Salesforce SOQL IN clauses, and XML — plus the reverse directions: JSON and SQL to CSV, Excel, and YAML, XML to JSON, CSV, and Excel, and CSV and Excel to Markdown tables and YAML. Twenty dedicated converters in total, each with its own pre-configured page, and the full studio at /csv/ lets you switch formats without losing your input.",
       },
     ],
   };
@@ -153,6 +158,7 @@ const REVERSE_PAIR_META: Array<{
   description: string;
   keywords: string[];
   faqs: ConversionFaq[];
+  ogImage?: string;
 }> = [
   {
     slug: "json-to-csv",
@@ -348,6 +354,56 @@ const REVERSE_PAIR_META: Array<{
     ],
   },
   {
+    slug: "json-to-yaml",
+    source: "json",
+    target: "yaml",
+    sourceLabel: "JSON",
+    targetLabel: "YAML",
+    title: "JSON to YAML Converter",
+    heading: "JSON to YAML Converter — Online & Private",
+    ogImage: "/og/json-to-yaml.jpg",
+    description:
+      "Convert JSON to YAML instantly — nesting preserved as block mappings and sequences, scalars quoted only when YAML would misread them. Zero upload, 100% client-side.",
+    keywords: [
+      "json to yaml",
+      "json to yaml converter",
+      "convert json to yaml",
+      "json to yml",
+      "json to yaml online",
+      "json to yaml converter online",
+      "json to yaml free",
+      "yaml config from json",
+      "json to yaml no upload",
+    ],
+    faqs: [
+      {
+        question: "How do I convert JSON to YAML?",
+        answer:
+          "Paste your JSON — an array of objects, a single object, an array of arrays, or an object of column arrays — pick YAML as the target, and press Run Conversion. The block-style YAML appears instantly with copy and download buttons, and the output regenerates automatically as you edit the input once it parses.",
+      },
+      {
+        question: "Is my JSON nesting preserved in the YAML output?",
+        answer:
+          "Yes. JSON and YAML are both tree formats, so object-shaped input converts structurally: nested objects stay nested block mappings, arrays become block sequences, an array of objects becomes a list of mappings, and a single object becomes a plain mapping document without a list wrapper. Only the two explicitly tabular shapes — an array of arrays (first row is the header) and an object of column arrays — convert through the table pipeline, the same interpretation every converter on this site applies to those shapes.",
+      },
+      {
+        question: "When does the converter quote YAML values?",
+        answer:
+          "Exactly when quoting is required for correctness: strings that would otherwise load as booleans or null (true/false, yes/no, on/off, null, ~), strings that look like numbers (8080, 1e5), and strings containing YAML indicators such as colons or hashes. JSON numbers and booleans pass through bare because YAML reads them identically, and safe strings stay bare so the file stays readable.",
+      },
+      {
+        question: "How are null and the empty string handled?",
+        answer:
+          "JSON null becomes YAML null — the honest translation of the value — while an empty JSON string becomes \"\" so the two survive a load round-trip as distinct values. That distinction is what breaks naive converters: leaving an empty string bare makes YAML load it as null, silently changing your data's types downstream.",
+      },
+      {
+        question: "Is my JSON uploaded to a server?",
+        answer:
+          "No. Parsing and YAML generation run entirely inside your browser — the bytes never leave your machine, nothing is logged, and there is no account. Inputs over 1MB are processed in a background Web Worker, which keeps the page responsive without moving any data off your machine.",
+      },
+    ],
+  },
+  {
     slug: "excel-to-markdown",
     source: "excel",
     target: "markdown",
@@ -403,6 +459,7 @@ const REVERSE_PAIR_META: Array<{
     targetLabel: "YAML",
     title: "Excel to YAML Converter",
     heading: "Excel to YAML Converter — Online & Private",
+    ogImage: "/og/excel-to-yaml.jpg",
     description:
       "Convert Excel rows to a YAML list of mappings instantly — block style, correct scalar quoting, empty cells distinguishable from nulls. Zero upload, 100% client-side.",
     keywords: [
@@ -697,6 +754,7 @@ const REVERSE_CONVERSION_PAIRS: ConversionPair[] = REVERSE_PAIR_META.map(
     description: meta.description,
     keywords: meta.keywords,
     faqs: meta.faqs,
+    ogImage: meta.ogImage,
   }),
 );
 
@@ -710,7 +768,19 @@ export function getConversionPair(slug: string): ConversionPair | undefined {
 }
 
 export function relatedConversionPairs(pair: ConversionPair): ConversionPair[] {
-  return CONVERSION_PAIRS.filter((candidate) => candidate.slug !== pair.slug);
+  // Relevance-ordered internal links: converters sharing the source format
+  // come first, then converters sharing the target format, then the rest in
+  // registry order — so crawlers and users see the most topically related
+  // pages leading every pair's link block.
+  const score = (candidate: ConversionPair): number => {
+    if (candidate.source === pair.source) return 2;
+    if (candidate.target === pair.target) return 1;
+    return 0;
+  };
+  return CONVERSION_PAIRS.filter((candidate) => candidate.slug !== pair.slug)
+    .map((candidate, index) => ({ candidate, index }))
+    .sort((a, b) => score(b.candidate) - score(a.candidate) || a.index - b.index)
+    .map(({ candidate }) => candidate);
 }
 
 export const POPULAR_CONVERSION_SLUGS = [

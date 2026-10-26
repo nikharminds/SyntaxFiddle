@@ -30,6 +30,24 @@ export function ConverterSchema({ pair }: { pair: ConversionPair }) {
         ],
       },
       {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Conversion Studio",
+            item: `${SITE_URL}/csv/`,
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: `${pair.sourceLabel} to ${pair.targetLabel}`,
+            item: url,
+          },
+        ],
+      },
+      {
         "@type": "FAQPage",
         mainEntity: faqs.map((faq) => ({
           "@type": "Question",

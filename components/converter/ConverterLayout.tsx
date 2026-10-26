@@ -124,6 +124,7 @@ const TARGET_OPTIONS: { value: TargetFormat; label: string }[] = [
   { value: "csv", label: "CSV" },
   { value: "markdown", label: "Markdown Table" },
   { value: "yaml", label: "YAML" },
+  { value: "excel", label: "Excel (.xlsx)" },
 ];
 
 const DEFAULT_OPTIONS: ConverterOptionsState = {

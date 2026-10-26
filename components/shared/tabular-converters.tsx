@@ -66,7 +66,7 @@ export function TabularConverters() {
             Tabular Data Converters
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-            Nineteen dedicated converters across CSV, Excel, JSON, SQL, and XML inputs,
+            Twenty dedicated converters across CSV, Excel, JSON, SQL, and XML inputs,
             each pre-configured for its target format and statically exported to
             the CDN edge. Paste or drop data, convert instantly — nothing ever
             leaves your browser.

@@ -6,6 +6,14 @@ export interface ParsedTable {
   rows: Record<string, any>[];
   rowCount: number;
   fileName?: string;
+  /**
+   * The original parsed JSON value, set only when the input shape preserves
+   * object structure (an array of objects or a single object). Tree-aware
+   * targets such as YAML use it to keep nesting intact instead of flattening
+   * to dot-path columns; tabular shapes (arrays of arrays, objects of column
+   * arrays, CSV, Excel, SQL, XML) never set it.
+   */
+  sourceJson?: unknown;
 }
 
 export interface SqlOptions {

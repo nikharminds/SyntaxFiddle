@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight, Database, ShieldCheck, Zap } from "lucide-react";
 import { AdUnit } from "@/components/ads/AdUnit";
@@ -17,8 +18,58 @@ import {
 } from "@/lib/converter/routes";
 import { SITE_URL } from "@/lib/site";
 
+/** Markdown-style inline links in deep-copy sections: [label](/slug/). */
+const INLINE_LINK_PATTERN = /\[([^\]]+)\]\((\/[^\s)]*)\)/g;
+
+function renderParagraphWithLinks(paragraph: string): ReactNode {
+  const nodes: ReactNode[] = [];
+  let lastIndex = 0;
+  let linkKey = 0;
+  for (const match of paragraph.matchAll(INLINE_LINK_PATTERN)) {
+    const index = match.index ?? 0;
+    if (index > lastIndex) {
+      nodes.push(paragraph.slice(lastIndex, index));
+    }
+    nodes.push(
+      <Link
+        key={`inline-link-${linkKey++}`}
+        href={match[2]!}
+        className="font-medium text-emerald-300 underline decoration-emerald-500/40 underline-offset-2 transition-colors hover:text-emerald-200"
+      >
+        {match[1]!}
+      </Link>,
+    );
+    lastIndex = index + match[0].length;
+  }
+  if (lastIndex < paragraph.length) {
+    nodes.push(paragraph.slice(lastIndex));
+  }
+  return nodes;
+}
+
+/**
+ * Hero facts are target-aware: the default fact advertises SQL type
+ * inference, which is misleading for non-SQL outputs such as YAML.
+ */
+const HERO_FACT_BY_TARGET: Partial<
+  Record<ConversionPair["target"], { title: string; description: string }>
+> = {
+  yaml: {
+    title: "Structure preserved",
+    description: "Block-style YAML with honest scalar quoting — nesting kept intact.",
+  },
+  excel: {
+    title: "Typed cells",
+    description: "A real .xlsx workbook with typed cells and content-sized columns.",
+  },
+  markdown: {
+    title: "Readable tables",
+    description: "GitHub-Flavored pipe tables with escaped cells and numeric alignment.",
+  },
+};
+
 export function buildPairMetadata(pair: ConversionPair): Metadata {
-  const ogImage = `${SITE_URL}/og/csv.jpg`;
+  const ogImage = `${SITE_URL}${pair.ogImage ?? "/og/csv.jpg"}`;
   return {
     title: pair.title,
     description: pair.description,
@@ -79,8 +130,10 @@ export function ConversionLanding({ pair }: { pair: ConversionPair }) {
             },
             {
               icon: Database,
-              title: "Typed output",
-              description: "Columns are inferred as INTEGER, NUMERIC, BOOLEAN, or VARCHAR.",
+              ...(HERO_FACT_BY_TARGET[pair.target] ?? {
+                title: "Typed output",
+                description: "Columns are inferred as INTEGER, NUMERIC, BOOLEAN, or VARCHAR.",
+              }),
             },
             {
               icon: ShieldCheck,
@@ -113,7 +166,7 @@ export function ConversionLanding({ pair }: { pair: ConversionPair }) {
                   key={paragraph.slice(0, 48)}
                   className="mt-3 text-sm leading-6 text-zinc-400"
                 >
-                  {paragraph}
+                  {renderParagraphWithLinks(paragraph)}
                 </p>
               ))}
             </div>

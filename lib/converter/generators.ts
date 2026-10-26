@@ -185,23 +185,111 @@ const YAML_PLAIN_SAFE = /^[A-Za-z_][A-Za-z0-9_.\-/ ]*$/;
 const YAML_AMBIGUOUS =
   /^(?:true|false|yes|no|on|off|null|~|-|\?|:|\d|\+|\.|'|"|[[{]&|.*[:#][\s&*!|>%@`]|.*\s$|.*^\s)/s;
 
+function yamlStringScalar(text: string): string {
+  if (text === "") return '""';
+  return YAML_AMBIGUOUS.test(text) || !YAML_PLAIN_SAFE.test(text)
+    ? JSON.stringify(text)
+    : text;
+}
+
 function yamlScalar(value: unknown): string {
   if (value === null || value === undefined || String(value) === "") return '""';
   if (typeof value === "boolean" || typeof value === "number") return String(value);
-  const text = String(value);
-  if (YAML_AMBIGUOUS.test(text) || !YAML_PLAIN_SAFE.test(text)) {
-    return JSON.stringify(text);
+  return yamlStringScalar(String(value));
+}
+
+/** Quotes mapping keys that YAML would misread as indicators or scalars. */
+function yamlKey(key: string): string {
+  return YAML_AMBIGUOUS.test(key) || !YAML_PLAIN_SAFE.test(key)
+    ? JSON.stringify(key)
+    : key;
+}
+
+/**
+ * Scalar rendering for values that already carry JSON semantics: null stays
+ * null (the honest translation) instead of collapsing into "".
+ */
+function yamlJsonScalar(value: unknown): string {
+  if (value === null || value === undefined) return "null";
+  if (typeof value === "boolean" || typeof value === "number") return String(value);
+  if (typeof value === "string") return yamlStringScalar(value);
+  return JSON.stringify(value);
+}
+
+function isEmptyCollection(value: object): boolean {
+  return Array.isArray(value)
+    ? value.length === 0
+    : Object.keys(value).length === 0;
+}
+
+/**
+ * Renders a parsed JSON tree as block-style YAML lines at the given indent.
+ * Nested objects become nested mappings, arrays become block sequences, and
+ * the first child of a sequence item is folded onto the "- " line.
+ */
+function renderYamlNode(value: unknown, indent: number): string[] {
+  const pad = " ".repeat(indent);
+  if (value === null || typeof value !== "object") {
+    return [`${pad}${yamlJsonScalar(value)}`];
   }
-  return text;
+  if (Array.isArray(value)) {
+    if (value.length === 0) return [`${pad}[]`];
+    const lines: string[] = [];
+    for (const item of value) {
+      if (item === null || typeof item !== "object") {
+        lines.push(`${pad}- ${yamlJsonScalar(item)}`);
+        continue;
+      }
+      if (isEmptyCollection(item)) {
+        lines.push(`${pad}- ${Array.isArray(item) ? "[]" : "{}"}`);
+        continue;
+      }
+      const rendered = renderYamlNode(item, indent + 2);
+      rendered[0] = `${pad}- ${rendered[0]!.slice(indent + 2)}`;
+      lines.push(...rendered);
+    }
+    return lines;
+  }
+  const entries = Object.entries(value as Record<string, unknown>);
+  if (entries.length === 0) return [`${pad}{}`];
+  const lines: string[] = [];
+  for (const [rawKey, child] of entries) {
+    const key = yamlKey(rawKey);
+    if (child === null || typeof child !== "object") {
+      lines.push(`${pad}${key}: ${yamlJsonScalar(child)}`);
+      continue;
+    }
+    if (isEmptyCollection(child)) {
+      lines.push(`${pad}${key}: ${Array.isArray(child) ? "[]" : "{}"}`);
+      continue;
+    }
+    lines.push(`${pad}${key}:`);
+    lines.push(...renderYamlNode(child, indent + 2));
+  }
+  return lines;
+}
+
+/** Converts a parsed JSON value to block-style YAML, preserving structure. */
+export function generateYamlFromJson(value: unknown): string {
+  return renderYamlNode(value, 0).join("\n");
 }
 
 export function generateYaml(table: ParsedTable): string {
   if (table.rows.length === 0) return "[]";
+  // Object-shaped JSON keeps its tree: nested maps and sequences instead of
+  // dot-path flattening. Tabular shapes (array of arrays, object of column
+  // arrays) carry no sourceJson and convert through the row path below.
+  if (table.sourceJson !== undefined) {
+    return generateYamlFromJson(table.sourceJson);
+  }
   const lines: string[] = [];
   for (const row of table.rows) {
-    lines.push(`- ${yamlScalar(table.headers[0] !== undefined ? row[table.headers[0]] : "")}`);
-    for (const header of table.headers.slice(1)) {
-      lines.push(`  ${header}: ${yamlScalar(row[header])}`);
+    const [firstHeader, ...restHeaders] = table.headers;
+    if (firstHeader !== undefined) {
+      lines.push(`- ${yamlKey(firstHeader)}: ${yamlScalar(row[firstHeader])}`);
+    }
+    for (const header of restHeaders) {
+      lines.push(`  ${yamlKey(header)}: ${yamlScalar(row[header])}`);
     }
   }
   return lines.join("\n");

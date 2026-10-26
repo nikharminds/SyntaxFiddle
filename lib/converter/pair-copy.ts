@@ -119,6 +119,15 @@ export const PAIR_DEEP_SECTIONS: PairDeepSections = {
       ],
     },
   ],
+  "json-to-yaml": [
+    {
+      heading: "JSON to YAML: tree in, tree out",
+      body: [
+        "JSON and YAML are both tree formats, so this converter preserves structure instead of flattening it: nested objects become nested block mappings, arrays become block sequences, an array of objects becomes the list-of-mappings shape Ansible inventories, docker-compose fragments, and CI matrices expect, and a single object becomes a plain mapping document — not wrapped in a list — because that is the shape config files actually have. The only inputs that flatten are the two explicitly tabular JSON shapes (an array of arrays with its first row as a header, and an object of column arrays), which convert through the same table pipeline as the CSV and Excel paths — matching how every other converter on this site interprets them. The sibling tools follow the same rule by target: [JSON to CSV](/json-to-csv/) and [JSON to Excel](/json-to-excel/) flatten to rectangles because spreadsheets are rectangular, while [CSV to YAML](/csv-to-yaml/) and [Excel to YAML](/excel-to-yaml/) share this page's block-style output — and the [full conversion studio](/csv/) switches formats without losing your input.",
+        "Scalar translation is where naive JSON-to-YAML conversion corrupts data, because the two formats disagree about bare words: the JSON string \"on\" must be quoted in YAML or it loads as true, \"8080\" must be quoted or it loads as a number, and the string \"null\" must be quoted or it loads as nothing at all. The generator quotes exactly those strings and leaves safe ones bare; JSON numbers and booleans pass through unquoted because YAML reads them identically, and JSON null becomes YAML null — the honest translation of the value rather than an empty-string stand-in that changes the data model on load.",
+      ],
+    },
+  ],
   "excel-to-markdown": [
     {
       heading: "Excel to Markdown: from spreadsheet to PR-ready table",
@@ -133,7 +142,7 @@ export const PAIR_DEEP_SECTIONS: PairDeepSections = {
       heading: "Excel to YAML: config data without the YAML hand-editing",
       body: [
         "YAML files are how teams encode configuration; spreadsheets are how stakeholders actually edit data. This converter closes that gap: each row becomes a block-style list item with headers as keys, ready for Ansible inventories, docker-compose service fragments, or CI matrices — the structure config tooling consumes, not flow-style JSON that linters reject. The header row is the contract: rename a column in the sheet and the generated key changes with it, visibly in the diff.",
-        "Scalar quoting is where YAML generation silently corrupts data, and the rules here are explicit: booleans-in-disguise (yes, no, on, off), null-like values, numbers, and indicator-bearing strings are double-quoted; everything else stays bare. Excel-specific traps get the same treatment — date-formatted cells convert as their serial numbers unless the column is Text-formatted first, and numeric IDs beyond 15 digits were already rounded inside Excel's doubles, so ID columns belong formatted as Text before they ever reach a converter.",
+        "Scalar quoting is where YAML generation silently corrupts data, and the rules here are explicit: booleans-in-disguise (yes, no, on, off), null-like values, numbers, and indicator-bearing strings are double-quoted; everything else stays bare. Excel-specific traps get the same treatment — date-formatted cells convert as their serial numbers unless the column is Text-formatted first, and numeric IDs beyond 15 digits were already rounded inside Excel's doubles, so ID columns belong formatted as Text before they ever reach a converter. For the same block-style output from other inputs, see the [JSON to YAML](/json-to-yaml/) and [CSV to YAML](/csv-to-yaml/) converters, take the same workbook to documentation with [Excel to Markdown](/excel-to-markdown/), or open the [conversion studio](/csv/) to switch formats without losing your input.",
       ],
     },
   ],
@@ -327,6 +336,18 @@ export const PAIR_EXTRA_FAQS: PairExtraFaqs = {
       question: 'Why are empty cells written as "" instead of being left blank?',
       answer:
         "Because in YAML an empty value means null, not an empty string — and conflating them changes your data model the moment the file is loaded. Writing the quoted empty string preserves the distinction: the CSV cell was empty text, so the YAML scalar is empty text. Converters that leave it bare produce nulls that downstream code then has to special-case; this one does not create that bug for you.",
+    },
+  ],
+  "json-to-yaml": [
+    {
+      question: "Does the output use tabs or spaces, and which YAML version is it valid for?",
+      answer:
+        "Two-space block indentation, never tabs — the convention every YAML loader and yamllint's default rules expect. The output targets the YAML 1.2 core schema: block style only (flow syntax appears solely for explicit empty collections, as [] and {}), scalar quoting applied per the 1.2 resolution rules, and key order matching your JSON's key order so diffs track the source. PyYAML, Go's gopkg.in/yaml.v3, JavaScript's js-yaml, and Rust's serde_yaml all parse the result identically.",
+    },
+    {
+      question: "Can I convert a JSON API response into a Kubernetes manifest or CI config?",
+      answer:
+        "Yes — that is the canonical use case. API responses and generated config JSON convert to block YAML with structure preserved, so a JSON deployment spec becomes the indented manifest Kubernetes expects. For multi-document manifests, convert each JSON document separately and join the outputs with --- separators; the generator emits one document per conversion by design, so outputs compose without structural surprises.",
     },
   ],
   "excel-to-markdown": [

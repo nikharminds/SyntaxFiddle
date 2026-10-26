@@ -112,15 +112,17 @@ describe("csv / markdown / yaml generators", () => {
     expect(md).toContain("| --- | --- | --- |");
   });
 
-  it("generates block YAML with honest scalar quoting", () => {
+  it("generates block YAML with honest scalar quoting and every header keyed", () => {
     const t = {
       headers: ["name", "on", "port"],
       rows: [{ name: "yes-quote me", on: true, port: "8080" }],
       rowCount: 1,
     };
     const yaml = generateYaml(t);
-    expect(yaml.split("\n")[0]).toBe('- "yes-quote me"');
-    expect(yaml).toContain("  on: true");
+    expect(yaml.split("\n")[0]).toBe('- name: "yes-quote me"');
+    // "on" is quoted as a key: YAML 1.1 loaders (PyYAML) would otherwise
+    // resolve it as a boolean.
+    expect(yaml).toContain('  "on": true');
     expect(yaml).toContain('  port: "8080"');
   });
 
@@ -130,19 +132,74 @@ describe("csv / markdown / yaml generators", () => {
       rows: [{ a: "" }],
       rowCount: 1,
     });
-    expect(yaml).toBe('- ""');
+    expect(yaml).toBe('- a: ""');
+  });
+
+  it("preserves JSON structure: single object becomes a block mapping", () => {
+    const yaml = generateYaml(
+      parseJsonTable('{"database": {"host": "localhost", "port": 5432}, "replicas": 3}'),
+    );
+    expect(yaml).toBe("database:\n  host: localhost\n  port: 5432\nreplicas: 3");
+  });
+
+  it("preserves JSON structure: arrays of objects become block sequences", () => {
+    const yaml = generateYaml(
+      parseJsonTable('[{"name": "Ada", "tags": ["admin"]}, {"name": "Grace"}]'),
+    );
+    expect(yaml.split("\n")).toEqual([
+      "- name: Ada",
+      "  tags:",
+      "    - admin",
+      "- name: Grace",
+    ]);
+  });
+
+  it("quotes YAML-ambiguous JSON strings and translates null honestly", () => {
+    const yaml = generateYaml(
+      parseJsonTable('[{"flag": "on", "code": "8080", "empty": "", "gone": null, "ok": true}]'),
+    );
+    expect(yaml).toContain('flag: "on"');
+    expect(yaml).toContain('code: "8080"');
+    expect(yaml).toContain('empty: ""');
+    expect(yaml).toContain("gone: null");
+    expect(yaml).toContain("ok: true");
+  });
+
+  it("converts tabular JSON shapes through the table path with headers as keys", () => {
+    const arrayOfArrays = generateYaml(parseJsonTable('[["Name", "Age"], ["Ada", 36]]'));
+    expect(arrayOfArrays.split("\n")[0]).toBe("- Name: Ada");
+    expect(arrayOfArrays).toContain("  Age: 36");
+
+    const columnArrays = generateYaml(parseJsonTable('{"x": [1, 2], "y": ["a", "b"]}'));
+    expect(columnArrays.split("\n")[0]).toBe("- x: 1");
+    expect(columnArrays).toContain("  y: b");
+  });
+
+  it("renders empty JSON collections inline and quotes unsafe keys", () => {
+    const yaml = generateYaml(
+      parseJsonTable('{"items": [], "meta": {}, "weird key: x": "v"}'),
+    );
+    expect(yaml).toContain("items: []");
+    expect(yaml).toContain("meta: {}");
+    expect(yaml).toContain('"weird key: x": v');
   });
 });
 
 describe("reverse conversion routes", () => {
-  it("registers the four reverse pairs with landing metadata", () => {
-    for (const slug of ["json-to-csv", "sql-to-csv", "csv-to-markdown", "csv-to-yaml"]) {
+  it("registers the reverse pairs with landing metadata", () => {
+    for (const slug of [
+      "json-to-csv",
+      "sql-to-csv",
+      "csv-to-markdown",
+      "csv-to-yaml",
+      "json-to-yaml",
+    ]) {
       const pair = getConversionPair(slug);
       expect(pair, slug).toBeDefined();
       expect(pair!.title.length, slug).toBeGreaterThan(10);
       expect(pair!.faqs.length, slug).toBeGreaterThanOrEqual(5);
     }
-    expect(CONVERSION_PAIRS.length).toBe(19);
+    expect(CONVERSION_PAIRS.length).toBe(20);
     for (const slug of ["xml-to-json", "xml-to-csv", "xml-to-excel", "json-to-excel", "sql-to-excel"]) {
       expect(getConversionPair(slug), slug).toBeDefined();
     }

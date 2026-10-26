@@ -151,7 +151,8 @@ export function parseJsonTable(rawText: string): ParsedTable {
         for (const header of headers) row[header] = flat[header] ?? "";
         return row;
       });
-      return { headers, rows, rowCount: rows.length };
+      // Carry the original tree so the YAML target can preserve nesting.
+      return { headers, rows, rowCount: rows.length, sourceJson: parsed };
     }
     throw new ConverterError(
       "Unsupported JSON shape — expected an array of objects, an array of arrays, or a single object",
@@ -184,7 +185,9 @@ export function parseJsonTable(rawText: string): ParsedTable {
     const flat: Record<string, string | number | boolean> = {};
     flattenRecord(record, "", flat);
     const headers = Object.keys(flat);
-    return { headers, rows: [flat], rowCount: 1 };
+    // Single object: carry the original tree (a single object converts to a
+    // block mapping, not a flattened list item).
+    return { headers, rows: [flat], rowCount: 1, sourceJson: record };
   }
 
   throw new ConverterError(

@@ -33,13 +33,30 @@ customer exports, internal schedules, and live auth tokens.
 | Tool | What it does |
 | --- | --- |
 | [Cron Expression Tester & Generator](https://syntaxfiddle.com/cron/) | Parse, explain, and simulate cron schedules across **Unix, Quartz, AWS EventBridge, and Cloudflare** dialects — plain-English translation, run timeline, timezone-aware next runs, and 100+ [ready-made cron recipes](https://syntaxfiddle.com/cron/every-5-minutes/). |
-| [Conversion Studio](https://syntaxfiddle.com/csv/) | **19 dedicated converters** across CSV, Excel, JSON, SQL, and XML — [CSV→JSON](https://syntaxfiddle.com/csv-to-json/), [CSV→SQL](https://syntaxfiddle.com/csv-to-sql/), [CSV→SOQL](https://syntaxfiddle.com/csv-to-soql/), [CSV→XML](https://syntaxfiddle.com/csv-to-xml/), [CSV→Markdown](https://syntaxfiddle.com/csv-to-markdown/), [CSV→YAML](https://syntaxfiddle.com/csv-to-yaml/), [Excel→SQL](https://syntaxfiddle.com/excel-to-sql/), [Excel→JSON](https://syntaxfiddle.com/excel-to-json/), [Excel→XML](https://syntaxfiddle.com/excel-to-xml/), [Excel→SOQL](https://syntaxfiddle.com/excel-to-soql/), [Excel→Markdown](https://syntaxfiddle.com/excel-to-markdown/), [Excel→YAML](https://syntaxfiddle.com/excel-to-yaml/), [JSON→CSV](https://syntaxfiddle.com/json-to-csv/), [JSON→Excel](https://syntaxfiddle.com/json-to-excel/), [SQL→CSV](https://syntaxfiddle.com/sql-to-csv/), [SQL→Excel](https://syntaxfiddle.com/sql-to-excel/), [XML→JSON](https://syntaxfiddle.com/xml-to-json/), [XML→CSV](https://syntaxfiddle.com/xml-to-csv/), and [XML→Excel](https://syntaxfiddle.com/xml-to-excel/) — real typed `.xlsx` output, delimiter sniffing, column type inference, 100% client-side. |
+| [Conversion Studio](https://syntaxfiddle.com/csv/) | **20 dedicated converters** across CSV, Excel, JSON, SQL, and XML — [CSV→JSON](https://syntaxfiddle.com/csv-to-json/), [CSV→SQL](https://syntaxfiddle.com/csv-to-sql/), [CSV→SOQL](https://syntaxfiddle.com/csv-to-soql/), [CSV→XML](https://syntaxfiddle.com/csv-to-xml/), [CSV→Markdown](https://syntaxfiddle.com/csv-to-markdown/), [CSV→YAML](https://syntaxfiddle.com/csv-to-yaml/), [Excel→SQL](https://syntaxfiddle.com/excel-to-sql/), [Excel→JSON](https://syntaxfiddle.com/excel-to-json/), [Excel→XML](https://syntaxfiddle.com/excel-to-xml/), [Excel→SOQL](https://syntaxfiddle.com/excel-to-soql/), [Excel→Markdown](https://syntaxfiddle.com/excel-to-markdown/), [Excel→YAML](https://syntaxfiddle.com/excel-to-yaml/), [JSON→CSV](https://syntaxfiddle.com/json-to-csv/), [JSON→Excel](https://syntaxfiddle.com/json-to-excel/), [JSON→YAML](https://syntaxfiddle.com/json-to-yaml/), [SQL→CSV](https://syntaxfiddle.com/sql-to-csv/), [SQL→Excel](https://syntaxfiddle.com/sql-to-excel/), [XML→JSON](https://syntaxfiddle.com/xml-to-json/), [XML→CSV](https://syntaxfiddle.com/xml-to-csv/), and [XML→Excel](https://syntaxfiddle.com/xml-to-excel/) — real typed `.xlsx` output, delimiter sniffing, column type inference, 100% client-side. |
 | [cURL Converter](https://syntaxfiddle.com/curl-converter/) | Transpile cURL commands to idiomatic code in **10 targets**: [fetch](https://syntaxfiddle.com/tools/curl-to-javascript-fetch/), [axios](https://syntaxfiddle.com/curl-to-axios/), [Python requests](https://syntaxfiddle.com/tools/curl-to-python-requests/), [PHP](https://syntaxfiddle.com/curl-to-php/), [Go](https://syntaxfiddle.com/curl-to-go/), [C#](https://syntaxfiddle.com/curl-to-csharp/), [Java](https://syntaxfiddle.com/curl-to-java/), [Salesforce Apex](https://syntaxfiddle.com/tools/curl-to-salesforce-apex/), [PowerShell](https://syntaxfiddle.com/curl-to-powershell/), and [HTTPie](https://syntaxfiddle.com/curl-to-httpie/). Headers, JSON bodies, basic auth included. |
 | [Regex Tester](https://syntaxfiddle.com/regex-tester/) | Evaluate patterns with live match highlighting, capture groups, and flags — sandboxed in a Web Worker with ReDoS protection. Dialect modes for [MySQL](https://syntaxfiddle.com/regex/mysql/), [Python](https://syntaxfiddle.com/regex/python/), [PHP/PCRE](https://syntaxfiddle.com/regex/php/), [Java](https://syntaxfiddle.com/regex/java/), and [.NET](https://syntaxfiddle.com/regex/dotnet/) translate flavor-specific syntax to JS with per-construct notices — untranslatable constructs are blocked, never silently mis-matched. |
 | [JWT Decoder](https://syntaxfiddle.com/jwt-decoder/) | Inspect JSON Web Tokens locally: color-coded segments, syntax-highlighted claims, and expiry checks. Decode-only, zero network calls. |
 | [JSON to Schema Converter](https://syntaxfiddle.com/json-to-schema/) | Infer types from raw JSON into [Zod](https://syntaxfiddle.com/tools/json-to-zod/), [TypeScript](https://syntaxfiddle.com/json-to-typescript/), [Pydantic](https://syntaxfiddle.com/tools/json-to-pydantic/), and [Go structs](https://syntaxfiddle.com/json-to-go-struct/). |
 | [XML to Schema Converter](https://syntaxfiddle.com/xml-to-schema/) | Same four targets from XML documents — [XML→Zod](https://syntaxfiddle.com/xml-to-zod/), [XML→TypeScript](https://syntaxfiddle.com/xml-to-typescript/), [XML→Pydantic](https://syntaxfiddle.com/xml-to-pydantic/), and [XML→Go structs](https://syntaxfiddle.com/xml-to-go-struct/), with `@attr` conventions, repeated-element arrays, and CDATA preserved. |
-| [Developer Tools Directory](https://syntaxfiddle.com/tools/) | One-page index of every tool — all 19 converters, the cURL targets, and the schema generators. |
+| [Developer Tools Directory](https://syntaxfiddle.com/tools/) | One-page index of every tool — all 20 converters, the cURL targets, and the schema generators. |
+
+## Popular conversions
+
+Every direction runs 100% in your browser — paste, convert, copy or download:
+
+[convert JSON to YAML](https://syntaxfiddle.com/json-to-yaml/) ·
+[Excel to YAML converter](https://syntaxfiddle.com/excel-to-yaml/) ·
+[CSV to YAML](https://syntaxfiddle.com/csv-to-yaml/) ·
+[CSV to JSON](https://syntaxfiddle.com/csv-to-json/) ·
+[CSV to SQL INSERTs](https://syntaxfiddle.com/csv-to-sql/) ·
+[JSON to CSV](https://syntaxfiddle.com/json-to-csv/) ·
+[JSON to Excel (.xlsx)](https://syntaxfiddle.com/json-to-excel/) ·
+[Excel to SQL](https://syntaxfiddle.com/excel-to-sql/) ·
+[XML to JSON](https://syntaxfiddle.com/xml-to-json/) ·
+[SQL INSERT to CSV](https://syntaxfiddle.com/sql-to-csv/)
+
+— plus ten more directions in the [Conversion Studio](https://syntaxfiddle.com/csv/).
 
 ## Popular cron recipes
 
@@ -67,7 +84,7 @@ equivalents (systemd timers, Kubernetes CronJobs, Vercel Cron, Celery beat):
 ## How it works
 
 - **Static export, zero backend** — every page is pre-rendered HTML at build time (`next build` → `./out`), served from any CDN edge. No cold starts, no server round trips, nothing to attack.
-- **Deterministic TypeScript engines** — the cron engine (4 dialects), the CSV/Excel/JSON/SQL/XML converter engines, the cURL transpiler, the XML parser, and the JSON/XML type-inferrers are hand-written, code-split per route, and covered by **395+ unit tests**.
+- **Deterministic TypeScript engines** — the cron engine (4 dialects), the CSV/Excel/JSON/SQL/XML converter engines, the cURL transpiler, the XML parser, and the JSON/XML type-inferrers are hand-written, code-split per route, and covered by **450+ unit tests**.
 - **Web Workers for heavy lifting** — regex evaluation and file conversion run off the main thread, with ReDoS protection on pattern input.
 - **Privacy by architecture, not by policy** — we cannot log what we never receive.
 
