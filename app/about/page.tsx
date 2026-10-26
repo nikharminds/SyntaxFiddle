@@ -31,17 +31,10 @@ export default function AboutPage() {
 
         <h2>Bug reports and contact</h2>
         <p>
-          Found a parsing edge case or a calculation that looks wrong? Email us at{" "}
-          <a href="mailto:nikharminds@gmail.com">nikharminds@gmail.com</a> with the
-          expression, the dialect, and the expected behavior — reproducible reports go
-          straight into the engine&rsquo;s test suite.
-        </p>
-        <p>
-          For support, bug reports, partnership inquiries, feedback, tool suggestions,
-          or anything else, reach us at{" "}
-          <a href="mailto:nikharminds@gmail.com">nikharminds@gmail.com</a>. As a
-          distributed, remote-first project we work across timezones and aim to reply
-          within a few business days.
+          Found a parsing edge case, a calculation that looks wrong, or want to
+          suggest a tool? Head over to the <a href="/contact/">contact page</a>{" "}
+          — reproducible bug reports go straight into the engine&rsquo;s test
+          suite.
         </p>
 
         <h2>Principles</h2>

@@ -54,3 +54,9 @@
 /cron/tuesday-thursday/ /cron/every-tuesday-and-thursday/ 301
 /cron/every-friday-at-midnight/ /cron/every-saturday/ 301
 /cron/every-3-months/ /cron/quarterly/ 301
+
+# 404 fixes - guessed About/Contact URLs seen in GA4 (Oct 26 2026)
+/about-us /about/ 301
+/about-us/ /about/ 301
+/contact-us /contact/ 301
+/contact-us/ /contact/ 301
