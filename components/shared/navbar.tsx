@@ -11,10 +11,18 @@ import type { SourceFormat } from "@/lib/converter/types";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
-  { href: "/cron", label: "Cron Visualizer", badge: undefined as string | undefined },
   { href: "/regex-tester", label: "Regex", badge: undefined as string | undefined },
   { href: "/jwt-decoder", label: "JWT", badge: undefined as string | undefined },
 ] as const;
+
+const CRON_MACRO_LINKS: { href: string; label: string; short: string }[] = [
+  { href: "/cron/at-daily/", label: "@daily — every day at 00:00", short: "@daily" },
+  { href: "/cron/at-hourly/", label: "@hourly — top of every hour", short: "@hourly" },
+  { href: "/cron/at-weekly/", label: "@weekly — Sunday at 00:00", short: "@weekly" },
+  { href: "/cron/at-monthly/", label: "@monthly — 1st at 00:00", short: "@monthly" },
+  { href: "/cron/at-yearly/", label: "@yearly — January 1st", short: "@yearly" },
+  { href: "/cron/at-reboot/", label: "@reboot — once at startup", short: "@reboot" },
+];
 
 const DATA_GROUPS: {
   label: string;
@@ -85,13 +93,14 @@ const CONVERTER_GROUPS: {
   },
 ];
 
-type MenuId = "curl" | "converters" | "data";
+type MenuId = "cron" | "curl" | "converters" | "data";
 
 export function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<MenuId | null>(null);
   const [openSection, setOpenSection] = useState<MenuId | null>(null);
+  const cronRef = useRef<HTMLDivElement>(null);
   const curlRef = useRef<HTMLDivElement>(null);
   const convertersRef = useRef<HTMLDivElement>(null);
   const dataRef = useRef<HTMLDivElement>(null);
@@ -99,6 +108,7 @@ export function Navbar() {
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 
+  const cronActive = pathname === "/cron" || pathname.startsWith("/cron/");
   const curlActive =
     pathname === "/curl-converter" ||
     pathname.startsWith("/curl-converter/") ||
@@ -122,6 +132,7 @@ export function Navbar() {
     };
     const onClick = (event: MouseEvent) => {
       const target = event.target as Node;
+      if (cronRef.current?.contains(target)) return;
       if (convertersRef.current?.contains(target)) return;
       if (curlRef.current?.contains(target)) return;
       if (dataRef.current?.contains(target)) return;
@@ -191,6 +202,55 @@ export function Navbar() {
               ) : null}
             </Link>
           ))}
+
+          <div ref={cronRef} className="relative">
+            <button
+              type="button"
+              aria-expanded={openMenu === "cron"}
+              aria-haspopup="true"
+              onClick={() => setOpenMenu(openMenu === "cron" ? null : "cron")}
+              className={renderDesktopLinkClasses(openMenu === "cron" || cronActive)}
+            >
+              Cron
+              <ChevronDown
+                size={14}
+                className={cn("transition-transform", openMenu === "cron" && "rotate-180")}
+              />
+            </button>
+            <div
+              hidden={openMenu !== "cron"}
+              className="absolute left-0 top-full z-50 mt-1 w-[340px] rounded-xl border border-zinc-800 bg-zinc-950 p-4 shadow-xl shadow-black/40"
+            >
+              <Link
+                href="/cron/"
+                onClick={closeMenus}
+                className="flex items-center justify-between gap-2 whitespace-nowrap rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20"
+              >
+                Cron Tester &amp; Generator
+                <span aria-hidden>→</span>
+              </Link>
+              <p className="px-1 pb-1.5 pt-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                Shortcut macros
+              </p>
+              <ul className="grid list-none grid-cols-2 gap-x-4 gap-y-0.5">
+                {CRON_MACRO_LINKS.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      onClick={closeMenus}
+                      aria-current={isActive(item.href) ? "page" : undefined}
+                      className={renderSubLinkClasses(isActive(item.href))}
+                    >
+                      <span className="font-mono">{item.short}</span>
+                      <span className="block text-[11px] text-zinc-500">
+                        {item.label.split(" — ")[1]}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
 
           <div ref={curlRef} className="relative">
             <button
@@ -404,6 +464,69 @@ export function Navbar() {
             >
               Conversion Studio
             </Link>
+
+            <Link
+              href="/cron/"
+              onClick={closeMenus}
+              className={cn(
+                "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                isActive("/cron")
+                  ? "bg-zinc-900 text-zinc-100"
+                  : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
+              )}
+            >
+              Cron Tester
+            </Link>
+
+            <button
+              type="button"
+              aria-expanded={openSection === "cron"}
+              aria-controls="mobile-cron-section"
+              onClick={() => toggleSection("cron")}
+              className="mt-1 flex w-full items-center justify-between rounded-md px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 transition-colors hover:text-zinc-300"
+            >
+              Cron shortcut macros
+              <ChevronDown
+                size={14}
+                aria-hidden
+                className={cn(
+                  "transition-transform",
+                  openSection === "cron" && "rotate-180",
+                )}
+              />
+            </button>
+            <div
+              id="mobile-cron-section"
+              aria-hidden={openSection !== "cron"}
+              className={cn(
+                "grid transition-all duration-200 ease-in-out",
+                openSection === "cron"
+                  ? "grid-rows-[1fr] opacity-100"
+                  : "grid-rows-[0fr] opacity-0",
+              )}
+              inert={openSection !== "cron"}
+            >
+              <div className="overflow-hidden">
+                <div className="grid grid-cols-2 gap-2 pb-1 pt-2">
+                  {CRON_MACRO_LINKS.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={closeMenus}
+                      aria-current={isActive(item.href) ? "page" : undefined}
+                      className={cn(
+                        "block rounded-md py-1.5 pl-4 pr-2 font-mono text-sm transition-colors",
+                        isActive(item.href)
+                          ? "bg-zinc-900 text-zinc-100"
+                          : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
+                      )}
+                    >
+                      {item.short}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
 
             <button
               type="button"

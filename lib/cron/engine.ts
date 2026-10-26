@@ -28,6 +28,20 @@ const YEAR_MIN = 1970;
 const YEAR_MAX = 2199;
 const MAX_ITERATIONS = 5000;
 
+/** Vixie-style macro expansions. Only valid in dialects with supportsMacros. */
+const CRON_MACROS: Record<string, string> = {
+  "@yearly": "0 0 1 1 *",
+  "@annually": "0 0 1 1 *",
+  "@monthly": "0 0 1 * *",
+  "@weekly": "0 0 * * 0",
+  "@daily": "0 0 * * *",
+  "@midnight": "0 0 * * *",
+  "@hourly": "0 * * * *",
+};
+
+const MACRO_LIST =
+  "@yearly, @annually, @monthly, @weekly, @daily, @midnight, @hourly, @reboot";
+
 export function analyzeCronExpression(
   expression: string,
   dialect: CronDialect,
@@ -36,10 +50,40 @@ export function analyzeCronExpression(
 ): CronAnalysisResult {
   const spec = DIALECTS[dialect] ?? DIALECTS.unix;
   const count = Math.min(Math.max(Math.trunc(runCount) || 0, 0), 100);
-  const tokens = (typeof expression === "string" ? expression : "")
+  let tokens = (typeof expression === "string" ? expression : "")
     .trim()
     .split(/\s+/)
     .filter((token) => token.length > 0);
+
+  const firstToken = tokens[0];
+  if (tokens.length === 1 && firstToken !== undefined && firstToken.startsWith("@")) {
+    const macro = firstToken.toLowerCase();
+    if (macro === "@reboot") {
+      return macroFailure(
+        '"@reboot" runs once at system startup rather than on a schedule — there is nothing to simulate. Replace it with the schedule that should run after boot.',
+        spec
+      );
+    }
+    const expansion = CRON_MACROS[macro];
+    if (!expansion) {
+      return macroFailure(
+        `Unknown macro "${firstToken}". Supported macros: ${MACRO_LIST}.`,
+        spec
+      );
+    }
+    if (!spec.supportsMacros) {
+      return macroFailure(
+        `The ${spec.label} dialect does not support "${macro}" — expand it manually, e.g. "${dialectExpansion(expansion, spec)}".`,
+        spec
+      );
+    }
+    tokens = expansion.split(" ");
+  } else if (tokens.some((token) => token.startsWith("@"))) {
+    return macroFailure(
+      `Macros cannot be combined with other fields — use the macro alone or expand it (e.g. "@daily" = "${CRON_MACROS["@daily"]}").`,
+      spec
+    );
+  }
 
   if (tokens.length === 0) {
     return {
@@ -69,7 +113,6 @@ export function analyzeCronExpression(
         value: tokens[index] ?? "",
         allowedRange: field.rangeLabel,
         isValid: false,
-        error: message,
       })),
       nextRuns: [],
       dialect: spec.id,
@@ -360,10 +403,67 @@ function humanize(tokens: string[], spec: CronDialectSpec): string {
     if (!text || text.startsWith("An error occured")) {
       return "";
     }
-    return text;
+    return bothDayFieldsRestricted(tokens, spec) ? joinDayUnionWithOr(text) : text;
   } catch {
     return "";
   }
+}
+
+function macroFailure(message: string, spec: CronDialectSpec): CronAnalysisResult {
+  return {
+    isValid: false,
+    errorMessage: message,
+    humanReadable: "",
+    fields: spec.fields.map((field) => ({
+      name: field.name,
+      value: "",
+      allowedRange: field.rangeLabel,
+      isValid: false,
+    })),
+    nextRuns: [],
+    dialect: spec.id,
+  };
+}
+
+/** Suggests the manual expansion of a 5-field macro for Quartz / AWS dialects. */
+function dialectExpansion(fiveFields: string, spec: CronDialectSpec): string {
+  const parts = fiveFields.split(" ");
+  parts[parts[4] === "*" ? 4 : 2] = "?";
+  // Unix day-of-week 0 (Sunday) is 1 in the Quartz/AWS 1-based (1 = SUN) field.
+  if (parts[4] === "0") parts[4] = "1";
+  if (spec.id === "quartz") {
+    parts.unshift("0");
+  } else if (spec.id === "aws") {
+    parts.push("*");
+  }
+  return parts.join(" ");
+}
+
+/**
+ * Vixie cron runs the UNION of both day fields when both are restricted, so
+ * only Unix-family dialects need the connective rewritten. Quartz and AWS
+ * require '?' in one day field, so the case cannot occur there.
+ */
+function bothDayFieldsRestricted(tokens: string[], spec: CronDialectSpec): boolean {
+  if (spec.id !== "unix" && spec.id !== "cloudflare") {
+    return false;
+  }
+  const dayOfMonth = tokens[2] ?? "";
+  const dayOfWeek = tokens[4] ?? "";
+  return (
+    dayOfMonth !== "*" &&
+    dayOfMonth !== "?" &&
+    dayOfWeek !== "*" &&
+    dayOfWeek !== "?"
+  );
+}
+
+/** Rewrites cronstrue's "and" join between the day fields as "or" (union). */
+function joinDayUnionWithOr(text: string): string {
+  if (text.includes("of the month, and on ")) {
+    return text.replace("of the month, and on ", "of the month, or on ");
+  }
+  return text.replace("of the month, ", "of the month, or ");
 }
 
 function computeNextRuns(

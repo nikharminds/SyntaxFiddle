@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { RECIPES, type RecipeCategory } from "@/lib/cron/recipes";
 import { getAllConverterSlugs } from "@/lib/config/converters";
 import { CRON_SCHEDULES } from "@/lib/config/cron-schedules";
+import { macroSitemapEntries } from "@/lib/cron/macro-pages";
 import { CONVERSION_PAIRS } from "@/lib/converter/routes";
 import { CURL_SEO_TARGETS } from "@/lib/curl/seo-targets";
 import { JSON_SCHEMA_SEO_TARGETS } from "@/lib/json-schema/seo-targets";
@@ -81,6 +82,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
+  const cronMacroRoutes: MetadataRoute.Sitemap = macroSitemapEntries();
+
   const toolsRoutes: MetadataRoute.Sitemap = [
     { url: `${SITE_URL}/tools/`, changeFrequency: "weekly", priority: 0.9 },
     ...getAllConverterSlugs().map((slug) => ({
@@ -95,6 +98,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...conversionRoutes,
     ...recipeRoutes,
     ...cronScheduleRoutes,
+    ...cronMacroRoutes,
     ...curlRoutes,
     ...xmlSchemaRoutes,
     ...jsonSchemaRoutes,

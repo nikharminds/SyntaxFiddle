@@ -29,6 +29,8 @@ export interface CronDialectSpec {
   fields: CronFieldSpec[];
   dayOfWeekStartIndexZero: boolean;
   requiresQuestionMarkInDayFields: boolean;
+  /** Dialect accepts Vixie-style "@daily" macros as a standalone expression. */
+  supportsMacros?: boolean;
   notes: string[];
 }
 
@@ -156,6 +158,7 @@ export const DIALECTS: Record<CronDialect, CronDialectSpec> = {
     fields: [minuteField, hourField, unixDayOfMonthField(), monthField, unixDayOfWeekField()],
     dayOfWeekStartIndexZero: true,
     requiresQuestionMarkInDayFields: false,
+    supportsMacros: true,
     notes: [
       "Standard 5-field crontab format: minute hour day-of-month month day-of-week.",
       "Both 0 and 7 mean Sunday in the day-of-week field.",
@@ -169,6 +172,7 @@ export const DIALECTS: Record<CronDialect, CronDialectSpec> = {
     fields: [minuteField, hourField, unixDayOfMonthField(), monthField, unixDayOfWeekField()],
     dayOfWeekStartIndexZero: true,
     requiresQuestionMarkInDayFields: false,
+    supportsMacros: true,
     notes: [
       "Cloudflare Workers Cron Triggers use the standard 5-field Unix format.",
       "Triggers always evaluate in UTC, so simulate with the UTC timezone.",

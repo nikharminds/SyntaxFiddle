@@ -4,6 +4,11 @@ import { notFound } from "next/navigation";
 import { ArrowRight, CalendarClock } from "lucide-react";
 import parser from "cron-parser";
 import { CronRecipeView, getRecipeAnalysis } from "./recipe-view";
+import { CronMacroLanding } from "./macro-view";
+import {
+  CRON_MACRO_PAGES,
+  getMacroPage,
+} from "@/lib/cron/macro-pages";
 import {
   CRON_SCHEDULES,
   getAllCronScheduleSlugs,
@@ -22,6 +27,7 @@ const SCHEDULE_SLUG_SET = new Set(getAllCronScheduleSlugs());
 export function generateStaticParams(): { schedule: string }[] {
   return [
     ...getAllCronScheduleSlugs().map((schedule) => ({ schedule })),
+    ...CRON_MACRO_PAGES.map((macroPage) => ({ schedule: macroPage.slug })),
     ...RECIPES.filter((recipe) => !SCHEDULE_SLUG_SET.has(recipe.slug)).map((recipe) => ({
       schedule: recipe.slug,
     })),
@@ -62,6 +68,37 @@ export async function generateMetadata({
 
   const schedule = getCronSchedule(slug);
   if (schedule) return buildScheduleMetadata(schedule);
+
+  const macroPage = getMacroPage(slug);
+  if (macroPage) {
+    const macroUrl = `${SITE_URL}/cron/${macroPage.slug}/`;
+    return {
+      title: { absolute: macroPage.title },
+      description: macroPage.seoDescription,
+      alternates: { canonical: macroUrl },
+      openGraph: {
+        title: macroPage.title,
+        description: macroPage.seoDescription,
+        url: macroUrl,
+        type: "website",
+        siteName: "SyntaxFiddle",
+        images: [
+          {
+            url: `${SITE_URL}/og/cron-macros.jpg`,
+            width: 1200,
+            height: 630,
+            alt: `Cron ${macroPage.macro} macro reference`,
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: macroPage.title,
+        description: macroPage.seoDescription,
+        images: [`${SITE_URL}/og/cron-macros.jpg`],
+      },
+    };
+  }
 
   const recipe = getRecipe(slug);
   if (!recipe) return {};
@@ -329,6 +366,9 @@ export default async function CronSchedulePage({
 
   const schedule = getCronSchedule(slug);
   if (schedule) return <ScheduleLanding schedule={schedule} />;
+
+  const macroPage = getMacroPage(slug);
+  if (macroPage) return <CronMacroLanding macroPage={macroPage} />;
 
   const recipe = getRecipe(slug);
   if (!recipe) notFound();

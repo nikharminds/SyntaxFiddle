@@ -263,4 +263,112 @@ describe("analyzeCronExpression", () => {
       expect(result.nextRuns).toHaveLength(3);
     });
   });
+
+  describe("@ macros", () => {
+    it("expands @daily to an equivalent 5-field schedule", () => {
+      const result = analyzeCronExpression("@daily", "unix", "UTC");
+
+      expect(result.isValid).toBe(true);
+      expect(result.errorMessage).toBeUndefined();
+      expect(result.fields.map((field) => field.value)).toEqual(["0", "0", "*", "*", "*"]);
+      expect(result.nextRuns.length).toBeGreaterThan(0);
+      for (const run of result.nextRuns) {
+        expect(run.getUTCHours()).toBe(0);
+        expect(run.getUTCMinutes()).toBe(0);
+      }
+    });
+
+    it("expands macros case-insensitively (@HOURLY)", () => {
+      const result = analyzeCronExpression("@HOURLY", "unix", "UTC");
+
+      expect(result.isValid).toBe(true);
+      for (const run of result.nextRuns) {
+        expect(run.getUTCMinutes()).toBe(0);
+      }
+    });
+
+    it("expands @weekly on the cloudflare dialect (Sundays)", () => {
+      const result = analyzeCronExpression("@weekly", "cloudflare", "UTC");
+
+      expect(result.isValid).toBe(true);
+      for (const run of result.nextRuns) {
+        expect(run.getUTCDay()).toBe(0);
+      }
+    });
+
+    it("rejects @reboot with an explanatory message", () => {
+      const result = analyzeCronExpression("@reboot", "unix", "UTC");
+
+      expect(result.isValid).toBe(false);
+      expect(result.errorMessage).toMatch(/startup/i);
+      expect(result.nextRuns).toEqual([]);
+    });
+
+    it("rejects macros in dialects that do not support them, with the expanded equivalent", () => {
+      const quartz = analyzeCronExpression("@daily", "quartz", "UTC");
+      expect(quartz.isValid).toBe(false);
+      expect(quartz.errorMessage).toMatch(/Quartz/);
+      expect(quartz.errorMessage).toContain('"0 0 0 * * ?"');
+
+      const aws = analyzeCronExpression("@weekly", "aws", "UTC");
+      expect(aws.isValid).toBe(false);
+      expect(aws.errorMessage).toContain('"0 0 ? * 1 *"');
+    });
+
+    it("rejects unknown macros with the supported list", () => {
+      const result = analyzeCronExpression("@fortnightly", "unix", "UTC");
+
+      expect(result.isValid).toBe(false);
+      expect(result.errorMessage).toMatch(/Unknown macro/);
+      expect(result.errorMessage).toContain("@daily");
+    });
+
+    it("rejects macros mixed with other fields", () => {
+      const result = analyzeCronExpression("@daily * * * *", "unix", "UTC");
+
+      expect(result.isValid).toBe(false);
+      expect(result.errorMessage).toMatch(/cannot be combined/i);
+    });
+
+    it("reports a field-count error once, not repeated per field", () => {
+      const result = analyzeCronExpression("* * * *", "unix", "UTC");
+
+      expect(result.isValid).toBe(false);
+      expect(result.errorMessage).toMatch(/expects 5 fields, but found 4/);
+      expect(result.fields.every((field) => !field.isValid)).toBe(true);
+      expect(result.fields.every((field) => field.error === undefined)).toBe(true);
+    });
+  });
+
+  describe("day-of-month + day-of-week union wording", () => {
+    it("describes the Vixie union with 'or' when both day fields are restricted", () => {
+      const result = analyzeCronExpression("0 0 13 * 5", "unix", "UTC");
+
+      expect(result.isValid).toBe(true);
+      expect(result.humanReadable).toContain("of the month, or on Friday");
+      expect(result.humanReadable).not.toContain("of the month, and on");
+    });
+
+    it("uses 'or' for day-of-week ranges and steps in the union", () => {
+      const range = analyzeCronExpression("0 0 13 * 1-5", "unix", "UTC");
+      expect(range.humanReadable).toContain("of the month, or ");
+
+      const step = analyzeCronExpression("0 0 13 * */2", "unix", "UTC");
+      expect(step.humanReadable).toContain("of the month, or every 2 days of the week");
+    });
+
+    it("keeps 'and' inside day lists when only one day field is restricted", () => {
+      const result = analyzeCronExpression("0 0 1,15 * *", "unix", "UTC");
+
+      expect(result.isValid).toBe(true);
+      expect(result.humanReadable).toContain("day 1 and 15 of the month");
+    });
+
+    it("leaves Quartz wording untouched (AND semantics when both day fields are set)", () => {
+      const result = analyzeCronExpression("0 0 0 13 * 5", "quartz", "UTC");
+
+      expect(result.isValid).toBe(true);
+      expect(result.humanReadable).toContain("and on");
+    });
+  });
 });

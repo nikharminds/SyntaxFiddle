@@ -192,22 +192,56 @@ function conceptOf(slug: string): string {
 }
 
 function assignRelatedSlugs(recipes: CronRecipe[]): void {
-  for (const recipe of recipes) {
+  const categoryIndices = new Map<RecipeCategory, number[]>();
+  recipes.forEach((recipe, index) => {
+    const list = categoryIndices.get(recipe.category) ?? [];
+    list.push(index);
+    categoryIndices.set(recipe.category, list);
+  });
+
+  for (let index = 0; index < recipes.length; index += 1) {
+    const recipe = recipes[index];
+    if (!recipe) continue;
     const concept = conceptOf(recipe.slug);
-    const sameCategory = recipes.filter(
-      (other) => other.category === recipe.category && other.slug !== recipe.slug
-    );
     const crossDialect = recipes.filter(
       (other) => other.slug !== recipe.slug && conceptOf(other.slug) === concept
     );
+    const sameCategory = recipes.filter(
+      (other) => other.category === recipe.category && other.slug !== recipe.slug
+    );
     const seen = new Set<string>([recipe.slug]);
     const related: string[] = [];
-    for (const candidate of [...crossDialect, ...sameCategory]) {
-      if (seen.has(candidate.slug)) continue;
+    const push = (candidate: CronRecipe) => {
+      if (seen.has(candidate.slug) || related.length >= 8) return;
       seen.add(candidate.slug);
       related.push(candidate.slug);
-      if (related.length >= 8) break;
+    };
+
+    // 1. The same schedule expressed for other platforms — strongest match.
+    for (const candidate of crossDialect) push(candidate);
+
+    // 2. Circular same-category neighbors. The old fill linked every recipe
+    //    to the same category heads, leaving category tails (daily-at-10pm
+    //    and friends) with zero inbound links. Positional neighbors make the
+    //    linking reciprocal: 9am links 10am, 10am links 11am, ...
+    const positions = categoryIndices.get(recipe.category) ?? [];
+    const pos = positions.indexOf(index);
+    for (let offset = 1; related.length < 8 && offset < positions.length; offset += 1) {
+      const next = positions[(pos + offset) % positions.length];
+      const prev = positions[(pos - offset + positions.length * 2) % positions.length];
+      if (next !== undefined) {
+        const neighbor = recipes[next];
+        if (neighbor) push(neighbor);
+      }
+      if (prev !== undefined) {
+        const neighbor = recipes[prev];
+        if (neighbor) push(neighbor);
+      }
     }
+
+    // 3. Same-category heads to fill any remaining slots.
+    for (const candidate of sameCategory) push(candidate);
+
     recipe.relatedSlugs = related;
   }
 }

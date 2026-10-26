@@ -11,7 +11,7 @@ export type HumanReadableCardProps = {
 
 export function HumanReadableCard({ result, dialectLabel, timezone }: HumanReadableCardProps) {
   if (!result.isValid) {
-    const broken = result.fields.filter((field) => !field.isValid);
+    const broken = result.fields.filter((field) => !field.isValid && field.error);
     return (
       <div role="alert" className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 sm:p-5">
         <div className="flex items-start gap-3">

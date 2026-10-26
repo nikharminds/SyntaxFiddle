@@ -72,11 +72,15 @@ function formatRelative(date: Date, timezone: string, now: number): string {
     return `tomorrow at ${parts.hour}:${parts.minute}`;
   }
   if (diffMinutes < 48 * 60) {
-    const hours = Math.round(diffMinutes / 60);
-    return `in ${hours} hour${hours === 1 ? "" : "s"}`;
+    const hours = Math.floor(diffMinutes / 60);
+    const minutes = diffMinutes % 60;
+    const minuteSuffix = minutes > 0 ? ` ${minutes} min` : "";
+    return `in ${hours} h${minuteSuffix}`;
   }
-  const days = Math.round(diffMinutes / (24 * 60));
-  return `in ${days} day${days === 1 ? "" : "s"}`;
+  const days = Math.floor(diffMinutes / (24 * 60));
+  const hours = Math.floor((diffMinutes % (24 * 60)) / 60);
+  const hourSuffix = hours > 0 ? ` ${hours} h` : "";
+  return `in ${days} day${days === 1 ? "" : "s"}${hourSuffix}`;
 }
 
 type DayBucket = {
