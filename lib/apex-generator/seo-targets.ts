@@ -51,10 +51,10 @@ export const APEX_SEO_TARGETS: ApexSeoTarget[] = [
     slug: "json-to-apex",
     preset: "hub",
     badge: "Typed Apex Output",
-    title: "JSON to Apex Class Generator — Free & Client-Side | SyntaxFiddle",
+    title: "JSON to Apex Class Generator — Free & 100% Offline | SyntaxFiddle",
     heading: "JSON to Apex Class Generator",
     description:
-      "Generate a Salesforce Apex class from JSON — inner classes, parse() via JSON.deserialize, @AuraEnabled for LWC, and callout helpers. Free, 100% client-side.",
+      "Generate a Salesforce Apex class from JSON — inner classes, parse() via JSON.deserialize, @AuraEnabled for LWC, and callout helpers. Free & 100% offline.",
     heroDescription:
       "Paste any JSON payload — a SOQL query result, a REST response, a webhook event — and get a complete Apex wrapper class: inner classes for every nested object, List<> members for arrays, a static parse() built on JSON.deserialize, and a serialize() helper for the way back. Flip one toggle for LWC and parse() ships as @AuraEnabled(cacheable=true), callable straight from @wire; flip another and the class gains a fromHttpResponse() helper that parses callout bodies in one line. Reserved words are mangled safely, original key casing is preserved for lossless round-trips, and every byte is generated locally in your browser.",
     keywords: [
@@ -77,6 +77,8 @@ export const APEX_SEO_TARGETS: ApexSeoTarget[] = [
       "apex object",
       "json to sobject",
       "json to apex online",
+      "json to apex offline",
+      "offline apex class generator",
       "apex serialize json",
     ],
     featureList: [
