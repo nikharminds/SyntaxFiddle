@@ -39,7 +39,16 @@ customer exports, internal schedules, and live auth tokens.
 | [JWT Decoder](https://syntaxfiddle.com/jwt-decoder/) | Inspect JSON Web Tokens locally: color-coded segments, syntax-highlighted claims, and expiry checks. Decode-only, zero network calls. |
 | [JSON to Schema Converter](https://syntaxfiddle.com/json-to-schema/) | Infer types from raw JSON into [Zod](https://syntaxfiddle.com/tools/json-to-zod/), [TypeScript](https://syntaxfiddle.com/json-to-typescript/), [Pydantic](https://syntaxfiddle.com/tools/json-to-pydantic/), and [Go structs](https://syntaxfiddle.com/json-to-go-struct/). |
 | [XML to Schema Converter](https://syntaxfiddle.com/xml-to-schema/) | Same four targets from XML documents — [XML→Zod](https://syntaxfiddle.com/xml-to-zod/), [XML→TypeScript](https://syntaxfiddle.com/xml-to-typescript/), [XML→Pydantic](https://syntaxfiddle.com/xml-to-pydantic/), and [XML→Go structs](https://syntaxfiddle.com/xml-to-go-struct/), with `@attr` conventions, repeated-element arrays, and CDATA preserved. |
-| [Developer Tools Directory](https://syntaxfiddle.com/tools/) | One-page index of every tool — all 20 converters, the cURL targets, and the schema generators. |
+| [JSON to Apex Class Generator](https://syntaxfiddle.com/json-to-apex/) | Turn JSON into Salesforce Apex wrapper classes — inner classes for nested objects, `List<>` members for arrays, a `parse()` helper via `JSON.deserialize`, and optional `@AuraEnabled` members. One tool, three modes: a wire-callable `@AuraEnabled(cacheable=true)` parse() for LWC, and a `fromHttpResponse()` callout helper for REST integrations; reserved words mangled, original key casing preserved. |
+| [Developer Tools Directory](https://syntaxfiddle.com/tools/) | One-page index of every tool — all 20 converters, the cURL targets, the schema generators, and the Salesforce developer tools. |
+
+## Popular Salesforce tools
+
+[JSON to Apex class generator](https://syntaxfiddle.com/json-to-apex/) ·
+[SOQL formatter](https://syntaxfiddle.com/soql-formatter/) ·
+[CSV to SOQL IN clauses](https://syntaxfiddle.com/csv-to-soql/) ·
+[Excel to SOQL IN clauses](https://syntaxfiddle.com/excel-to-soql/) ·
+[cURL to Salesforce Apex](https://syntaxfiddle.com/tools/curl-to-salesforce-apex/)
 
 ## Popular conversions
 
@@ -84,7 +93,7 @@ equivalents (systemd timers, Kubernetes CronJobs, Vercel Cron, Celery beat):
 ## How it works
 
 - **Static export, zero backend** — every page is pre-rendered HTML at build time (`next build` → `./out`), served from any CDN edge. No cold starts, no server round trips, nothing to attack.
-- **Deterministic TypeScript engines** — the cron engine (4 dialects), the CSV/Excel/JSON/SQL/XML converter engines, the cURL transpiler, the XML parser, and the JSON/XML type-inferrers are hand-written, code-split per route, and covered by **450+ unit tests**.
+- **Deterministic TypeScript engines** — the cron engine (4 dialects), the CSV/Excel/JSON/SQL/XML converter engines, the cURL transpiler, the XML parser, the JSON/XML type-inferrers, and the Apex class generator are hand-written, code-split per route, and covered by **490+ unit tests**.
 - **Web Workers for heavy lifting** — regex evaluation and file conversion run off the main thread, with ReDoS protection on pattern input.
 - **Privacy by architecture, not by policy** — we cannot log what we never receive.
 

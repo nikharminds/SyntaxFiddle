@@ -7,6 +7,7 @@ import { CONVERSION_PAIRS } from "@/lib/converter/routes";
 import { CURL_SEO_TARGETS } from "@/lib/curl/seo-targets";
 import { JSON_SCHEMA_SEO_TARGETS } from "@/lib/json-schema/seo-targets";
 import { XML_SCHEMA_SEO_TARGETS } from "@/lib/xml-schema/seo-targets";
+import { APEX_SEO_TARGETS } from "@/lib/apex-generator/seo-targets";
 import { REGEX_FLAVORS } from "@/lib/regex/dialects";
 import { SITE_URL } from "@/lib/site";
 
@@ -77,6 +78,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }),
   );
 
+  const apexRoutes: MetadataRoute.Sitemap = APEX_SEO_TARGETS.map((target) => ({
+    url: `${SITE_URL}/${target.slug}/`,
+    changeFrequency: "monthly",
+    priority: target.slug === "json-to-apex" ? 0.9 : 0.8,
+  }));
+
   const cronScheduleRoutes: MetadataRoute.Sitemap = CRON_SCHEDULES.map((schedule) => ({
     url: `${SITE_URL}/cron/${schedule.slug}/`,
     changeFrequency: "monthly",
@@ -103,6 +110,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...curlRoutes,
     ...xmlSchemaRoutes,
     ...jsonSchemaRoutes,
+    ...apexRoutes,
     ...regexFlavorRoutes,
     ...toolsRoutes,
   ];

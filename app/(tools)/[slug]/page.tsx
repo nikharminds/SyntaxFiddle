@@ -9,6 +9,7 @@ import { ToolSchema } from "@/components/schema/ToolSchema";
 import { CurlConverterWorkspace } from "@/components/tools/curl-converter/workspace";
 import { JsonConverterWorkspace } from "@/components/tools/json-converter/workspace";
 import { XmlConverterWorkspace } from "@/components/tools/xml-converter/workspace";
+import { ApexGeneratorWorkspace } from "@/components/tools/apex-generator/workspace";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { CURL_SEO_TARGETS, getCurlSeoTarget } from "@/lib/curl/seo-targets";
@@ -24,12 +25,14 @@ import {
   XML_SCHEMA_SEO_TARGETS,
 } from "@/lib/xml-schema/seo-targets";
 import type { XmlSchemaSeoFactIcon } from "@/lib/xml-schema/seo-targets";
+import { APEX_SEO_TARGETS, getApexSeoTarget } from "@/lib/apex-generator/seo-targets";
+import type { ApexSeoFactIcon } from "@/lib/apex-generator/seo-targets";
 import { SITE_URL } from "@/lib/site";
 
 export const dynamicParams = false;
 
 const FACT_ICONS: Record<
-  CurlSeoFactIcon | JsonSchemaSeoFactIcon | XmlSchemaSeoFactIcon,
+  CurlSeoFactIcon | JsonSchemaSeoFactIcon | XmlSchemaSeoFactIcon | ApexSeoFactIcon,
   typeof Lock
 > = {
   lock: Lock,
@@ -62,9 +65,12 @@ const JSON_TARGET_BADGES: Record<string, string> = {
 type Landing =
   | { kind: "curl"; data: (typeof CURL_SEO_TARGETS)[number] }
   | { kind: "json-schema"; data: (typeof JSON_SCHEMA_SEO_TARGETS)[number] }
-  | { kind: "xml-schema"; data: (typeof XML_SCHEMA_SEO_TARGETS)[number] };
+  | { kind: "xml-schema"; data: (typeof XML_SCHEMA_SEO_TARGETS)[number] }
+  | { kind: "apex"; data: (typeof APEX_SEO_TARGETS)[number] };
 
 function resolveLanding(slug: string): Landing | undefined {
+  const apexTarget = getApexSeoTarget(slug);
+  if (apexTarget) return { kind: "apex", data: apexTarget };
   const jsonTarget = getJsonSchemaSeoTarget(slug);
   if (jsonTarget) return { kind: "json-schema", data: jsonTarget };
   const xmlTarget = getXmlSchemaSeoTarget(slug);
@@ -79,6 +85,7 @@ export function generateStaticParams(): { slug: string }[] {
     ...CURL_SEO_TARGETS.map((target) => ({ slug: target.slug })),
     ...JSON_SCHEMA_SEO_TARGETS.map((target) => ({ slug: target.slug })),
     ...XML_SCHEMA_SEO_TARGETS.map((target) => ({ slug: target.slug })),
+    ...APEX_SEO_TARGETS.map((target) => ({ slug: target.slug })),
   ];
 }
 
@@ -100,7 +107,6 @@ export async function generateMetadata({
       : landing.kind === "xml-schema"
         ? `${data.description} Zero-upload by design: your XML never leaves this browser tab.`
         : `${data.description} Zero-upload by design: your JSON never leaves this browser tab.`;
-
   return {
     title: { absolute: data.title },
     description: data.description,
@@ -134,17 +140,20 @@ export default async function ToolLandingPage({
 
   const { kind, data } = landing;
   const url = `${SITE_URL}/${data.slug}/`;
-  const isCurl = kind === "curl";
-  const relatedTargets = isCurl
-    ? CURL_SEO_TARGETS.filter((entry) => entry.slug !== data.slug)
-    : landing.kind === "xml-schema"
-      ? XML_SCHEMA_SEO_TARGETS.filter((entry) => entry.slug !== data.slug)
-      : JSON_SCHEMA_SEO_TARGETS.filter((entry) => entry.slug !== data.slug);
-  const targetBadge = isCurl
-    ? data.target
-      ? TARGET_BADGES[data.target]
-      : "10 Code Targets"
-    : JSON_TARGET_BADGES[data.target] ?? "Schema Output";
+  const relatedTargets =
+    kind === "curl"
+      ? CURL_SEO_TARGETS.filter((entry) => entry.slug !== data.slug)
+      : landing.kind === "xml-schema"
+        ? XML_SCHEMA_SEO_TARGETS.filter((entry) => entry.slug !== data.slug)
+        : JSON_SCHEMA_SEO_TARGETS.filter((entry) => entry.slug !== data.slug);
+  const targetBadge =
+    landing.kind === "apex"
+      ? landing.data.badge
+      : landing.kind === "curl"
+        ? landing.data.target
+          ? TARGET_BADGES[landing.data.target]
+          : "10 Code Targets"
+        : JSON_TARGET_BADGES[landing.data.target] ?? "Schema Output";
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
@@ -179,20 +188,24 @@ export default async function ToolLandingPage({
 
       <section
         aria-label={
-          isCurl
+          landing.kind === "curl"
             ? "cURL converter workspace"
             : landing.kind === "xml-schema"
               ? "XML to schema workspace"
-              : "JSON to schema workspace"
+              : landing.kind === "apex"
+                ? "JSON to Apex class generator workspace"
+                : "JSON to schema workspace"
         }
         className="mt-8"
       >
-        {isCurl ? (
-          <CurlConverterWorkspace initialTarget={data.target ?? "fetch"} />
+        {landing.kind === "curl" ? (
+          <CurlConverterWorkspace initialTarget={landing.data.target ?? "fetch"} />
         ) : landing.kind === "xml-schema" ? (
-          <XmlConverterWorkspace defaultTab={data.target} />
+          <XmlConverterWorkspace defaultTab={landing.data.target} />
+        ) : landing.kind === "apex" ? (
+          <ApexGeneratorWorkspace preset={landing.data.preset} />
         ) : (
-          <JsonConverterWorkspace defaultTab={data.target} />
+          <JsonConverterWorkspace defaultTab={landing.data.target} />
         )}
       </section>
 
@@ -241,21 +254,37 @@ export default async function ToolLandingPage({
           id={`${data.slug}-related-heading`}
           className="text-xl font-bold tracking-tight text-zinc-100"
         >
-          {isCurl ? "Convert cURL to another target" : "Generate another schema target"}
+          {landing.kind === "curl"
+            ? "Convert cURL to another target"
+            : landing.kind === "apex"
+              ? "Related Salesforce & developer tools"
+              : "Generate another schema target"}
         </h2>
         <Card className="mt-5 p-4 sm:p-5">
           <ul className="grid list-none gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {relatedTargets.map((related) => (
-              <li key={related.slug}>
-                <Link
-                  href={`/${related.slug}/`}
-                  className="flex items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-300 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
-                >
-                  <span className="font-medium">{related.heading.split("—")[0]?.trim()}</span>
-                  <ArrowRight size={14} className="shrink-0 text-zinc-600" />
-                </Link>
-              </li>
-            ))}
+            {landing.kind === "apex"
+              ? landing.data.relatedLinks.map((related) => (
+                  <li key={related.href}>
+                    <Link
+                      href={related.href}
+                      className="flex items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-300 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
+                    >
+                      <span className="font-medium">{related.label}</span>
+                      <ArrowRight size={14} className="shrink-0 text-zinc-600" />
+                    </Link>
+                  </li>
+                ))
+              : relatedTargets.map((related) => (
+                  <li key={related.slug}>
+                    <Link
+                      href={`/${related.slug}/`}
+                      className="flex items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-300 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
+                    >
+                      <span className="font-medium">{related.heading.split("—")[0]?.trim()}</span>
+                      <ArrowRight size={14} className="shrink-0 text-zinc-600" />
+                    </Link>
+                  </li>
+                ))}
           </ul>
         </Card>
       </section>

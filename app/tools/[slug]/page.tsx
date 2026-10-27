@@ -270,17 +270,29 @@ export default async function ToolConverterPage({
                 </li>
               );
             })}
-            {/* Salesforce-bound traffic gets a path to the SOQL formatter. */}
+            {/* Salesforce-bound traffic gets a path to the Apex generator
+                cluster and the SOQL formatter. */}
             {route.slug === "curl-to-salesforce-apex" ? (
-              <li>
-                <Link
-                  href="/soql-formatter/"
-                  className="flex items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-300 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
-                >
-                  <span className="font-medium">SOQL Formatter &amp; Beautifier</span>
-                  <ArrowRight size={14} className="shrink-0 text-zinc-600" />
-                </Link>
-              </li>
+              <>
+                <li>
+                  <Link
+                    href="/json-to-apex/"
+                    className="flex items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-300 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
+                  >
+                    <span className="font-medium">JSON to Apex Class Generator</span>
+                    <ArrowRight size={14} className="shrink-0 text-zinc-600" />
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/soql-formatter/"
+                    className="flex items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-300 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
+                  >
+                    <span className="font-medium">SOQL Formatter &amp; Beautifier</span>
+                    <ArrowRight size={14} className="shrink-0 text-zinc-600" />
+                  </Link>
+                </li>
+              </>
             ) : null}
           </ul>
         </section>

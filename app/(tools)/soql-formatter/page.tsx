@@ -53,6 +53,7 @@ export const metadata: Metadata = {
 };
 
 const RELATED_TOOLS = [
+  { href: "/json-to-apex/", label: "JSON to Apex Class Generator" },
   { href: "/csv-to-soql/", label: "CSV to SOQL" },
   { href: "/excel-to-soql/", label: "Excel to SOQL" },
   { href: "/tools/curl-to-salesforce-apex/", label: "cURL to Salesforce Apex" },
