@@ -77,3 +77,9 @@ leak, since nothing is sent.
 2. Keep PRs focused — one feature or fix per PR.
 3. Add or update tests for any logic change.
 4. Ensure `npm run typecheck && npm run test` pass locally.
+
+## Licensing of contributions
+
+By submitting a pull request, you agree that your contribution is licensed under
+the GNU Affero General Public License v3.0 (`AGPL-3.0-or-later`), the same license
+as the rest of the codebase. No contributor license agreement (CLA) is required.

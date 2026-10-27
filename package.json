@@ -2,6 +2,7 @@
   "name": "syntaxfiddle",
   "version": "0.1.0",
   "private": true,
+  "license": "AGPL-3.0-or-later",
   "description": "SyntaxFiddle (syntaxfiddle.com) — enterprise-grade, 100% client-side developer utility platform. Static export, zero backend, zero data logged.",
   "scripts": {
     "dev": "next dev",

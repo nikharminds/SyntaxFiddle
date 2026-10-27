@@ -166,7 +166,10 @@ information is transmitted or logged — read the full
 
 ## License
 
-Released under the [MIT License](LICENSE).
+## License
+
+- **Code** (tools, engines, workers, components): licensed under the [GNU Affero General Public License v3.0](LICENSE) (`AGPL-3.0-or-later`). You may study, modify, and self-host it — but if you operate a modified copy as a public network service, you must make your modified source available under the same license.
+- **Content** (documentation, tool copy, FAQ text, marketing materials, and OG images): © 2026 nikharminds. All rights reserved. Not covered by the AGPL and not licensed for republication.
 
 ---
 
