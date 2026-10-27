@@ -1,6 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  Braces,
+  Clock,
+  Cloud,
+  Database,
+  FileCode2,
+  FileJson,
+  FileSpreadsheet,
+  KeyRound,
+  SquareTerminal,
+  Table2,
+  type LucideIcon,
+} from "lucide-react";
 import { CONVERSION_PAIRS } from "@/lib/converter/routes";
 import { CURL_SEO_TARGETS } from "@/lib/curl/seo-targets";
 import { JSON_SCHEMA_SEO_TARGETS } from "@/lib/json-schema/seo-targets";
@@ -10,30 +23,48 @@ import { SITE_URL } from "@/lib/site";
 interface DirectoryLink {
   href: string;
   label: string;
+  icon: LucideIcon;
+  /** Hubs get the emerald treatment, mirroring the homepage's featured card. */
+  hub?: boolean;
 }
 
 /**
  * Every tool on SyntaxFiddle, one directory, grouped by category. Registry
  * driven wherever a registry exists so new entries appear automatically.
+ * Card styling mirrors the homepage ToolGrid (icon square + emerald hover).
  */
 
 const CORE_TOOLS: DirectoryLink[] = [
-  { href: "/cron/", label: "Cron Expression Tester & Generator" },
-  { href: "/regex-tester/", label: "Regex Tester & Debugger" },
-  { href: "/jwt-decoder/", label: "JWT Decoder" },
+  { href: "/cron/", label: "Cron Expression Tester & Generator", icon: Clock, hub: true },
+  { href: "/regex-tester/", label: "Regex Tester & Debugger", icon: Braces },
+  { href: "/jwt-decoder/", label: "JWT Decoder", icon: KeyRound },
 ];
 
 /** Conversion Studio pairs, grouped by source format (registry order). */
-function conversionGroups(): { label: string; links: DirectoryLink[] }[] {
+function conversionGroups(): {
+  label: string;
+  icon: LucideIcon;
+  links: DirectoryLink[];
+}[] {
+  const SOURCE_ICONS: Record<string, LucideIcon> = {
+    csv: Table2,
+    excel: FileSpreadsheet,
+    json: FileJson,
+    sql: Database,
+    xml: FileCode2,
+  };
   const sources = [...new Set(CONVERSION_PAIRS.map((pair) => pair.source))];
   return sources.map((source) => {
     const pairs = CONVERSION_PAIRS.filter((pair) => pair.source === source);
     const sourceLabel = pairs[0]?.sourceLabel ?? source;
+    const icon = SOURCE_ICONS[source] ?? FileCode2;
     return {
       label: `From ${sourceLabel}`,
+      icon,
       links: pairs.map((pair) => ({
         href: `/${pair.slug}/`,
         label: `${pair.sourceLabel} to ${pair.targetLabel}`,
+        icon,
       })),
     };
   });
@@ -42,45 +73,50 @@ function conversionGroups(): { label: string; links: DirectoryLink[] }[] {
 const STUDIO_HUB: DirectoryLink = {
   href: "/csv/",
   label: "Conversion Studio — All-in-One Workspace",
+  icon: Table2,
+  hub: true,
 };
 
 const CURL_TOOLS_LINKS: DirectoryLink[] = [
-  { href: "/curl-converter/", label: "cURL Converter — Hub (All 10 Targets)" },
+  { href: "/curl-converter/", label: "cURL Converter — Hub (All 10 Targets)", icon: SquareTerminal, hub: true },
   ...CURL_SEO_TARGETS.filter((target) => target.slug !== "curl-converter").map(
     (target) => ({
       href: `/${target.slug}/`,
       label: target.heading.split("—")[0]?.trim() ?? target.slug,
+      icon: SquareTerminal as LucideIcon,
     }),
   ),
-  { href: "/tools/curl-to-javascript-fetch/", label: "cURL to JavaScript fetch()" },
-  { href: "/tools/curl-to-python-requests/", label: "cURL to Python requests" },
-  { href: "/tools/curl-to-salesforce-apex/", label: "cURL to Salesforce Apex" },
+  { href: "/tools/curl-to-javascript-fetch/", label: "cURL to JavaScript fetch()", icon: SquareTerminal },
+  { href: "/tools/curl-to-python-requests/", label: "cURL to Python requests", icon: SquareTerminal },
+  { href: "/tools/curl-to-salesforce-apex/", label: "cURL to Salesforce Apex", icon: SquareTerminal },
 ];
 
 const JSON_SCHEMA_LINKS: DirectoryLink[] = [
-  { href: "/json-to-schema/", label: "JSON to Schema — Hub" },
-  { href: "/tools/json-to-zod/", label: "JSON to Zod" },
+  { href: "/json-to-schema/", label: "JSON to Schema — Hub", icon: FileJson, hub: true },
+  { href: "/tools/json-to-zod/", label: "JSON to Zod", icon: FileJson },
   ...JSON_SCHEMA_SEO_TARGETS.map((target) => ({
     href: `/${target.slug}/`,
     label: target.heading.split("—")[0]?.trim() ?? target.slug,
+    icon: FileJson as LucideIcon,
   })),
-  { href: "/tools/json-to-pydantic/", label: "JSON to Pydantic" },
+  { href: "/tools/json-to-pydantic/", label: "JSON to Pydantic", icon: FileJson },
 ];
 
 const XML_SCHEMA_LINKS: DirectoryLink[] = [
-  { href: "/xml-to-schema/", label: "XML to Schema — Hub" },
+  { href: "/xml-to-schema/", label: "XML to Schema — Hub", icon: FileCode2, hub: true },
   ...XML_SCHEMA_SEO_TARGETS.map((target) => ({
     href: `/${target.slug}/`,
     label: target.heading.split("—")[0]?.trim() ?? target.slug,
+    icon: FileCode2 as LucideIcon,
   })),
 ];
 
 const SALESFORCE_TOOLS: DirectoryLink[] = [
-  { href: "/json-to-apex/", label: "JSON to Apex Class Generator" },
-  { href: "/soql-formatter/", label: "SOQL Formatter & Beautifier" },
-  { href: "/csv-to-soql/", label: "CSV to SOQL IN Clauses" },
-  { href: "/excel-to-soql/", label: "Excel to SOQL IN Clauses" },
-  { href: "/tools/curl-to-salesforce-apex/", label: "cURL to Salesforce Apex" },
+  { href: "/json-to-apex/", label: "JSON to Apex Class Generator", icon: Cloud, hub: true },
+  { href: "/soql-formatter/", label: "SOQL Formatter & Beautifier", icon: Database },
+  { href: "/csv-to-soql/", label: "CSV to SOQL IN Clauses", icon: Table2 },
+  { href: "/excel-to-soql/", label: "Excel to SOQL IN Clauses", icon: FileSpreadsheet },
+  { href: "/tools/curl-to-salesforce-apex/", label: "cURL to Salesforce Apex", icon: SquareTerminal },
 ];
 
 const PAGE_TITLE = "Developer Tools Directory | SyntaxFiddle";
@@ -118,17 +154,46 @@ function DirectoryList({
 }) {
   return (
     <ul className="mt-4 grid list-none gap-2 sm:grid-cols-2 lg:grid-cols-3">
-      {links.map((link) => (
-        <li key={link.href}>
-          <Link
-            href={link.href}
-            className="flex h-full items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-300 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
-          >
-            <span className="font-medium">{link.label}</span>
-            <ArrowRight size={14} className="shrink-0 text-zinc-600" />
-          </Link>
-        </li>
-      ))}
+      {links.map((link) => {
+        const Icon = link.icon;
+        return (
+          <li key={link.href}>
+            <Link
+              href={link.href}
+              className={`group flex h-full items-center gap-3 rounded-lg border px-4 py-3 transition-colors ${
+                link.hub
+                  ? "border-emerald-500/30 bg-emerald-500/10"
+                  : "border-zinc-800 bg-zinc-950 hover:border-emerald-500/40"
+              }`}
+            >
+              <span
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${
+                  link.hub
+                    ? "border-emerald-500/40 bg-emerald-500/15"
+                    : "border-emerald-500/30 bg-emerald-500/10"
+                }`}
+                aria-hidden
+              >
+                <Icon size={16} className="text-emerald-400" />
+              </span>
+              <span
+                className={`min-w-0 flex-1 text-sm font-medium transition-colors ${
+                  link.hub
+                    ? "text-emerald-300"
+                    : "text-zinc-300 group-hover:text-emerald-300"
+                }`}
+              >
+                {link.label}
+              </span>
+              <ArrowRight
+                size={14}
+                className="shrink-0 text-zinc-600 transition-colors group-hover:text-emerald-400/70"
+                aria-hidden
+              />
+            </Link>
+          </li>
+        );
+      })}
     </ul>
   );
 }
