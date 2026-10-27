@@ -4,6 +4,7 @@ export const metadata: Metadata = {
   title: "Terms of Service",
   description:
     "Terms of service for SyntaxFiddle — acceptable use, licensing, and disclaimers for the client-side developer utilities.",
+  alternates: { canonical: "/terms/" },
 };
 
 export default function TermsPage() {

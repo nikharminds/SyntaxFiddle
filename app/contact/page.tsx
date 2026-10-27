@@ -4,6 +4,7 @@ export const metadata: Metadata = {
   title: "Contact",
   description:
     "Get in touch with the SyntaxFiddle team — bug reports, tool suggestions, feedback, and partnership inquiries. Email us or open an issue on GitHub.",
+  alternates: { canonical: "/contact/" },
 };
 
 export default function ContactPage() {

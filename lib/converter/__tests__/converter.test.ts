@@ -31,7 +31,7 @@ describe("conversion pair registry", () => {
 
   it("titles SOQL pages with the full clause name", () => {
     expect(getConversionPair("csv-to-soql")?.title).toBe(
-      "CSV to SOQL IN Clause Converter",
+      "CSV to SOQL IN Clause Converter Online — No Upload",
     );
   });
 

@@ -4,6 +4,7 @@ export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
     "Privacy policy for SyntaxFiddle. 100% client-side tools: no data collection, no server-side processing, zero tool input logged.",
+  alternates: { canonical: "/privacy/" },
 };
 
 export default function PrivacyPage() {

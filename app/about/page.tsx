@@ -4,6 +4,7 @@ export const metadata: Metadata = {
   title: "About",
   description:
     "About SyntaxFiddle — a privacy-first, fully client-side platform of developer utilities built for the global developer community.",
+  alternates: { canonical: "/about/" },
 };
 
 export default function AboutPage() {

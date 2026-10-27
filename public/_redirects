@@ -3,3 +3,11 @@
 /json-to-apex-lwc/ /json-to-apex/ 301
 /json-to-apex-wrapper /json-to-apex/ 301
 /json-to-apex-wrapper/ /json-to-apex/ 301
+
+# Consolidated ghost cURL target URLs (pre-restructure) into the authoritative /tools pages.
+/curl-to-python /tools/curl-to-python-requests/ 301
+/curl-to-python/ /tools/curl-to-python-requests/ 301
+/curl-to-fetch /tools/curl-to-javascript-fetch/ 301
+/curl-to-fetch/ /tools/curl-to-javascript-fetch/ 301
+/curl-to-apex /tools/curl-to-salesforce-apex/ 301
+/curl-to-apex/ /tools/curl-to-salesforce-apex/ 301

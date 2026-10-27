@@ -247,7 +247,7 @@ const CONVERTER_ROUTE_LIST: readonly SeoConverterRoute[] = [
     toolType: "curl",
     sourceName: "cURL",
     targetName: "Python requests",
-    metaTitle: "cURL to Python Requests Converter — Private & Free",
+    metaTitle: "Convert cURL to Python Requests Online — No Upload | SyntaxFiddle",
     metaDescription:
       "Convert cURL to Python requests code entirely in your browser — json= bodies, auth tuples, and headers mapped automatically. Zero upload, zero logging.",
     h1: "cURL to Python Requests Converter",
@@ -494,7 +494,7 @@ const CONVERTER_ROUTE_LIST: readonly SeoConverterRoute[] = [
     toolType: "schema",
     sourceName: "JSON",
     targetName: "Zod schema",
-    metaTitle: "JSON to Zod Schema Generator — 100% Client-Side",
+    metaTitle: "JSON to Zod Schema Generator Online — No Upload | SyntaxFiddle",
     metaDescription:
       "Generate Zod schemas from JSON instantly, entirely in your browser — nested objects, optional keys, and unions inferred. Your data never leaves your machine.",
     h1: "JSON to Zod Schema Generator",

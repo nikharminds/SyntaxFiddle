@@ -12,9 +12,9 @@ import { buildRegexSeoSections, REGEX_CHEAT_SHEET, REGEX_FAQS } from "@/lib/rege
 import { SITE_URL } from "@/lib/site";
 
 const PAGE_URL = `${SITE_URL}/regex-tester/`;
-const TITLE = "Regex Tester & Visualizer - Real-time JavaScript Matches | SyntaxFiddle";
+const TITLE = "Regex Tester Online — Real-time JavaScript Matches | SyntaxFiddle";
 const DESCRIPTION =
-  "Test JavaScript regular expressions with real-time match highlighting, named capture-group underlines, and a flag selector. Runs in a sandboxed Web Worker with ReDoS protection — your browser never freezes.";
+  "Test regular expressions online with real-time JavaScript match highlighting, named capture-group underlines, and a flag selector. Runs in a sandboxed Web Worker with ReDoS protection — your browser never freezes.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },

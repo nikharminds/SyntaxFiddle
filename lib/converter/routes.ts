@@ -42,7 +42,7 @@ const TARGET_META: Record<
   },
   sql: {
     label: "SQL",
-    titleName: "SQL",
+    titleName: "SQL INSERT",
     outputNoun: "typed, batched SQL INSERT statements",
     faq: {
       question: "Does the SQL output escape special characters?",
@@ -86,7 +86,8 @@ const SOURCE_META: Record<BuildSource, { label: string; noun: string }> = {
 function buildPair(source: BuildSource, target: BuildTarget): ConversionPair {
   const sourceMeta = SOURCE_META[source];
   const targetMeta = TARGET_META[target];
-  const title = `${sourceMeta.label} to ${targetMeta.titleName} Converter`;
+  const name = `${sourceMeta.label} to ${targetMeta.titleName} Converter`;
+  const title = `${name} Online — No Upload`;
   return {
     slug: `${source}-to-${target === "soql-in" ? "soql" : target}`,
     source,
@@ -94,7 +95,7 @@ function buildPair(source: BuildSource, target: BuildTarget): ConversionPair {
     sourceLabel: sourceMeta.label,
     targetLabel: targetMeta.label,
     title,
-    heading: `${title} — Online & Private`,
+    heading: `${name} — Online & Private`,
     description: `Convert ${sourceMeta.noun} into ${targetMeta.outputNoun} instantly — zero server upload, instant browser-side processing, and free forever. Delimiter sniffing, type inference, and chunked output, 100% client-side.`,
     keywords: [
       `${source} to ${targetMeta.label.toLowerCase()} converter`,
@@ -166,7 +167,7 @@ const REVERSE_PAIR_META: Array<{
     target: "csv",
     sourceLabel: "JSON",
     targetLabel: "CSV",
-    title: "JSON to CSV Converter",
+    title: "JSON to CSV Converter Online — No Upload",
     heading: "JSON to CSV Converter — Online & Private",
     description:
       "Convert JSON arrays of objects to CSV instantly — nested objects flattened with dot paths, RFC 4180 quoting, and delimiter options. Zero upload, 100% client-side, free forever.",
@@ -215,7 +216,7 @@ const REVERSE_PAIR_META: Array<{
     target: "csv",
     sourceLabel: "SQL",
     targetLabel: "CSV",
-    title: "SQL to CSV Converter",
+    title: "SQL to CSV Converter Online — No Upload",
     heading: "SQL to CSV Converter — Online & Private",
     description:
       "Paste INSERT INTO ... VALUES statements and get CSV back instantly — multi-row tuples merged, quotes un-escaped, NULLs handled. Zero upload, 100% client-side.",
@@ -263,7 +264,7 @@ const REVERSE_PAIR_META: Array<{
     target: "markdown",
     sourceLabel: "CSV",
     targetLabel: "Markdown",
-    title: "CSV to Markdown Table Converter",
+    title: "CSV to Markdown Table Converter Online — No Upload",
     heading: "CSV to Markdown Table Converter — Online & Private",
     description:
       "Convert CSV to GitHub-Flavored Markdown tables instantly — pipes escaped, line breaks preserved as <br>, numeric columns right-aligned. Zero upload, 100% client-side.",
@@ -311,7 +312,7 @@ const REVERSE_PAIR_META: Array<{
     target: "yaml",
     sourceLabel: "CSV",
     targetLabel: "YAML",
-    title: "CSV to YAML Converter",
+    title: "CSV to YAML Converter Online — No Upload",
     heading: "CSV to YAML Converter — Online & Private",
     description:
       "Convert CSV rows to a YAML list of mappings instantly — block style, correct scalar quoting, empty cells distinguishable from nulls. Zero upload, 100% client-side.",
@@ -359,7 +360,7 @@ const REVERSE_PAIR_META: Array<{
     target: "yaml",
     sourceLabel: "JSON",
     targetLabel: "YAML",
-    title: "JSON to YAML Converter",
+    title: "JSON to YAML Converter Online — No Upload",
     heading: "JSON to YAML Converter — Online & Private",
     ogImage: "/og/json-to-yaml.jpg",
     description:
@@ -409,7 +410,7 @@ const REVERSE_PAIR_META: Array<{
     target: "markdown",
     sourceLabel: "Excel",
     targetLabel: "Markdown",
-    title: "Excel to Markdown Table Converter",
+    title: "Excel to Markdown Table Converter Online — No Upload",
     heading: "Excel to Markdown Table Converter — Online & Private",
     description:
       "Convert Excel ranges to GitHub-Flavored Markdown tables instantly — paste from the clipboard or drop the workbook, pipes escaped, numeric columns aligned. Zero upload, 100% client-side.",
@@ -457,7 +458,7 @@ const REVERSE_PAIR_META: Array<{
     target: "yaml",
     sourceLabel: "Excel",
     targetLabel: "YAML",
-    title: "Excel to YAML Converter",
+    title: "Excel to YAML Converter Online — No Upload",
     heading: "Excel to YAML Converter — Online & Private",
     ogImage: "/og/excel-to-yaml.jpg",
     description:
@@ -506,7 +507,7 @@ const REVERSE_PAIR_META: Array<{
     target: "json",
     sourceLabel: "XML",
     targetLabel: "JSON",
-    title: "XML to JSON Converter — Online & 100% Client-Side | SyntaxFiddle",
+    title: "XML to JSON Converter Online — No Upload",
     heading: "XML to JSON Converter — Online & Private",
     description:
       "Convert XML to JSON instantly — attributes become @properties, repeated elements become arrays, mixed text becomes #text. Zero upload, 100% client-side.",
@@ -554,7 +555,7 @@ const REVERSE_PAIR_META: Array<{
     target: "excel",
     sourceLabel: "JSON",
     targetLabel: "Excel",
-    title: "JSON to Excel Converter (.xlsx) — Online & Private | SyntaxFiddle",
+    title: "JSON to Excel (.xlsx) Converter Online — No Upload",
     heading: "JSON to Excel Converter — Real .xlsx, Zero Upload",
     description:
       "Convert JSON to a real .xlsx workbook instantly — typed cells, content-sized columns, array-of-objects or any shape. 100% client-side, zero uploads.",
@@ -602,13 +603,14 @@ const REVERSE_PAIR_META: Array<{
     target: "excel",
     sourceLabel: "SQL",
     targetLabel: "Excel",
-    title: "SQL to Excel Converter — INSERT Dump to .xlsx | SyntaxFiddle",
+    title: "SQL to Excel (.xlsx) Converter Online — No Upload",
     heading: "SQL to Excel Converter — INSERT Dumps to .xlsx",
     description:
       "Convert SQL INSERT statements to a real .xlsx workbook instantly — multi-row tuples merged, NULL to empty cells, typed numbers. 100% client-side.",
     keywords: [
       "sql to excel",
       "sql to excel converter",
+      "sql to excel online",
       "convert sql to excel",
       "sql insert to excel",
       "sql dump to xlsx",
@@ -650,7 +652,7 @@ const REVERSE_PAIR_META: Array<{
     target: "csv",
     sourceLabel: "XML",
     targetLabel: "CSV",
-    title: "XML to CSV Converter — Record Extraction Online | SyntaxFiddle",
+    title: "XML to CSV Converter Online — No Upload",
     heading: "XML to CSV Converter — Online & Private",
     description:
       "Convert XML to CSV instantly — the repeated record element becomes rows, attributes become @-prefixed columns, dot-path flattening. Zero upload.",
@@ -698,7 +700,7 @@ const REVERSE_PAIR_META: Array<{
     target: "excel",
     sourceLabel: "XML",
     targetLabel: "Excel",
-    title: "XML to Excel Converter — XML to .xlsx Online | SyntaxFiddle",
+    title: "XML to Excel (.xlsx) Converter Online — No Upload",
     heading: "XML to Excel Converter — Online & Private",
     description:
       "Convert XML to a real .xlsx workbook instantly — record extraction, typed cells, @-prefixed attribute columns. 100% client-side, zero uploads.",

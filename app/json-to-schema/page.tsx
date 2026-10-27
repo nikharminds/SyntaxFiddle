@@ -20,13 +20,14 @@ const PAGE_URL = `${SITE_URL}/json-to-schema/`;
 export const metadata: Metadata = {
   title: {
     absolute:
-      "JSON to Schema Converter — Zod, TypeScript, Pydantic & Go | SyntaxFiddle",
+      "JSON to JSON Schema Converter Online — Zod, TypeScript & Pydantic | SyntaxFiddle",
   },
   description:
-    "Paste JSON and generate Zod schemas, TypeScript interfaces, Pydantic v2 models, or Go structs instantly. Mixed-array unions, optional fields, ISO dates, and key renaming — 100% client-side, zero uploads.",
+    "Convert JSON to JSON Schema online — generate Zod schemas, TypeScript interfaces, Pydantic v2 models, or Go structs instantly. Mixed-array unions, optional fields, ISO dates, and key renaming — 100% client-side, zero uploads.",
   keywords: [
     "json to schema",
-    "json to schema converter",
+    "json to json schema",
+    "json to schema converter online",
     "json to zod",
     "json to typescript",
     "json to pydantic",
@@ -36,9 +37,9 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "/json-to-schema/" },
   openGraph: {
-    title: "JSON to Schema Converter — Zod, TypeScript, Pydantic & Go | SyntaxFiddle",
+    title: "JSON to JSON Schema Converter Online — Zod, TypeScript & Pydantic | SyntaxFiddle",
     description:
-      "Generate Zod schemas, TypeScript interfaces, Pydantic models, and Go structs from JSON. 100% client-side — payloads with PII never leave your browser.",
+      "Convert JSON to JSON Schema online — Zod, TypeScript, Pydantic, and Go output, entirely in your browser. Payloads with PII never leave your machine.",
     url: PAGE_URL,
     siteName: "SyntaxFiddle",
     type: "website",
@@ -53,9 +54,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "JSON to Schema Converter — Zod, TypeScript, Pydantic & Go",
+    title: "JSON to JSON Schema Converter Online — Zod, TypeScript & Pydantic",
     description:
-      "Zod, TypeScript, Pydantic, and Go schemas from JSON — entirely in your browser, zero uploads.",
+      "Convert JSON to JSON Schema online — Zod, TypeScript, Pydantic, and Go schemas, entirely in your browser, zero uploads.",
     images: [`${SITE_URL}/og/json-to-schema.jpg`],
   },
 };
@@ -66,7 +67,7 @@ export default function JsonToSchemaPage() {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
       <ToolSchema
-        name="JSON to Schema Converter"
+        name="JSON to JSON Schema Converter"
         description="Paste JSON and generate Zod schemas, TypeScript interfaces, Pydantic v2 models, or Go structs instantly. Runs fully offline in the browser — payloads with PII are never uploaded."
         url={PAGE_URL}
         featureList={[
@@ -88,8 +89,8 @@ export default function JsonToSchemaPage() {
               <Badge variant="outline">4 Schema Targets</Badge>
             </>
           }
-          title="JSON to Schema Converter"
-          description="Paste any JSON payload and get a Zod schema, TypeScript interfaces, Pydantic v2 models, or Go structs in milliseconds. The inference engine runs in a Web Worker inside your browser — mixed arrays become unions, partial records infer optional fields, ISO-8601 strings map to real date types, and snake_case keys are renamed with their original mapping preserved."
+          title="JSON to JSON Schema Converter — Zod, TypeScript, Pydantic & Go"
+          description="Convert JSON to JSON Schema and get a Zod schema, TypeScript interfaces, Pydantic v2 models, or Go structs in milliseconds. The inference engine runs in a Web Worker inside your browser — mixed arrays become unions, partial records infer optional fields, ISO-8601 strings map to real date types, and snake_case keys are renamed with their original mapping preserved."
           facts={[
             {
               icon: Lock,

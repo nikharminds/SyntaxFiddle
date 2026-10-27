@@ -48,7 +48,7 @@ export const CURL_SEO_TARGETS: CurlSeoTarget[] = [
   {
     slug: "curl-converter",
     target: null,
-    title: "cURL Converter — To Fetch, Axios & Python Requests | SyntaxFiddle",
+    title: "cURL Converter Online — To Fetch, Axios & Python Requests | SyntaxFiddle",
     heading: "cURL Converter — To Fetch, Axios & Python Requests",
     description:
       "Paste a cURL command and instantly convert it to idiomatic JavaScript fetch(), axios, or Python requests code. 100% client-side — commands, headers, and tokens never leave your browser.",
@@ -56,6 +56,7 @@ export const CURL_SEO_TARGETS: CurlSeoTarget[] = [
       "One input, ten targets: paste any cURL command and switch between fetch(), axios, Python requests, PHP Guzzle, Go, C#, Java OkHttp, PowerShell, HTTPie, and Salesforce Apex output instantly. The parser understands quoting rules, line continuations, data flags, and basic auth — and the whole pipeline runs offline in your browser.",
     keywords: [
       "curl converter",
+      "curl converter online",
       "curl to code",
       "curl to javascript",
       "curl to python",
@@ -147,8 +148,8 @@ export const CURL_SEO_TARGETS: CurlSeoTarget[] = [
   {
     slug: "curl-to-axios",
     target: "axios",
-    title: "cURL to Axios Converter Online (Zero-Upload) | SyntaxFiddle",
-    heading: "cURL to Axios Converter — Online & Zero-Upload",
+    title: "Convert cURL to Axios Online — No Upload | SyntaxFiddle",
+    heading: "Convert cURL to Axios — Online & Zero-Upload",
     description:
       "Convert cURL commands to clean axios.request() configuration objects instantly. JSON bodies, headers, and basic auth mapped to idiomatic axios options. Fully client-side — nothing is uploaded.",
     heroDescription:
@@ -268,8 +269,8 @@ export const CURL_SEO_TARGETS: CurlSeoTarget[] = [
   {
     slug: "curl-to-php",
     target: "php",
-    title: "cURL to PHP Guzzle Converter (Private & Offline) | SyntaxFiddle",
-    heading: "cURL to PHP Guzzle Converter — Private & Offline",
+    title: "Convert cURL to PHP Guzzle Online — No Upload | SyntaxFiddle",
+    heading: "Convert cURL to PHP Guzzle — Online & Private",
     description:
       "Convert cURL commands to PHP Guzzle code instantly — headers, JSON payloads, and basic auth mapped to clean $client->request() calls. 100% client-side, nothing is uploaded.",
     heroDescription:
@@ -280,6 +281,7 @@ export const CURL_SEO_TARGETS: CurlSeoTarget[] = [
       "curl to guzzle",
       "curl to guzzle converter",
       "convert curl to php",
+      "curl to php online",
       "curl php guzzle online",
       "curl command to php",
     ],
@@ -365,8 +367,8 @@ export const CURL_SEO_TARGETS: CurlSeoTarget[] = [
   {
     slug: "curl-to-go",
     target: "go",
-    title: "cURL to Go net/http Converter (Client-Side & Free) | SyntaxFiddle",
-    heading: "cURL to Go net/http Converter — Client-Side & Free",
+    title: "Convert cURL to Go net/http Online | SyntaxFiddle",
+    heading: "Convert cURL to Go net/http — Online & Client-Side",
     description:
       "Convert cURL commands to idiomatic Go net/http code instantly — json.Marshal bodies, req.Header.Set calls, and SetBasicAuth. Fully client-side conversion, zero uploads, free forever.",
     heroDescription:
@@ -559,8 +561,8 @@ export const CURL_SEO_TARGETS: CurlSeoTarget[] = [
   {
     slug: "curl-to-java",
     target: "java",
-    title: "cURL to Java OkHttp Converter (Offline & Secure) | SyntaxFiddle",
-    heading: "cURL to Java OkHttp Converter — Offline & Secure",
+    title: "cURL to Java OkHttp Converter Online — No Upload | SyntaxFiddle",
+    heading: "cURL to Java OkHttp Converter — Online & Secure",
     description:
       "Convert cURL commands to Java OkHttp code instantly — Request.Builder chains, RequestBody.create payloads, and basic auth headers. Runs fully offline in your browser, zero uploads.",
     heroDescription:

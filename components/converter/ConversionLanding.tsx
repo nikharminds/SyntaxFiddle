@@ -76,7 +76,7 @@ export function buildPairMetadata(pair: ConversionPair): Metadata {
     keywords: pair.keywords,
     alternates: { canonical: `/${pair.slug}/` },
     openGraph: {
-      title: `${pair.title} — Online & Private | SyntaxFiddle`,
+      title: `${pair.title} | SyntaxFiddle`,
       description: pair.description,
       url: `${SITE_URL}/${pair.slug}/`,
       siteName: "SyntaxFiddle",
@@ -85,7 +85,7 @@ export function buildPairMetadata(pair: ConversionPair): Metadata {
     },
     twitter: {
       card: "summary_large_image",
-      title: `${pair.title} — Online & Private | SyntaxFiddle`,
+      title: `${pair.title} | SyntaxFiddle`,
       description: pair.description,
       images: [ogImage],
     },
