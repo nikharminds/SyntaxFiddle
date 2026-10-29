@@ -11,3 +11,19 @@
 /curl-to-fetch/ /tools/curl-to-javascript-fetch/ 301
 /curl-to-apex /tools/curl-to-salesforce-apex/ 301
 /curl-to-apex/ /tools/curl-to-salesforce-apex/ 301
+
+# JSON schema targets moved from /[slug] to /tools/[slug] (commit 9ac1689) —
+# old URLs were indexed, add redirects to stop the 404s.
+/json-to-zod /tools/json-to-zod/ 301
+/json-to-zod/ /tools/json-to-zod/ 301
+/json-to-pydantic /tools/json-to-pydantic/ 301
+/json-to-pydantic/ /tools/json-to-pydantic/ 301
+
+# Retired cron recipe pages (commit 9ac1689 removed the seeds) — send to the
+# cron visualizer home where the equivalent expression can be entered.
+/cron/every-2-minutes /cron/ 301
+/cron/every-2-minutes/ /cron/ 301
+/cron/every-3-months /cron/ 301
+/cron/every-3-months/ /cron/ 301
+/cron/every-6-months /cron/ 301
+/cron/every-6-months/ /cron/ 301
