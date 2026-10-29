@@ -29,7 +29,7 @@ function NetworkProofPanel() {
         </div>
         <Badge variant="success">
           <Check size={12} />
-          0 requests after load
+          0 tool requests after load
         </Badge>
       </div>
 
@@ -41,12 +41,12 @@ function NetworkProofPanel() {
         <div className="my-3 border-t border-dashed border-zinc-800" aria-hidden="true" />
         <p className="flex items-center gap-2 text-emerald-400">
           <Check size={14} className="shrink-0" />
-          nothing is sent afterwards — ever
+          your input is never sent — anonymous page-view analytics only
         </p>
         <p className="mt-1 text-zinc-500">
           run a pattern, convert a file, validate a token
         </p>
-        <p className="text-zinc-500">0 bytes leave this tab</p>
+        <p className="text-zinc-500">0 bytes of tool data leave this tab</p>
       </div>
 
       <dl className="mt-4 grid grid-cols-3 gap-2 text-center">
@@ -79,7 +79,7 @@ export default function HomePage() {
                 </Badge>
                 <Badge variant="outline">
                   <ShieldCheck size={12} className="text-emerald-400" />
-                  No telemetry
+                  No tool data sent
                 </Badge>
               </div>
               <h1 className="mt-6 text-4xl font-bold tracking-tight text-zinc-100 sm:text-5xl">
@@ -88,7 +88,7 @@ export default function HomePage() {
               </h1>
               <p className="mt-5 max-w-xl text-lg leading-8 text-zinc-400">
                 SyntaxFiddle runs every parser, converter, and simulator entirely in
-                your browser. No accounts, no servers, no telemetry — just fast,
+                your browser. No accounts, no servers, no tool telemetry — just fast,
                 deterministic utilities built for engineers who care about correctness
                 and data hygiene.
               </p>
@@ -139,12 +139,14 @@ export default function HomePage() {
             a fully static application, compiled ahead of time and executed completely
             inside your browser tab. When you type a cron expression or load a
             spreadsheet, the parsing engine runs locally using standard web APIs. You
-            can verify this claim yourself — open your browser&rsquo;s network panel and
-            watch it after the page loads. No outbound request ever carries your data,
-            because we cannot log what we never receive. This makes SyntaxFiddle
-            appropriate for sensitive inputs such as production crontabs, customer
-            exports, and internal schedules that would normally violate policy if
-            pasted into an unknown web tool.
+            can verify this claim yourself — open your browser&rsquo;s network
+            panel and watch it after the page loads. No outbound request ever
+            carries your tool input, because we cannot log what we never
+            receive. The only post-load traffic is anonymous page-view
+            analytics, which never sees what you type into a tool. This makes
+            SyntaxFiddle appropriate for sensitive inputs such as production
+            crontabs, customer exports, and internal schedules that would
+            normally violate policy if pasted into an unknown web tool.
           </p>
 
           <h2>A performance philosophy, not a benchmark</h2>

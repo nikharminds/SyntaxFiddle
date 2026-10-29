@@ -53,9 +53,9 @@ export const JSON_SCHEMA_SEO_TARGETS: JsonSchemaSeoTarget[] = [
     title: "JSON to TypeScript Interface Converter (Zero-Upload)",
     heading: "JSON to TypeScript Interface Converter — Zero-Upload",
     description:
-      "Paste JSON and get clean TypeScript interfaces instantly: nested types, union arrays, optional fields, and a key map for snake_case keys. Runs entirely in your browser — no uploads.",
+      "Paste JSON and get clean TypeScript interfaces instantly: nested types, union arrays, optional fields, and keys exactly as they appear on the wire. Runs entirely in your browser — no uploads.",
     heroDescription:
-      "Turn any JSON payload into strict-mode TypeScript: every nested object becomes a named interface, [1, \"a\"] becomes (number | string)[], missing keys in arrays of objects become optional properties, and a KeyMap const records every renamed key. The generator runs in a Web Worker in your browser — your data never leaves the tab.",
+      "Turn any JSON payload into strict-mode TypeScript: every nested object becomes a named interface, [1, \"a\"] becomes (number | string)[], missing keys in arrays of objects become optional properties, and keys are kept verbatim (\"client-name\": string) so the types match res.json() exactly — with an opt-in camelCase mode that emits a KeyMap const. The generator runs in a Web Worker in your browser — your data never leaves the tab.",
     keywords: [
       "json to typescript",
       "json to interface",
@@ -69,8 +69,8 @@ export const JSON_SCHEMA_SEO_TARGETS: JsonSchemaSeoTarget[] = [
     featureList: [
       "Emits export interface definitions for every nested object, named after their path",
       "Mixed arrays become union types and partial objects infer optional (?) properties",
-      "snake_case and kebab-case keys converted to camelCase with a KeyMap for hydration",
-      "Empty arrays infer unknown[] instead of guessing a wrong concrete type",
+      "Keys preserved verbatim by default; opt-in camelCase renaming with a KeyMap for hydration",
+      "Whole numbers stay integers and empty arrays infer unknown[] instead of guessing",
       "Zero-upload conversion in a Web Worker — PII never leaves your browser",
     ],
     facts: [
@@ -92,10 +92,10 @@ export const JSON_SCHEMA_SEO_TARGETS: JsonSchemaSeoTarget[] = [
         ],
       },
       {
-        heading: "camelCase types with a KeyMap for the wire format",
+        heading: "Wire-format keys by default, camelCase when you ask for it",
         body: [
-          "snake_case and kebab-case keys are converted to camelCase in the interfaces, so your TypeScript follows convention instead of the API's spelling quirks. To preserve the mapping to the original keys, the generator emits an adjacent KeyMap const: export const UserProfileKeyMap = { userName: \"user_name\" } as const. Use it at your hydration boundary to map parsed JSON onto the typed shape with full type safety.",
-          "ISO-8601 strings stay string in the TypeScript output — which is what JSON.parse actually produces at runtime — while the Zod target of the same tool coerces them to Date. That keeps the interfaces honest about what the wire delivers, and lets you layer a parsing step on top when you want richer types.",
+          "Keys are emitted exactly as they appear in your payload by default: \"client-name\": string, created_at: string. That is deliberate — res.json() returns the original keys at runtime, so a variable typed as Root matches the parsed object property-for-property and r.clientName-style bugs cannot compile in the first place. Keys that are not valid identifiers are simply quoted, which TypeScript fully supports.",
+          "When you want idiomatic camelCase instead, flip the toggle: keys are renamed to camelCase in the interfaces and the generator emits an adjacent KeyMap const (export const UserProfileKeyMap = { userName: \"user_name\" } as const) recording every rename for your hydration boundary. ISO-8601 strings stay string in the TypeScript output either way — which is what JSON.parse actually produces — while the Zod target of the same tool coerces them to Date.",
         ],
       },
       {
@@ -109,7 +109,7 @@ export const JSON_SCHEMA_SEO_TARGETS: JsonSchemaSeoTarget[] = [
         heading: "Using the generated interfaces",
         body: [
           "The output is plain declaration-only TypeScript that compiles under strict mode with noUncheckedIndexedAccess — paste it next to your API client and annotate fetch responses with it. Interfaces are emitted children-first, so the file reads bottom-up from leaf shapes to the root type, and a root that is not an object gets an export type alias instead (export type Root = (number | string)[]).",
-          "For runtime validation, pair the interfaces with the Zod output from the same tool: the schema validates the raw JSON keys, transforms them to camelCase, and its inferred type matches these interfaces. Together they give you a compile-time contract and a runtime guard from a single paste.",
+          "For runtime validation, pair the interfaces with the Zod output from the same tool: the schema validates the raw JSON keys and its inferred type matches these interfaces (both preserve the wire keys by default; both rename to camelCase when the toggle is on). Together they give you a compile-time contract and a runtime guard from a single paste.",
         ],
       },
     ],
@@ -130,9 +130,9 @@ export const JSON_SCHEMA_SEO_TARGETS: JsonSchemaSeoTarget[] = [
           "They become union types: (number | string | null)[]. The generator folds every element into a deduplicated union instead of collapsing to any, so your types stay strict.",
       },
       {
-        question: "Why is there a KeyMap const next to my interfaces?",
+        question: "Why are my keys not renamed to camelCase?",
         answer:
-          "JSON keys in snake_case or kebab-case are renamed to camelCase in the interfaces; the KeyMap records the original key for each renamed property so you can map wire-format data onto the typed shape at your hydration boundary.",
+          "Because res.json() returns the original keys at runtime — a type that renames them compiles but lies. Keys are therefore preserved verbatim by default (quoted when they are not valid identifiers). If you prefer camelCase, toggle it on and the generator renames keys and emits a KeyMap const recording the original spelling for each renamed property, for use at your hydration boundary.",
       },
       {
         question: "Does it work with huge JSON files?",
@@ -167,6 +167,7 @@ export const JSON_SCHEMA_SEO_TARGETS: JsonSchemaSeoTarget[] = [
     ],
     featureList: [
       "Emits nested Go struct types with aligned json tags preserving original keys",
+      "Whole numbers infer int64; mixed int/float samples widen to float64",
       "snake_case and kebab-case keys converted to exported PascalCase field names",
       "Nullable fields map to pointers (*T) and optional fields get omitempty tags",
       "ISO-8601 strings detected and typed as time.Time with the import block included",
@@ -186,14 +187,14 @@ export const JSON_SCHEMA_SEO_TARGETS: JsonSchemaSeoTarget[] = [
       {
         heading: "From JSON to encoding/json-ready structs",
         body: [
-          "Every nested object becomes its own named struct type, emitted children-first, with each field exported in PascalCase and carrying a json:\"original_key\" tag that preserves the exact key from your payload — snake_case, kebab-case, or anything else survives the round trip through encoding/json unchanged. Mixed arrays such as [1, \"a\"] map to []any because Go has no unions, while a nullable value ([1, null]) becomes *float64 so the zero value stays distinguishable from absence.",
+          "Every nested object becomes its own named struct type, emitted children-first, with each field exported in PascalCase and carrying a json:\"original_key\" tag that preserves the exact key from your payload — snake_case, kebab-case, or anything else survives the round trip through encoding/json unchanged. Mixed arrays such as [1, \"a\"] map to []any because Go has no unions, while a nullable whole-number value ([1, null]) becomes *int64 so the zero value stays distinguishable from absence.",
           "Optionality is inferred from evidence: a key that is missing from at least one object in an array becomes a pointer with an omitempty tag, letting json.Unmarshal and Marshal round-trip partial API responses faithfully. Empty arrays become []any rather than guessing a wrong concrete element type, and struct fields are column-aligned the way gofmt leaves them.",
         ],
       },
       {
         heading: "Type mapping details worth knowing",
         body: [
-          "JSON numbers map to float64 — the type encoding/json unmarshals into any, and the only lossless choice without integer evidence in the sample. Strings matching ISO 8601, including date-only values and timestamps with timezone offsets, map to time.Time with the import \"time\" block added automatically and only when needed. Booleans map to bool, null-only fields to any, and a root value that is not an object becomes a type alias (type Root = []string).",
+          "JSON numbers are typed by evidence. When every sample of a field is whole — the signature of IDs, counts, and quantities — the field is emitted as int64, because float64 silently loses precision on integers past 2^53 and encoding/json decodes straight into either. A single fractional sample widens the field to float64. Strings matching ISO 8601, including date-only values and timestamps with timezone offsets, map to time.Time with the import \"time\" block added automatically and only when needed. Booleans map to bool, null-only fields to any, and a root value that is not an object becomes a type alias (type Root = []string).",
           "Field names are derived by splitting keys on separators and camelCase boundaries, so created_at becomes CreatedAt and userID keeps its acronym as UserID — exported, collision-free, and never shadowing Go's keywords. Struct names follow the same rule down the nesting path, keeping deep documents readable and greppable.",
         ],
       },
@@ -208,7 +209,7 @@ export const JSON_SCHEMA_SEO_TARGETS: JsonSchemaSeoTarget[] = [
         heading: "Using the generated structs",
         body: [
           "Drop the output into a .go file (it arrives with a package declaration) and unmarshal with json.Unmarshal(body, &root) — field names, tags, pointers, and time.Time values align with what encoding/json expects, so no post-processing is needed. Nullable pointers marshal back as null rather than zero values, and omitempty fields drop cleanly when absent.",
-          "If your API sends integers, float64 still decodes them exactly (Go's float64 is lossless for JSON integers up to 2^53) — and when you want int64 fields for IDs, a one-line type change is all it takes since the tags already carry the correct keys. For API clients beyond encoding/json, the same struct shapes transfer to jsoncodegen tools or generated OpenAPI types unchanged.",
+          "Integer evidence means ID fields arrive as int64 ready to use — no manual float64-to-int64 surgery on large identifiers. Fields your samples show as fractional come out float64, and since the json tags already carry the correct keys, changing any field's type later is a one-line edit. For API clients beyond encoding/json, the same struct shapes transfer to jsoncodegen tools or generated OpenAPI types unchanged.",
         ],
       },
     ],
@@ -236,7 +237,7 @@ export const JSON_SCHEMA_SEO_TARGETS: JsonSchemaSeoTarget[] = [
       {
         question: "Why does a mixed array like [1, \"a\"] become []any?",
         answer:
-          "Go has no union types, so any is the honest representation. A nullable numeric array ([1, null]) is more specific and becomes []*float64, keeping nil-able elements round-trippable.",
+          "Go has no union types, so any is the honest representation. A nullable whole-number array ([1, null]) is more specific and becomes []*int64, keeping nil-able elements round-trippable.",
       },
       {
         question: "Can I convert a JSON array at the root?",

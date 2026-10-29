@@ -8,6 +8,10 @@ export interface NumberTypeDef {
   readonly kind: "number";
 }
 
+export interface IntegerTypeDef {
+  readonly kind: "integer";
+}
+
 export interface BooleanTypeDef {
   readonly kind: "boolean";
 }
@@ -45,6 +49,7 @@ export interface UnionTypeDef {
 export type TypeDef =
   | StringTypeDef
   | NumberTypeDef
+  | IntegerTypeDef
   | BooleanTypeDef
   | NullTypeDef
   | DateTypeDef
@@ -81,6 +86,8 @@ export function typeKey(def: TypeDef): string {
       return "string";
     case "number":
       return "number";
+    case "integer":
+      return "integer";
     case "boolean":
       return "boolean";
     case "null":
@@ -155,7 +162,10 @@ function inferValue(value: unknown, depth: number): TypeDef {
     case "boolean":
       return { kind: "boolean" };
     case "number":
-      return { kind: "number" };
+      // A float sample widens an all-integer evidence set to number, the same
+      // way a string sample widens an ISO-date set to string. Numeric IDs are
+      // ubiquitous and 2^53-unsafe in float form, so whole samples stay int.
+      return Number.isInteger(value) ? { kind: "integer" } : { kind: "number" };
     case "string":
       return isIso8601(value) ? { kind: "date" } : { kind: "string" };
     case "object":
@@ -238,6 +248,12 @@ function tryMerge(a: TypeDef, b: TypeDef): TypeDef | null {
   if (a.kind === "object" && b.kind === "object") return mergeObjects(a, b);
   if (a.kind === "array" && b.kind === "array") {
     return { kind: "array", items: mergeTypes(a.items, b.items) };
+  }
+  if (
+    (a.kind === "integer" && b.kind === "number") ||
+    (a.kind === "number" && b.kind === "integer")
+  ) {
+    return { kind: "number" };
   }
   if (
     (a.kind === "string" && b.kind === "date") ||

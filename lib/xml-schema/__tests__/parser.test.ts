@@ -96,11 +96,16 @@ describe("xml schema generation", () => {
     </book>
   </catalog>`;
 
-  it("generates a zod schema from XML", () => {
+  it("generates a zod schema from XML with wire keys preserved by default", () => {
     const code = generateSchemaFromXml(CATALOG, "zod");
     expect(code).toContain("title");
     expect(code).toContain("price");
-    expect(code).toContain("publishedAt");
+    expect(code).toContain("published_at");
+    expect(code).not.toContain(".transform(");
+    const camelCode = generateSchemaFromXml(CATALOG, "zod", undefined, {
+      keyCasing: "camel",
+    });
+    expect(camelCode).toContain("publishedAt");
   });
 
   it("generates TypeScript interfaces from XML", () => {

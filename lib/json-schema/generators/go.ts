@@ -51,6 +51,8 @@ export function generateGoStructs(def: TypeDef, rootName = "Root"): string {
         return "string";
       case "number":
         return "float64";
+      case "integer":
+        return "int64";
       case "boolean":
         return "bool";
       case "null":

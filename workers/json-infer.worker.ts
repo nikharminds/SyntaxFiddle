@@ -69,8 +69,10 @@ ctx.onmessage = (
       });
       return;
     }
-    try {
-      const code = generateSchemaFromXml(message.xml, message.target, message.rootName);
+  try {
+    const code = generateSchemaFromXml(message.xml, message.target, message.rootName, {
+      keyCasing: message.keyCasing,
+    });
       ctx.postMessage({
         id: message.id,
         ok: true,
@@ -103,7 +105,9 @@ ctx.onmessage = (
     return;
   }
   try {
-    const code = generateSchema(message.json, message.target, message.rootName);
+    const code = generateSchema(message.json, message.target, message.rootName, {
+      keyCasing: message.keyCasing,
+    });
     ctx.postMessage({
       id: message.id,
       ok: true,

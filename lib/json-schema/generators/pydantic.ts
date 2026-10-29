@@ -62,6 +62,8 @@ export function generatePydanticModels(def: TypeDef, rootName = "Root"): string 
         return "str";
       case "number":
         return "float";
+      case "integer":
+        return "int";
       case "boolean":
         return "bool";
       case "null":

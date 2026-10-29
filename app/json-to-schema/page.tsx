@@ -23,7 +23,7 @@ export const metadata: Metadata = {
       "JSON to JSON Schema Converter Online — Zod, TypeScript & Pydantic | SyntaxFiddle",
   },
   description:
-    "Convert JSON to JSON Schema online — generate Zod schemas, TypeScript interfaces, Pydantic v2 models, or Go structs instantly. Mixed-array unions, optional fields, ISO dates, and key renaming — 100% client-side, zero uploads.",
+    "Convert JSON to JSON Schema online — generate Zod schemas, TypeScript interfaces, Pydantic v2 models, or Go structs instantly. Mixed-array unions, optional fields, ISO dates, int64 for whole numbers, and verbatim keys by default — 100% client-side, zero uploads.",
   keywords: [
     "json to schema",
     "json to json schema",
@@ -73,8 +73,9 @@ export default function JsonToSchemaPage() {
         featureList={[
           "Generates Zod schemas, TypeScript interfaces, Pydantic v2 models, and Go structs from any JSON",
           "Mixed arrays infer unions; partial records infer optional fields",
+          "Whole numbers infer int, int64, and z.number().int() — no float64 precision loss on IDs",
           "ISO-8601 strings map to z.coerce.date(), datetime, and time.Time",
-          "snake_case and kebab-case keys renamed with the original mapping preserved",
+          "Keys preserved verbatim by default; opt-in camelCase renaming keeps the original mapping",
           "100% client-side generation in a Web Worker — zero uploads, zero logging",
         ]}
         faqs={JSON_SCHEMA_FAQS}
@@ -90,7 +91,7 @@ export default function JsonToSchemaPage() {
             </>
           }
           title="JSON to JSON Schema Converter — Zod, TypeScript, Pydantic & Go"
-          description="Convert JSON to JSON Schema and get a Zod schema, TypeScript interfaces, Pydantic v2 models, or Go structs in milliseconds. The inference engine runs in a Web Worker inside your browser — mixed arrays become unions, partial records infer optional fields, ISO-8601 strings map to real date types, and snake_case keys are renamed with their original mapping preserved."
+          description="Convert JSON to JSON Schema and get a Zod schema, TypeScript interfaces, Pydantic v2 models, or Go structs in milliseconds. The inference engine runs in a Web Worker inside your browser — mixed arrays become unions, partial records infer optional fields, ISO-8601 strings map to real date types, whole numbers infer int64, and keys are kept verbatim by default with optional camelCase renaming that preserves the original mapping."
           facts={[
             {
               icon: Lock,

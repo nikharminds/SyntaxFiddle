@@ -1,4 +1,5 @@
 import type { SchemaTarget } from "./index";
+import type { KeyCasing } from "./options";
 
 export interface JsonSyntaxDiagnosticDetail {
   message: string;
@@ -16,6 +17,7 @@ export interface JsonInferRequest {
   json: string;
   target: SchemaTarget;
   rootName: string;
+  keyCasing?: KeyCasing;
 }
 
 export interface XmlInferRequest {
@@ -24,6 +26,7 @@ export interface XmlInferRequest {
   xml: string;
   target: SchemaTarget;
   rootName: string;
+  keyCasing?: KeyCasing;
 }
 
 export type InferRequest = JsonInferRequest | XmlInferRequest;

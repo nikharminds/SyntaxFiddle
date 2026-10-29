@@ -1,6 +1,8 @@
 import { isIdentifier, toPascalCase } from "../casing";
 import { typeKey } from "../infer";
 import type { ObjectTypeDef, TypeDef } from "../infer";
+import { resolveKeyCasing } from "../options";
+import type { SchemaOptions } from "../options";
 
 interface CollectedObject {
   name: string;
@@ -8,7 +10,12 @@ interface CollectedObject {
   keyMap: Array<[string, string]>;
 }
 
-export function generateTypeScriptTypes(def: TypeDef, rootName = "Root"): string {
+export function generateTypeScriptTypes(
+  def: TypeDef,
+  rootName = "Root",
+  options?: SchemaOptions,
+): string {
+  const keyCasing = resolveKeyCasing(options);
   const rootTypeName = toPascalCase(rootName) || "Root";
   const usedNames = new Set<string>();
   const shapeNames = new Map<string, string>();
@@ -23,13 +30,17 @@ export function generateTypeScriptTypes(def: TypeDef, rootName = "Root"): string
     return candidate;
   };
 
+  const memberKey = (originalKey: string, camelKey: string): string =>
+    keyCasing === "camel" ? camelKey : originalKey;
+
   const renderType = (node: TypeDef, hint: string): string => {
     switch (node.kind) {
       case "string":
       case "number":
+      case "integer":
       case "boolean":
       case "null":
-        return node.kind;
+        return node.kind === "integer" ? "number" : node.kind;
       case "date":
         return "string";
       case "object": {
@@ -44,7 +55,7 @@ export function generateTypeScriptTypes(def: TypeDef, rootName = "Root"): string
             property.type,
             `${name}${toPascalCase(property.originalKey)}`,
           );
-          if (property.key !== property.originalKey) {
+          if (keyCasing === "camel" && property.key !== property.originalKey) {
             keyMap.push([property.key, property.originalKey]);
           }
         }
@@ -81,8 +92,8 @@ export function generateTypeScriptTypes(def: TypeDef, rootName = "Root"): string
         `${entry.name}${toPascalCase(property.originalKey)}`,
       );
       const optionalMark = property.optional ? "?" : "";
-      const name = isIdentifier(property.key)
-        ? property.key
+      const name = isIdentifier(memberKey(property.originalKey, property.key))
+        ? memberKey(property.originalKey, property.key)
         : JSON.stringify(property.originalKey);
       return `  ${name}${optionalMark}: ${type};`;
     });

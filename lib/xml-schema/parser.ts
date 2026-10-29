@@ -7,6 +7,7 @@ import {
   generateGoStructs,
 } from "../json-schema";
 import type { SchemaTarget } from "../json-schema";
+import type { SchemaOptions } from "../json-schema/options";
 
 export interface XmlSyntaxDiagnosticDetail {
   message: string;
@@ -335,6 +336,7 @@ export function generateSchemaFromXml(
   xml: string,
   target: SchemaTarget,
   rootName?: string,
+  options?: SchemaOptions,
 ): string {
   const parsed = parseXml(xml);
   if (!parsed.ok) {
@@ -344,9 +346,9 @@ export function generateSchemaFromXml(
   const definition = inferJson(JSON.stringify(parsed.value));
   switch (target) {
     case "zod":
-      return generateZodSchema(definition, name);
+      return generateZodSchema(definition, name, options);
     case "ts":
-      return generateTypeScriptTypes(definition, name);
+      return generateTypeScriptTypes(definition, name, options);
     case "pydantic":
       return generatePydanticModels(definition, name);
     case "go":

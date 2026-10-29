@@ -1,6 +1,7 @@
 import { toPascalCase } from "./casing";
 import { inferJson } from "./infer";
 import type { TypeDef } from "./infer";
+import type { SchemaOptions } from "./options";
 import { generateZodSchema } from "./generators/zod";
 import { generateTypeScriptTypes } from "./generators/typescript";
 import { generatePydanticModels } from "./generators/pydantic";
@@ -12,14 +13,15 @@ export function generateSchema(
   jsonString: string,
   target: SchemaTarget,
   rootName?: string,
+  options?: SchemaOptions,
 ): string {
   const definition: TypeDef = inferJson(jsonString);
   const name = toPascalCase(rootName ?? "Root") || "Root";
   switch (target) {
     case "zod":
-      return generateZodSchema(definition, name);
+      return generateZodSchema(definition, name, options);
     case "ts":
-      return generateTypeScriptTypes(definition, name);
+      return generateTypeScriptTypes(definition, name, options);
     case "pydantic":
       return generatePydanticModels(definition, name);
     case "go":
@@ -44,6 +46,7 @@ export type {
   TypeDef,
   StringTypeDef,
   NumberTypeDef,
+  IntegerTypeDef,
   BooleanTypeDef,
   NullTypeDef,
   DateTypeDef,
@@ -52,6 +55,8 @@ export type {
   ArrayTypeDef,
   UnionTypeDef,
 } from "./infer";
+export type { KeyCasing, SchemaOptions } from "./options";
+export { DEFAULT_KEY_CASING, resolveKeyCasing } from "./options";
 export { generateZodSchema } from "./generators/zod";
 export { generateTypeScriptTypes } from "./generators/typescript";
 export { generatePydanticModels } from "./generators/pydantic";

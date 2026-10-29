@@ -29,7 +29,7 @@ const YEAR_MAX = 2199;
 const MAX_ITERATIONS = 5000;
 
 /** Vixie-style macro expansions. Only valid in dialects with supportsMacros. */
-const CRON_MACROS: Record<string, string> = {
+export const CRON_MACROS: Record<string, string> = {
   "@yearly": "0 0 1 1 *",
   "@annually": "0 0 1 1 *",
   "@monthly": "0 0 1 * *",

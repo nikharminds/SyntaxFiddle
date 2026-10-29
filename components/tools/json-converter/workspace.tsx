@@ -15,7 +15,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
 import { useJsonInfer } from "@/hooks/useJsonInfer";
-import type { SchemaTarget } from "@/lib/json-schema";
+import type { KeyCasing, SchemaTarget } from "@/lib/json-schema";
 import type { JsonSyntaxDiagnosticDetail } from "@/lib/json-schema/protocol";
 import { JSON_INFER_DEBOUNCE_MS } from "@/lib/json-schema/protocol";
 import { cn } from "@/lib/utils";
@@ -102,6 +102,49 @@ function formatBytes(bytes: number): string {
   return bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} KB`;
 }
 
+function CasingSwitch({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  onChange: (value: boolean) => void;
+  label: string;
+}) {
+  return (
+    <>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
+        onClick={() => onChange(!checked)}
+        className={cn(
+          "relative h-5 w-9 shrink-0 rounded-full border transition-colors",
+          checked
+            ? "border-emerald-500/50 bg-emerald-500/30"
+            : "border-zinc-700 bg-zinc-800",
+        )}
+      >
+        <span
+          className={cn(
+            "absolute top-0.5 h-3.5 w-3.5 rounded-full transition-all",
+            checked ? "left-[18px] bg-emerald-400" : "left-0.5 bg-zinc-400",
+          )}
+        />
+      </button>
+      <span
+        className={cn(
+          "text-xs font-medium transition-colors",
+          checked ? "text-zinc-300" : "text-zinc-500",
+        )}
+      >
+        {label}
+      </span>
+    </>
+  );
+}
+
 export type JsonConverterWorkspaceProps = {
   defaultTab?: SchemaTarget;
   initialJson?: string;
@@ -119,6 +162,7 @@ export function JsonConverterWorkspace({
     TARGETS.some((entry) => entry.value === defaultTab) ? defaultTab : "zod",
   );
   const [rootName, setRootName] = React.useState("Root");
+  const [keyCasing, setKeyCasing] = React.useState<KeyCasing>("preserve");
   const [copied, setCopied] = React.useState(false);
   const copyTimer = React.useRef<number | null>(null);
 
@@ -130,13 +174,15 @@ export function JsonConverterWorkspace({
 
   React.useEffect(() => {
     const timer = window.setTimeout(() => {
-      void infer(json, target, rootName);
+      void infer(json, target, rootName, keyCasing);
     }, JSON_INFER_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-  }, [json, target, rootName, infer]);
+  }, [json, target, rootName, keyCasing, infer]);
+
+  const stale = status === "error" && code !== "";
 
   const copyOutput = React.useCallback(async () => {
-    if (!code) return;
+    if (!code || stale) return;
     try {
       await navigator.clipboard.writeText(code);
       setCopied(true);
@@ -154,7 +200,7 @@ export function JsonConverterWorkspace({
         variant: "error",
       });
     }
-  }, [code, rootName, target, toast]);
+  }, [code, rootName, stale, target, toast]);
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
     if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
@@ -215,24 +261,33 @@ export function JsonConverterWorkspace({
       </div>
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-center gap-2.5">
-          <label
-            htmlFor="json-root-name"
-            className="text-xs font-medium text-zinc-500"
-          >
-            Root name
-          </label>
-          <input
-            id="json-root-name"
-            type="text"
-            value={rootName}
-            onChange={(event) => setRootName(event.target.value)}
-            maxLength={64}
-            spellCheck={false}
-            autoComplete="off"
-            placeholder="Root"
-            className="h-8 w-44 rounded-md border border-zinc-800 bg-zinc-900 px-2.5 font-mono text-xs text-zinc-200 caret-emerald-300 transition-colors placeholder:text-zinc-600 hover:border-zinc-700 focus:border-emerald-500/40 focus:outline-none"
-          />
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+          <div className="flex items-center gap-2.5">
+            <label
+              htmlFor="json-root-name"
+              className="text-xs font-medium text-zinc-500"
+            >
+              Root name
+            </label>
+            <input
+              id="json-root-name"
+              type="text"
+              value={rootName}
+              onChange={(event) => setRootName(event.target.value)}
+              maxLength={64}
+              spellCheck={false}
+              autoComplete="off"
+              placeholder="Root"
+              className="h-8 w-44 rounded-md border border-zinc-800 bg-zinc-900 px-2.5 font-mono text-xs text-zinc-200 caret-emerald-300 transition-colors placeholder:text-zinc-600 hover:border-zinc-700 focus:border-emerald-500/40 focus:outline-none"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <CasingSwitch
+              checked={keyCasing === "camel"}
+              onChange={(value) => setKeyCasing(value ? "camel" : "preserve")}
+              label="Rename keys to camelCase"
+            />
+          </div>
         </div>
         <Tabs
           idPrefix="json-target"
@@ -301,7 +356,8 @@ export function JsonConverterWorkspace({
                 </p>
                 {error.kind === "syntax" ? null : (
                   <p className="mt-0.5 text-sm leading-6 text-rose-200/60">
-                    The last successful schema is still shown on the right.
+                    The last successful schema is shown dimmed on the right, and
+                    Copy Code stays disabled until the input parses again.
                   </p>
                 )}
               </div>
@@ -344,7 +400,12 @@ export function JsonConverterWorkspace({
               <button
                 type="button"
                 onClick={() => void copyOutput()}
-                disabled={!code}
+                disabled={!code || stale}
+                title={
+                  stale
+                    ? "Copy is disabled until the JSON on the left parses again"
+                    : undefined
+                }
                 className="inline-flex h-8 items-center gap-1.5 rounded-md border border-zinc-800 bg-zinc-900 px-3 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {copied ? (
@@ -357,9 +418,17 @@ export function JsonConverterWorkspace({
             </div>
           </div>
 
-          <div className="min-h-0 flex-1">
+          <div className="relative min-h-0 flex-1">
             {code ? (
-              <pre className="h-full overflow-auto whitespace-pre p-4 font-mono text-[13px] leading-6 text-zinc-200">
+              <pre
+                aria-label={
+                  stale ? "Outdated schema — fix the JSON to refresh" : undefined
+                }
+                className={cn(
+                  "h-full overflow-auto whitespace-pre p-4 font-mono text-[13px] leading-6 text-zinc-200 transition-opacity",
+                  stale && "pointer-events-none select-none opacity-40 grayscale",
+                )}
+              >
                 <code>{code}</code>
               </pre>
             ) : (
@@ -374,9 +443,17 @@ export function JsonConverterWorkspace({
                 </p>
               </div>
             )}
+            {stale ? (
+              <div className="pointer-events-none absolute inset-x-0 top-4 flex justify-center">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-zinc-950/95 px-3 py-1.5 text-xs font-medium text-amber-300 shadow-lg shadow-black/40">
+                  <AlertTriangle size={12} aria-hidden />
+                  Outdated — fix the JSON to refresh
+                </span>
+              </div>
+            ) : null}
           </div>
 
-          {stats && code ? (
+          {stats && code && !stale ? (
             <div className="flex items-center justify-between border-t border-zinc-800 px-4 py-2.5">
               <span className="font-mono text-xs text-zinc-500">
                 Generated in {stats.durationMs} ms · {stats.outputLines} lines ·{" "}

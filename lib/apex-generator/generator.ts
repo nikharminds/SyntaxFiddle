@@ -53,6 +53,9 @@ function primitiveType(def: TypeDef): string | null {
     case "date":
       return "DateTime";
     case "number":
+    case "integer":
+      // Apex models all JSON numbers as Decimal; Integer is reserved for
+      // loop counters and would change unmarshalling semantics.
       return "Decimal";
     case "boolean":
       return "Boolean";

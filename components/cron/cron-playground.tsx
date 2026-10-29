@@ -7,6 +7,7 @@ import { HumanReadableCard } from "@/components/cron/human-readable-card";
 import { UpcomingRunsTable, VisualTimeline } from "@/components/cron/visual-timeline";
 import { TimezonePicker } from "@/components/cron/timezone-picker";
 import { useMounted } from "@/hooks/use-mounted";
+import { convertCronExpression } from "@/lib/cron/convert";
 import { DIALECTS, type CronDialect } from "@/lib/cron/dialects";
 import { analyzeCronExpression } from "@/lib/cron/engine";
 
@@ -99,7 +100,19 @@ export function CronPlayground({
 
   const handleDialectChange = (next: CronDialect) => {
     setDialect(next);
-    setExpression(DIALECT_DEFAULTS[next]);
+    const trimmed = expression.trim();
+    if (trimmed.length === 0) {
+      // Only seed a sample expression when the field is empty.
+      setExpression(DIALECT_DEFAULTS[next]);
+      return;
+    }
+    const converted = convertCronExpression(expression, dialect, next);
+    if (converted) {
+      setExpression(converted);
+    }
+    // Lossy or untranslatable expressions are kept verbatim so the dialect's
+    // own validation message explains the mismatch instead of silently
+    // replacing what the user typed.
   };
 
   const handleFormat = () => {

@@ -5,7 +5,7 @@
 # SyntaxFiddle
 
 **Free, open-source developer tools that run entirely in your browser.**
-No accounts · No servers · No telemetry — 0 bytes of your input ever leave the tab.
+No accounts · No servers · No tool telemetry — 0 bytes of your input ever leave the tab.
 
 [![Live site](https://img.shields.io/badge/Live-syntaxfiddle.com-10b981?style=flat-square)](https://syntaxfiddle.com)
 [![CI](https://github.com/nikharminds/SyntaxFiddle/actions/workflows/ci.yml/badge.svg?style=flat-square)](https://github.com/nikharminds/SyntaxFiddle/actions/workflows/ci.yml)
@@ -25,7 +25,7 @@ it is a fully static application where every parser, converter, and simulator ex
 inside your browser tab.
 
 You can verify this yourself: open your browser's network panel and watch it after a page
-loads. Nothing is ever sent. This makes SyntaxFiddle safe for production crontabs,
+loads. None of your input is ever sent. This makes SyntaxFiddle safe for production crontabs,
 customer exports, internal schedules, and live auth tokens.
 
 ## Tools

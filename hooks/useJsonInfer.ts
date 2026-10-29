@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { generateSchema } from "@/lib/json-schema";
-import type { SchemaTarget } from "@/lib/json-schema";
+import type { KeyCasing, SchemaTarget } from "@/lib/json-schema";
 import { diagnoseJsonSyntax } from "@/lib/json-schema/diagnostics";
 import type {
   JsonInferError,
@@ -119,6 +119,7 @@ export function useJsonInfer() {
       json: string,
       target: SchemaTarget,
       rootName: string,
+      keyCasing: KeyCasing = "preserve",
     ): Promise<void> => {
       const run = ++runRef.current;
       if (json.trim().length === 0) {
@@ -139,6 +140,7 @@ export function useJsonInfer() {
           json,
           target,
           rootName,
+          keyCasing,
         }));
       } catch (workerError) {
         const message =
@@ -170,7 +172,9 @@ export function useJsonInfer() {
           return;
         }
         try {
-          const generated = generateSchema(json, target, rootName);
+          const generated = generateSchema(json, target, rootName, {
+            keyCasing,
+          });
           if (run !== runRef.current) return;
           setCode(generated);
           setStats({

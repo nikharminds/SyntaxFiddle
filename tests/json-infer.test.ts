@@ -7,12 +7,12 @@ import {
   MAX_INFERENCE_DEPTH,
   toCamelCase,
 } from "../lib/json-schema";
-import type { TypeDef } from "../lib/json-schema";
+import type { SchemaOptions, TypeDef } from "../lib/json-schema";
 
-const ts = (raw: string, rootName = "Root"): string =>
-  generateSchema(raw, "ts", rootName);
-const zod = (raw: string, rootName = "Root"): string =>
-  generateSchema(raw, "zod", rootName);
+const ts = (raw: string, rootName = "Root", options?: SchemaOptions): string =>
+  generateSchema(raw, "ts", rootName, options);
+const zod = (raw: string, rootName = "Root", options?: SchemaOptions): string =>
+  generateSchema(raw, "zod", rootName, options);
 const pydantic = (raw: string, rootName = "Root"): string =>
   generateSchema(raw, "pydantic", rootName);
 const go = (raw: string, rootName = "Root"): string =>
@@ -47,7 +47,7 @@ describe("deep recursive array merging", () => {
       items: {
         kind: "union",
         variants: [
-          { kind: "number" },
+          { kind: "integer" },
           { kind: "string" },
           { kind: "boolean" },
         ],
@@ -58,17 +58,17 @@ describe("deep recursive array merging", () => {
     );
     const zodCode = zod('[1, "string", true]');
     expect(zodCode).toContain("z.union([");
-    expect(zodCode).toContain("z.number()");
+    expect(zodCode).toContain("z.number().int()");
     expect(zodCode).toContain("z.string()");
     expect(zodCode).toContain("z.boolean()");
     expect(pydantic('[1, "string", true]')).toContain(
-      "List[Union[float, str, bool]]",
+      "List[Union[int, str, bool]]",
     );
   });
 
   it("deduplicates homogeneous arrays to a single type", () => {
     const def = inferJson("[1, 2, 3]");
-    expect(def).toEqual({ kind: "array", items: { kind: "number" } });
+    expect(def).toEqual({ kind: "array", items: { kind: "integer" } });
     expect(ts("[1, 2, 3]")).toBe("export type Root = number[];\n");
   });
 
@@ -79,8 +79,8 @@ describe("deep recursive array merging", () => {
       items: {
         kind: "object",
         properties: [
-          { originalKey: "a", key: "a", type: { kind: "number" }, optional: true },
-          { originalKey: "b", key: "b", type: { kind: "number" }, optional: true },
+          { originalKey: "a", key: "a", type: { kind: "integer" }, optional: true },
+          { originalKey: "b", key: "b", type: { kind: "integer" }, optional: true },
         ],
       },
     });
@@ -88,13 +88,13 @@ describe("deep recursive array merging", () => {
     expect(tsCode).toContain("a?: number;");
     expect(tsCode).toContain("b?: number;");
     expect(zod('[{ "a": 1 }, { "b": 2 }]')).toContain(
-      "a: z.number().optional()",
+      "a: z.number().int().optional()",
     );
     expect(pydantic('[{ "a": 1 }, { "b": 2 }]')).toContain(
-      "a: Optional[float] = None",
+      "a: Optional[int] = None",
     );
     const goCode = go('[{ "a": 1 }, { "b": 2 }]');
-    expect(goCode).toMatch(/A\s+\*float64\s+`json:"a,omitempty"`/);
+    expect(goCode).toMatch(/A\s+\*int64\s+`json:"a,omitempty"`/);
   });
 
   it("keeps shared fields required when merging object arrays", () => {
@@ -117,7 +117,7 @@ describe("deep recursive array merging", () => {
         kind: "array",
         items: {
           kind: "union",
-          variants: [{ kind: "number" }, { kind: "string" }],
+          variants: [{ kind: "integer" }, { kind: "string" }],
         },
       },
     });
@@ -145,10 +145,10 @@ describe("primitives, null, and ISO 8601 dates", () => {
   });
 
   it("wraps nullable unions per target", () => {
-    expect(zod("[1, null]")).toContain("z.number().nullable()");
+    expect(zod("[1, null]")).toContain("z.number().int().nullable()");
     expect(ts("[1, null]")).toBe("export type Root = (number | null)[];\n");
-    expect(pydantic("[1, null]")).toContain("List[Optional[float]]");
-    expect(go("[1, null]")).toContain("[]*float64");
+    expect(pydantic("[1, null]")).toContain("List[Optional[int]]");
+    expect(go("[1, null]")).toContain("[]*int64");
   });
 
   it("detects ISO 8601 strings and rejects lookalikes", () => {
@@ -166,12 +166,15 @@ describe("primitives, null, and ISO 8601 dates", () => {
     const raw = '{"created_at": "2024-10-21T18:42:00Z"}';
     const zodCode = zod(raw);
     expect(zodCode).toContain("created_at: z.coerce.date()");
-    expect(zodCode).toContain("createdAt: v.created_at");
+    expect(zodCode).not.toContain(".transform(");
+    expect(zod(raw, "Root", { keyCasing: "camel" })).toContain(
+      "createdAt: v.created_at",
+    );
     expect(pydantic(raw)).toContain("created_at: datetime");
     const goCode = go(raw);
     expect(goCode).toContain('import "time"');
     expect(goCode).toMatch(/CreatedAt\s+time\.Time\s+`json:"created_at"`/);
-    expect(ts(raw)).toContain("createdAt: string;");
+    expect(ts(raw)).toContain("created_at: string;");
   });
 
   it("leaves non-ISO strings as plain strings", () => {
@@ -180,12 +183,15 @@ describe("primitives, null, and ISO 8601 dates", () => {
   });
 
   it("maps top-level primitives for every target", () => {
-    expect(zod("42")).toContain("z.number()");
+    expect(zod("42")).toContain("z.number().int()");
+    expect(zod("2.5")).toContain("export const RootSchema = z.number();");
     expect(zod('"hello"')).toContain("z.string()");
     expect(zod("true")).toContain("z.boolean()");
     expect(ts("42")).toBe("export type Root = number;\n");
-    expect(go("42")).toContain("type Root = float64");
-    expect(pydantic("42")).toContain("Root = float");
+    expect(go("42")).toContain("type Root = int64");
+    expect(go("2.5")).toContain("type Root = float64");
+    expect(pydantic("42")).toContain("Root = int");
+    expect(pydantic("2.5")).toContain("Root = float");
   });
 
   it("emits unknown for empty arrays instead of guessing", () => {
@@ -197,8 +203,17 @@ describe("primitives, null, and ISO 8601 dates", () => {
 });
 
 describe("key casing and formatting", () => {
-  it("camelCases hyphen and space keys for TS while preserving the original mapping", () => {
+  it("preserves wire keys by default so TS types match res.json()", () => {
     const tsCode = ts('{"first-name": "Ada", "user age": 120}');
+    expect(tsCode).toContain('"first-name": string;');
+    expect(tsCode).toContain('"user age": number;');
+    expect(tsCode).not.toContain("export const RootKeyMap");
+  });
+
+  it("camelCases hyphen and space keys for TS with a KeyMap when camel mode is on", () => {
+    const tsCode = ts('{"first-name": "Ada", "user age": 120}', "Root", {
+      keyCasing: "camel",
+    });
     expect(tsCode).toContain("firstName: string;");
     expect(tsCode).toContain("userAge: number;");
     expect(tsCode).toContain("export const RootKeyMap = {");
@@ -209,41 +224,57 @@ describe("key casing and formatting", () => {
   it("preserves original keys as Go json tags with PascalCase fields", () => {
     const goCode = go('{"first-name": "Ada", "user age": 120}');
     expect(goCode).toMatch(/FirstName\s+string\s+`json:"first-name"`/);
-    expect(goCode).toMatch(/UserAge\s+float64\s+`json:"user age"`/);
+    expect(goCode).toMatch(/UserAge\s+int64\s+`json:"user age"`/);
   });
 
-  it("validates raw keys in Zod then transforms them to camelCase", () => {
-    const zodCode = zod('{"first-name": "Ada"}');
-    expect(zodCode).toContain('"first-name": z.string(),');
-    expect(zodCode).toContain('firstName: v["first-name"],');
+  it("validates raw keys in Zod by default and transforms them only in camel mode", () => {
+    const preserveCode = zod('{"first-name": "Ada"}');
+    expect(preserveCode).toContain('"first-name": z.string(),');
+    expect(preserveCode).not.toContain(".transform(");
+    const camelCode = zod('{"first-name": "Ada"}', "Root", {
+      keyCasing: "camel",
+    });
+    expect(camelCode).toContain('"first-name": z.string(),');
+    expect(camelCode).toContain('firstName: v["first-name"],');
   });
 
   it("aliases renamed keys in Pydantic with populate_by_name", () => {
     const pyCode = pydantic('{"first-name": "Ada", "user age": 120}');
     expect(pyCode).toContain('first_name: str = Field(alias="first-name")');
-    expect(pyCode).toContain('user_age: float = Field(alias="user age")');
+    expect(pyCode).toContain('user_age: int = Field(alias="user age")');
     expect(pyCode).toContain("model_config = ConfigDict(populate_by_name=True)");
   });
 
-  it("converts snake_case to camelCase for TS/Zod and leaves already-snake fields alias-free in Pydantic", () => {
+  it("keeps snake_case keys verbatim in TS/Zod and alias-free in Pydantic", () => {
     const raw = '{"created_at": "2024-10-21"}';
-    expect(ts(raw)).toContain("createdAt: string;");
-    expect(zod(raw)).toContain("createdAt: v.created_at");
+    expect(ts(raw)).toContain("created_at: string;");
+    expect(zod(raw)).not.toContain(".transform(");
+    expect(ts(raw, "Root", { keyCasing: "camel" })).toContain(
+      "createdAt: string;",
+    );
+    expect(zod(raw, "Root", { keyCasing: "camel" })).toContain(
+      "createdAt: v.created_at",
+    );
     const pyCode = pydantic(raw);
     expect(pyCode).toContain("created_at: datetime");
     expect(pyCode).not.toContain("alias=");
   });
 
   it("disambiguates keys that collide after camelization", () => {
-    const tsCode = ts('{"user_name": 1, "user-name": 2}');
+    const tsCode = ts('{"user_name": 1, "user-name": 2}', "Root", {
+      keyCasing: "camel",
+    });
     expect(tsCode).toContain("userName: number;");
     expect(tsCode).toContain("userName_2: number;");
     expect(tsCode).toContain('userName: "user_name",');
     expect(tsCode).toContain('userName_2: "user-name",');
   });
 
-  it("sanitizes identifier-hostile keys per target", () => {
-    expect(ts('{"123abc": "x"}')).toContain("_123abc: string;");
+  it("quotes identifier-hostile keys verbatim in preserve mode and sanitizes them in camel mode", () => {
+    expect(ts('{"123abc": "x"}')).toContain('"123abc": string;');
+    expect(ts('{"123abc": "x"}', "Root", { keyCasing: "camel" })).toContain(
+      "_123abc: string;",
+    );
     expect(go('{"123abc": "x"}')).toMatch(/X123abc\s+string\s+`json:"123abc"`/);
   });
 
