@@ -1,0 +1,143 @@
+---
+title: "How to Convert cURL Commands to JavaScript fetch()"
+description: "Convert cURL commands to JavaScript fetch() — map -H headers, -d JSON bodies, -u basic auth, and -L redirects to fetch options with copy-paste examples."
+publishedAt: "2026-09-02"
+updatedAt: "2026-10-30"
+category: "Web Development"
+tags: ["curl", "fetch", "curl to fetch", "javascript", "http", "curl converter"]
+author:
+  name: "SyntaxFiddle Editorial"
+  url: "https://syntaxfiddle.com/about/"
+relatedToolSlug: "curl-converter"
+image:
+  url: "/blog/curl-to-fetch-guide/curl-to-fetch-mapping.webp"
+  alt: "Mapping table of cURL flags to JavaScript fetch options showing -H headers -d body -X method -u auth and --max-time timeout conversions"
+  caption: "Every common cURL flag maps directly to a fetch() option"
+  width: 1600
+  height: 900
+faq:
+  - question: "Why does fetch not send my cURL cookies automatically?"
+    answer: "cURL reuses cookies within a session via its cookie engine, while fetch keeps cookies in the browser jar and only sends them when credentials: 'same-origin' (the default) or credentials: 'include' allows it. Cross-origin requests additionally need the server's Access-Control-Allow-Credentials header."
+  - question: "What is the fetch equivalent of curl -L?"
+    answer: "fetch follows redirects by default, so plain fetch() already behaves like curl -L. Pass redirect: 'manual' when you want the cURL -I-style behavior of inspecting the redirect response instead of following it."
+  - question: "How do I set a timeout on a fetch request like curl --max-time?"
+    answer: "fetch has no built-in timeout option. Pass a signal created with AbortSignal.timeout(ms) — for example signal: AbortSignal.timeout(10_000) — and catch the AbortError to handle the expiry."
+  - question: "How do I send multipart/form-data with fetch?"
+    answer: "Construct a FormData object and pass it directly as the fetch body. Never set the Content-Type header manually — the browser must generate the multipart boundary for you."
+---
+
+Every API doc on the internet speaks cURL. It is the lingua franca of HTTP examples — but
+when it is time to call that endpoint from a web app or a Node script, you need to convert
+the cURL command to JavaScript. The translation is mostly mechanical: a handful of
+flag-to-option mappings cover practically every command you will meet.
+
+## cURL to fetch: the basic mapping
+
+Here is a typical documented request:
+
+```bash
+curl https://api.example.com/users?page=2&limit=20
+```
+
+And its JavaScript equivalent:
+
+```javascript
+const response = await fetch(
+  "https://api.example.com/users?page=2&limit=20",
+);
+
+const users = await response.json();
+```
+
+Query strings pass straight through — no serialization needed unless you build them
+dynamically:
+
+```javascript
+const params = new URLSearchParams({ page: "2", limit: "20" });
+const response = await fetch(
+  `https://api.example.com/users?${params}`,
+);
+```
+
+## Flag-to-option cheat sheet
+
+| cURL flag            | fetch equivalent                                   |
+| -------------------- | -------------------------------------------------- |
+| `-H "Key: value"`    | `headers: { Key: "value" }`                        |
+| `-d 'raw body'`      | `body: "raw body"`                                 |
+| `-d @file.json`      | `body: await readFile("file.json", "utf8")` (Node) |
+| `-X POST`            | `method: "POST"` (implied by a body)               |
+| `-u user:pass`       | `Authorization: "Basic " + btoa("user:pass")`      |
+| `-L`                 | Default behavior — redirects are followed          |
+| `--max-time 10`      | `AbortSignal.timeout(10_000)`                      |
+| `-b "session=abc"`   | `headers: { Cookie: "session=abc" }` or credentials |
+
+## Sending a JSON POST request with fetch
+
+The most common conversion is a JSON POST. In cURL:
+
+```bash
+curl -X POST https://api.example.com/users \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer tok_123" \
+  -d '{"name": "Ada Lovelace", "role": "admin"}'
+```
+
+In fetch, headers become an object and the body a `JSON.stringify` call:
+
+```javascript
+const response = await fetch(
+  "https://api.example.com/users",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer tok_123",
+    },
+    body: JSON.stringify({
+      name: "Ada Lovelace",
+      role: "admin",
+    }),
+  },
+);
+
+if (!response.ok) {
+  throw new Error(`HTTP ${response.status}`);
+}
+const created = await response.json();
+```
+
+## Handling errors properly
+
+cURL treats any completed HTTP exchange as success; fetch does too — a 500 response does
+**not** reject the promise. Build the check in:
+
+```javascript
+async function apiFetch(url, options) {
+  const response = await fetch(url, options);
+  if (!response.status) throw new Error("Network error");
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(`HTTP ${response.status}: ${detail}`);
+  }
+  return response.json();
+}
+```
+
+## cURL vs fetch: edge cases that bite
+
+- **Credentials.** cURL sends basic auth eagerly; in the browser, `fetch` only sends cookies
+  cross-origin when you pass `credentials: "include"`.
+- **CORS.** A cURL command from your terminal has no origin — the same request from a page
+  does. Preflights and allow-lists apply only in the browser.
+- **Timeouts.** fetch has no built-in timeout; pair it with `AbortSignal.timeout()` (or an
+  `AbortController`) instead of relying on framework defaults.
+- **Form data.** Pass a `FormData` object as the body and let the browser set the
+  content type — hand-building the multipart boundary is a classic bug.
+
+## Convert automatically
+
+Manual conversion is fine once, tedious a hundred times. Paste any cURL command into the
+[cURL Converter](/curl-converter/) to get idiomatic `fetch()` output — plus Axios, Python
+`requests`, Go `net/http`, and nine other targets — with headers, JSON bodies, and auth
+mapped for you, entirely client-side.

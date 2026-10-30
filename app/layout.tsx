@@ -49,6 +49,10 @@ export const metadata: Metadata = {
   },
   applicationName: "SyntaxFiddle",
   robots: { index: true, follow: true },
+  alternates: {
+    // RSS autodiscovery — feed readers and crawlers pick this up on every page.
+    types: { "application/rss+xml": [{ url: "/rss.xml", title: "SyntaxFiddle Blog" }] },
+  },
 };
 
 export const viewport: Viewport = {

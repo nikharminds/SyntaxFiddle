@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 const NAV_LINKS = [
   { href: "/regex-tester", label: "Regex", badge: undefined as string | undefined },
   { href: "/jwt-decoder", label: "JWT", badge: undefined as string | undefined },
+  { href: "/blog", label: "Blog", badge: undefined as string | undefined },
 ] as const;
 
 const CRON_MACRO_LINKS: { href: string; label: string; short: string }[] = [

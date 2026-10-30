@@ -9,6 +9,7 @@ import { JSON_SCHEMA_SEO_TARGETS } from "@/lib/json-schema/seo-targets";
 import { XML_SCHEMA_SEO_TARGETS } from "@/lib/xml-schema/seo-targets";
 import { APEX_SEO_TARGETS } from "@/lib/apex-generator/seo-targets";
 import { REGEX_FLAVORS } from "@/lib/regex/dialects";
+import { getAllPosts } from "@/lib/blog/posts";
 import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-static";
@@ -27,15 +28,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // in the sitemap. lastModified is intentionally omitted: a build-time
   // timestamp would mark every URL updated on every deploy and teach crawlers
   // to ignore lastmod entirely.
+  // Core tool hubs get priority 1.0; support/legal pages stay low. Deep
+  // route registries below keep sub-page priorities.
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${SITE_URL}/`, changeFrequency: "weekly", priority: 1 },
-    { url: `${SITE_URL}/cron/`, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${SITE_URL}/csv/`, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${SITE_URL}/regex-tester/`, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${SITE_URL}/jwt-decoder/`, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${SITE_URL}/soql-formatter/`, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${SITE_URL}/json-to-schema/`, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${SITE_URL}/xml-to-schema/`, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${SITE_URL}/cron/`, changeFrequency: "weekly", priority: 1 },
+    { url: `${SITE_URL}/csv/`, changeFrequency: "weekly", priority: 1 },
+    { url: `${SITE_URL}/regex-tester/`, changeFrequency: "weekly", priority: 1 },
+    { url: `${SITE_URL}/jwt-decoder/`, changeFrequency: "weekly", priority: 1 },
+    { url: `${SITE_URL}/soql-formatter/`, changeFrequency: "weekly", priority: 1 },
+    { url: `${SITE_URL}/json-to-schema/`, changeFrequency: "weekly", priority: 1 },
+    { url: `${SITE_URL}/xml-to-schema/`, changeFrequency: "weekly", priority: 1 },
     { url: `${SITE_URL}/about/`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE_URL}/contact/`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE_URL}/privacy/`, changeFrequency: "yearly", priority: 0.3 },
@@ -60,7 +63,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const curlRoutes: MetadataRoute.Sitemap = CURL_SEO_TARGETS.map((target) => ({
     url: `${SITE_URL}/${target.slug}/`,
     changeFrequency: "monthly",
-    priority: target.slug === "curl-converter" ? 0.9 : 0.8,
+    // curl-converter is the core hub for the target routes.
+    priority: target.slug === "curl-converter" ? 1 : 0.8,
   }));
   const jsonSchemaRoutes: MetadataRoute.Sitemap = JSON_SCHEMA_SEO_TARGETS.map(
     (target) => ({
@@ -101,8 +105,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   ];
 
+  // Blog posts carry a genuine lastModified from their frontmatter (unlike
+  // tool routes, where a build timestamp would be noise). Posts get 0.8 —
+  // below the 1.0 core tool hubs but above support pages.
+  const blogRoutes: MetadataRoute.Sitemap = [
+    { url: `${SITE_URL}/blog/`, changeFrequency: "weekly", priority: 0.7 },
+    ...getAllPosts().map((post) => ({
+      url: `${SITE_URL}/blog/${post.slug}/`,
+      lastModified: new Date(`${post.updatedAt}T00:00:00Z`),
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    })),
+  ];
+
   const allEntries: MetadataRoute.Sitemap = [
     ...staticRoutes,
+    ...blogRoutes,
     ...conversionRoutes,
     ...recipeRoutes,
     ...cronScheduleRoutes,

@@ -1,0 +1,148 @@
+---
+title: "How to Generate Zod Schemas from JSON: A Practical Guide"
+description: "Generate Zod schemas from JSON automatically — optional vs nullable fields, strict mode, and TypeScript types derived with z.infer from the same payload."
+publishedAt: "2026-10-06"
+updatedAt: "2026-10-30"
+category: "TypeScript & Zod"
+tags: ["zod", "typescript", "json to zod", "zod schema", "validation", "json"]
+author:
+  name: "SyntaxFiddle Editorial"
+  url: "https://syntaxfiddle.com/about/"
+relatedToolSlug: "json-to-schema"
+image:
+  url: "/blog/json-to-zod-guide/json-to-zod-flow.webp"
+  alt: "Flow diagram of JSON to Zod schema generation showing a payload inferred into a z.object schema and a TypeScript type via z.infer"
+  caption: "One JSON payload → Zod schema → TypeScript type via z.infer"
+  width: 1600
+  height: 900
+faq:
+  - question: "How do I generate a Zod schema from a JSON response?"
+    answer: "Capture a representative response, run it through a JSON-to-Zod generator, and commit the output. Review the diff like code — especially .optional() and .nullable() markers — then validate the live payload with schema.parse() at the boundary."
+  - question: "What is the difference between .optional() and .nullable() in Zod?"
+    answer: ".optional() allows the key to be missing entirely, while .nullable() requires the key but allows an explicit null value. Conflating the two is a classic production bug: a key that is sometimes absent and a key that is explicitly null are different API contracts."
+  - question: "Can I generate TypeScript types from the same JSON payload?"
+    answer: "Yes. You can derive them from the schema with z.infer, or run a dedicated JSON-to-TypeScript inference pass for plain interfaces. The JSON to Schema converter emits both Zod schemas and TypeScript interfaces from the same payload in one step."
+---
+
+Runtime validation is the contract between "it worked on my machine" and "it works in
+production". Zod is the de facto standard for that contract in TypeScript — but writing
+schemas by hand for large JSON payloads is tedious, error-prone, and drifts the moment
+the API changes. Generating Zod schemas from a real payload sample fixes all three.
+
+## Why hand-written schemas drift
+
+A hand-written schema encodes two beliefs: what the API *documents*, and what the
+developer *remembers*. Neither survives contact with reality. Fields get added without
+notices, types silently change from number to string, and a key that was always present
+suddenly goes missing in edge cases.
+
+A schema generated from a representative sample encodes what the API *actually returns*.
+The workflow becomes: capture a response, generate, diff against the committed schema,
+and review the diff in a pull request.
+
+## From JSON payload to Zod schema
+
+Start with a realistic payload:
+
+```json
+{
+  "id": "usr_2048",
+  "email": "ada@example.com",
+  "profile": {
+    "displayName": "Ada Lovelace",
+    "verified": true
+  },
+  "roles": ["admin", "editor"],
+  "lastLogin": "2026-09-30T14:22:10Z"
+}
+```
+
+The generated Zod schema mirrors the shape exactly:
+
+```typescript
+import { z } from "zod";
+
+const UserSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  profile: z.object({
+    displayName: z.string(),
+    verified: z.boolean(),
+  }),
+  roles: z.array(z.string()),
+  lastLogin: z.string(),
+});
+
+type User = z.infer<typeof UserSchema>;
+```
+
+### Nested objects and arrays
+
+Every nested object becomes its own `z.object`, and arrays are typed by their element
+schema — `z.array(z.string())` for roles. When an array holds mixed shapes, a good
+generator emits a `z.union` of the distinct element types it observed instead of
+collapsing everything to `z.unknown()`.
+
+### Zod optional vs nullable: reading the sample data
+
+This is where generators earn their keep. The rule that matters:
+
+- A key **missing from some objects** in the sample → `.optional()`
+- A key **present but null** → `.nullable()`
+- Both observed → `.nullable().optional()`
+
+Conflating the two is a classic production bug: TypeScript treats `prop?: string` and
+`prop: string | null` as different contracts, and so does Zod.
+
+## Strict vs loose validation
+
+By default, Zod objects strip unknown keys on parse — useful for sanitizing input, but
+it hides schema drift. Compare:
+
+```typescript
+// Loose: silently drops unknown keys
+const Parsed = z.object({ id: z.string() }).parse(payload);
+
+// Strict: throws when the payload has extra keys
+const Strict = z
+  .object({ id: z.string() })
+  .strict()
+  .parse(payload);
+```
+
+At a trust boundary (public API input, webhooks), prefer `.strict()` and whitelist what
+you accept. For internal services you control, stripping unknown keys is often the more
+pragmatic default — new fields keep flowing instead of breaking consumers.
+
+## TypeScript types from z.infer
+
+Because Zod schemas are TypeScript, `z.infer` gives you static types that can never
+disagree with runtime validation:
+
+```typescript
+const UserSchema = z.object({ id: z.string() });
+
+// Static type, derived from the runtime schema — zero drift possible
+type User = z.infer<typeof UserSchema>;
+// { id: string }
+```
+
+If you only need the interface (no runtime validation), a direct JSON-to-TypeScript
+pass emits cleaner output — optional markers, nullable unions, and named nested
+interfaces — without the Zod scaffolding.
+
+## Validate at the boundary, not everywhere
+
+Generate once, validate once — where untrusted data enters your system: HTTP handlers,
+queue consumers, webhook receivers, and environment/config loading. Passing a parsed
+and typed object through the rest of the codebase is what lets `z.infer` types do
+their job. Validating deep inside business logic is a sign the boundary is leaking.
+
+<ToolBanner tool="json-to-schema" />
+
+## Try the generator
+
+Paste any payload into the [JSON to Schema Converter](/json-to-schema/) to get Zod
+schemas, TypeScript interfaces, Pydantic models, and Go structs from the same source —
+inferred entirely in your browser, so payloads with customer data never leave your
+machine.

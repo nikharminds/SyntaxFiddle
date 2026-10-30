@@ -166,3 +166,116 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgb(var(--zinc-700));
 }
+
+/* Prose code: drop the typography plugin's backtick decorations around
+   inline code. Fenced blocks get their chrome (border, header, copy button)
+   from components/blog/CodeBlock.tsx via a not-prose wrapper. */
+.prose code::before,
+.prose code::after {
+  content: none;
+}
+
+/* highlight.js token palette for code rendered by rehype-highlight at
+   build time (see components/blog/mdx-content.tsx). Base rules are light
+   mode; the .dark overrides adapt to the CSS-variable theme. Palette is a
+   GitHub-flavored scheme tuned to the zinc/emerald surfaces. */
+.hljs-comment,
+.hljs-quote {
+  color: #57606a;
+  font-style: italic;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-subst,
+.hljs-doctag {
+  color: #cf222e;
+}
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-meta .hljs-string {
+  color: #0a3069;
+}
+.hljs-number,
+.hljs-literal,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-type,
+.hljs-selector-attr,
+.hljs-selector-pseudo,
+.hljs-link {
+  color: #0550ae;
+}
+.hljs-title,
+.hljs-title.class_,
+.hljs-title.function_,
+.hljs-built_in {
+  color: #8250df;
+}
+.hljs-attr,
+.hljs-attribute,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-meta {
+  color: #953800;
+}
+.hljs-section,
+.hljs-name {
+  color: #116329;
+}
+.hljs-emphasis {
+  font-style: italic;
+}
+.hljs-strong {
+  font-weight: 600;
+}
+.hljs-deletion {
+  color: #82071e;
+}
+
+.dark .hljs-comment,
+.dark .hljs-quote {
+  color: #8b949e;
+}
+.dark .hljs-keyword,
+.dark .hljs-selector-tag,
+.dark .hljs-subst,
+.dark .hljs-doctag {
+  color: #ff7b72;
+}
+.dark .hljs-string,
+.dark .hljs-regexp,
+.dark .hljs-addition,
+.dark .hljs-meta .hljs-string {
+  color: #a5d6ff;
+}
+.dark .hljs-number,
+.dark .hljs-literal,
+.dark .hljs-variable,
+.dark .hljs-template-variable,
+.dark .hljs-type,
+.dark .hljs-selector-attr,
+.dark .hljs-selector-pseudo,
+.dark .hljs-link {
+  color: #79c0ff;
+}
+.dark .hljs-title,
+.dark .hljs-title.class_,
+.dark .hljs-title.function_,
+.dark .hljs-built_in {
+  color: #d2a8ff;
+}
+.dark .hljs-attr,
+.dark .hljs-attribute,
+.dark .hljs-symbol,
+.dark .hljs-bullet,
+.dark .hljs-meta {
+  color: #ffa657;
+}
+.dark .hljs-section,
+.dark .hljs-name {
+  color: #7ee787;
+}
+.dark .hljs-deletion {
+  color: #ffa198;
+}

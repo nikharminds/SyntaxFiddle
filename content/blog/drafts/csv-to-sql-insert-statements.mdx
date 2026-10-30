@@ -1,0 +1,121 @@
+---
+title: "How to Convert CSV to SQL INSERT Statements"
+description: "Convert CSV to SQL INSERT statements safely — multi-row batches, escaping single quotes and apostrophes, type inference, and bulk COPY import for Postgres."
+publishedAt: "2026-09-22"
+updatedAt: "2026-10-30"
+category: "Data Engineering"
+tags: ["csv", "sql", "csv to sql", "insert statements", "data import", "etl"]
+author:
+  name: "SyntaxFiddle Editorial"
+  url: "https://syntaxfiddle.com/about/"
+relatedToolSlug: "csv"
+image:
+  url: "/blog/csv-to-sql-insert-statements/csv-to-sql-transformation.webp"
+  alt: "Example of a CSV row converted into an escaped SQL INSERT statement showing doubled apostrophes in O'Brien quoted ISO dates and unquoted numbers"
+  caption: "CSV row to SQL INSERT: apostrophes doubled, dates quoted, numbers bare"
+  width: 1600
+  height: 900
+faq:
+  - question: "Is one INSERT statement per row really a problem?"
+    answer: "For a thousand rows it is merely slow; for a million it is unusable. Each statement is its own round trip and transaction. Grouping rows into multi-row INSERT batches — or using the database's bulk loader — routinely delivers a 10–100x speedup."
+  - question: "How do I escape apostrophes in names like O'Brien?"
+    answer: "Double them: 'O''Brien'. SQL string literals treat two consecutive single quotes as one literal apostrophe, so O'Brien becomes 'O''Brien' inside the VALUES list. Never strip or drop the apostrophe — corrupted names fail joins silently."
+  - question: "Should I quote every value in an INSERT statement?"
+    answer: "Quote text and date values, leave numbers unquoted, and always quote NULL-free text that merely looks numeric when the column is text. When in doubt, quote: most databases coerce a quoted literal into a numeric column, but never the reverse."
+---
+
+Spreadsheets are where data is born; databases are where it lives. Between those two worlds
+sits one of the least glamorous and most error-prone tasks in engineering: converting CSV
+rows to SQL INSERT statements that actually load — with types intact, strings escaped, and
+imports that finish before the heat death of the universe.
+
+## The anatomy of an INSERT
+
+Given a source file:
+
+```text
+id,name,hire_date,salary,is_active
+1,"O'Brien, Ada",2024-03-14,152000.50,true
+2,"Linus T.",2023-11-01,143000,false
+```
+
+The target is a single-row statement:
+
+```sql
+INSERT INTO employees (id, name, hire_date, salary, is_active) VALUES
+  (1, 'O''Brien, Ada', '2024-03-14', 152000.50, TRUE);
+```
+
+Two details are easy to miss: the embedded apostrophe in `O'Brien` is escaped by doubling
+it, and the comma inside the quoted CSV field did not split the column.
+
+## Prefer multi-row INSERT batches
+
+One statement per row means one parse, one transaction, and one round trip per row.
+Databases are optimized for the opposite — a single statement carrying many value tuples:
+
+```sql
+INSERT INTO employees (id, name, hire_date, salary, is_active) VALUES
+  (1, 'O''Brien, Ada', '2024-03-14', 152000.50, TRUE),
+  (2, 'Linus T.', '2023-11-01', 143000, FALSE);
+```
+
+In practice, batch between 500 and 5,000 rows per statement — large enough to amortize
+round trips, small enough to keep parameter limits (SQL Server caps at 2,100 parameters)
+and undo logs under control.
+
+## How to escape quotes and apostrophes in SQL
+
+- **Single quotes** — escape by doubling: `'O''Brien'`.
+- **Numbers** — emit unquoted; `152000.50` stays numeric.
+- **Dates and timestamps** — quote them (`'2024-03-14'`) and emit ISO 8601 so the literal
+  is dialect-independent.
+- **Booleans** — `TRUE`/`FALSE` for PostgreSQL, `1`/`0` for MySQL and SQLite.
+- **Empty string vs NULL** — decide explicitly. An empty CSV cell is ambiguous; choose
+  `NULL` for nullable columns and `''` only when the schema distinguishes the two.
+- **Newlines inside quoted fields** — legal in CSV, legal in SQL string literals, but they
+  break naive line-by-line parsers. Parse with a real CSV reader, not `split("\n")`.
+
+## Let types be inferred — then reviewed
+
+Type inference turns raw cells into typed literals: `2024-03-14` becomes a date, `true` a
+boolean, `152000.50` a decimal, everything else text. The classic failure mode is a column
+that *looks* numeric — a leading-zero account number like `00123` that becomes `123`.
+
+| CSV value    | Inferred type | Emitted literal       |
+| ------------ | ------------- | --------------------- |
+| `42`         | integer       | `42`                  |
+| `152000.50`  | decimal       | `152000.50`           |
+| `2024-03-14` | date          | `'2024-03-14'`        |
+| `true`       | boolean       | `TRUE` / `1`          |
+| `00123`      | integer (⚠️)  | review leading zeros  |
+| `n/a`        | text          | `'n/a'`               |
+
+Guardrails for sensitive columns: pin zip codes, phone numbers, and IDs to text before
+converting.
+
+## When to skip INSERT entirely
+
+`INSERT` is the universal, portable answer — but every engine has a faster native path:
+
+```sql
+-- PostgreSQL: streams the file directly
+COPY employees FROM '/path/employees.csv' WITH (FORMAT csv, HEADER true);
+
+-- MySQL / MariaDB
+LOAD DATA INFILE '/path/employees.csv'
+INTO TABLE employees FIELDS TERMINATED BY ',' ENCLOSED BY '"'
+IGNORE 1 LINES;
+```
+
+Bulk loaders skip statement generation entirely, at the cost of needing file access on the
+server. For ad-hoc imports, one-off migrations, and test fixtures, generated `INSERT`
+batches remain the most portable tool in the box.
+
+## Convert without a server in the loop
+
+CSV exports frequently contain data you should not paste into a random web form. The
+[CSV to SQL Converter](/csv-to-sql/) runs entirely in your browser: delimiter sniffing,
+type inference, escaping, and multi-row batching all happen client-side, so the rows —
+sensitive or not — never leave your machine. Excel workbooks are supported too via
+[Excel to SQL](/excel-to-sql/).
