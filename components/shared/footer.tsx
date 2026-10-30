@@ -23,7 +23,7 @@ const COMPANY_LINKS = [
 export function Footer() {
   return (
     <footer className="border-t border-zinc-800/80 bg-zinc-950">
-      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-4">
+      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-2 lg:grid-cols-5">
         <div className="md:col-span-2">
           <div className="flex items-center gap-2.5">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900">
@@ -51,6 +51,28 @@ export function Footer() {
                 </Link>
               </li>
             ))}
+          </ul>
+        </nav>
+
+        <nav aria-label="Resources">
+          <h2 className="text-sm font-semibold text-zinc-100">Resources</h2>
+          <ul className="mt-4 space-y-3">
+            <li>
+              <Link
+                href="/blog/"
+                className="text-sm text-zinc-400 transition-colors hover:text-emerald-400"
+              >
+                Blog
+              </Link>
+            </li>
+            <li>
+              <a
+                href="/rss.xml"
+                className="text-sm text-zinc-400 transition-colors hover:text-emerald-400"
+              >
+                RSS Feed
+              </a>
+            </li>
           </ul>
         </nav>
 

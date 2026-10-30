@@ -13,7 +13,6 @@ import { cn } from "@/lib/utils";
 const NAV_LINKS = [
   { href: "/regex-tester", label: "Regex", badge: undefined as string | undefined },
   { href: "/jwt-decoder", label: "JWT", badge: undefined as string | undefined },
-  { href: "/blog", label: "Blog", badge: undefined as string | undefined },
 ] as const;
 
 const CRON_MACRO_LINKS: { href: string; label: string; short: string }[] = [
@@ -463,6 +462,16 @@ export function Navbar() {
               </ul>
             </div>
           </div>
+
+          {/* Content hub: tools lead the nav, the blog anchors the end — the
+              conventional IA position, linked sitewide for crawl equity. */}
+          <Link
+            href="/blog/"
+            aria-current={isActive("/blog") ? "page" : undefined}
+            className={renderDesktopLinkClasses(isActive("/blog"))}
+          >
+            Blog
+          </Link>
         </div>
 
         <div className="flex items-center gap-2">
@@ -816,6 +825,20 @@ export function Navbar() {
                 </div>
               </div>
             </div>
+
+            <Link
+              href="/blog/"
+              onClick={closeMenus}
+              aria-current={isActive("/blog") ? "page" : undefined}
+              className={cn(
+                "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                isActive("/blog")
+                  ? "bg-zinc-900 text-zinc-100"
+                  : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100",
+              )}
+            >
+              Blog
+            </Link>
 
             <p className="flex items-center gap-2 px-3 pb-1 pt-2 text-xs text-zinc-500">
               <ShieldCheck size={12} className="text-emerald-400" />
