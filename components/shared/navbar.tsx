@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { CONVERSION_PAIRS } from "@/lib/converter/routes";
 import type { SourceFormat } from "@/lib/converter/types";
+import { SALESFORCE_HUB_URL, SALESFORCE_TOOLS } from "@/lib/salesforce/hub";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
@@ -64,13 +65,11 @@ const CURL_TARGET_LINKS: { href: string; label: string; short: string }[] = [
   { href: "/curl-to-httpie/", label: "cURL to HTTPie", short: "To HTTPie" },
 ];
 
-const SALESFORCE_LINKS: { href: string; label: string }[] = [
-  { href: "/json-to-apex/", label: "JSON to Apex Class Generator" },
-  { href: "/soql-formatter/", label: "SOQL Formatter" },
-  { href: "/csv-to-soql/", label: "CSV to SOQL IN Clauses" },
-  { href: "/excel-to-soql/", label: "Excel to SOQL IN Clauses" },
-  { href: "/tools/curl-to-salesforce-apex/", label: "cURL to Salesforce Apex" },
-];
+// Single source of truth for the Salesforce cluster: lib/salesforce/hub.ts
+// powers this dropdown, the /salesforce/ hub page, and cross-links everywhere.
+const SALESFORCE_LINKS: { href: string; label: string }[] = SALESFORCE_TOOLS.map(
+  (tool) => ({ href: tool.href, label: tool.label }),
+);
 
 const CONVERTER_GROUPS: {
   label: string;
@@ -137,6 +136,8 @@ export function Navbar() {
       pathname.startsWith("/tools/json-to")) &&
     !pathname.startsWith("/json-to-apex");
   const salesforceActive =
+    // Covers the /salesforce/ hub and /salesforce-debug-log-analyzer/ too.
+    pathname.startsWith("/salesforce") ||
     pathname.startsWith("/json-to-apex") ||
     pathname === "/soql-formatter" ||
     pathname.startsWith("/soql-formatter/") ||
@@ -446,6 +447,18 @@ export function Navbar() {
               hidden={openMenu !== "salesforce"}
               className="absolute left-0 top-full z-50 mt-1 w-[360px] rounded-xl border border-zinc-800 bg-zinc-950 p-4 shadow-xl shadow-black/40"
             >
+              <Link
+                href={SALESFORCE_HUB_URL}
+                onClick={closeMenus}
+                aria-current={isActive(SALESFORCE_HUB_URL) ? "page" : undefined}
+                className="flex items-center justify-between gap-2 whitespace-nowrap rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20"
+              >
+                Salesforce Tools Hub
+                <span aria-hidden>→</span>
+              </Link>
+              <p className="px-1 pb-1.5 pt-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                All tools
+              </p>
               <ul className="list-none space-y-0.5">
                 {SALESFORCE_LINKS.map((item) => (
                   <li key={item.href}>
@@ -805,6 +818,14 @@ export function Navbar() {
               inert={openSection !== "salesforce"}
             >
               <div className="overflow-hidden">
+                <Link
+                  href={SALESFORCE_HUB_URL}
+                  onClick={closeMenus}
+                  className="mb-1 mt-2 flex items-center justify-between gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20"
+                >
+                  Salesforce Tools Hub — view all
+                  <span aria-hidden>→</span>
+                </Link>
                 <div className="grid grid-cols-2 gap-2 pb-1 pt-2">
                   {SALESFORCE_LINKS.map((item) => (
                     <Link

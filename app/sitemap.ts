@@ -37,6 +37,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/regex-tester/`, changeFrequency: "weekly", priority: 1 },
     { url: `${SITE_URL}/jwt-decoder/`, changeFrequency: "weekly", priority: 1 },
     { url: `${SITE_URL}/soql-formatter/`, changeFrequency: "weekly", priority: 1 },
+    {
+      url: `${SITE_URL}/salesforce/`,
+      changeFrequency: "weekly",
+      priority: 1,
+    },
+    {
+      url: `${SITE_URL}/salesforce-debug-log-analyzer/`,
+      changeFrequency: "weekly",
+      priority: 1,
+    },
     { url: `${SITE_URL}/json-to-schema/`, changeFrequency: "weekly", priority: 1 },
     { url: `${SITE_URL}/xml-to-schema/`, changeFrequency: "weekly", priority: 1 },
     { url: `${SITE_URL}/about/`, changeFrequency: "yearly", priority: 0.3 },

@@ -3,6 +3,7 @@ import { CodeXml } from "lucide-react";
 
 const TOOL_LINKS = [
   { href: "/cron", label: "Cron Expression Tester & Generator" },
+  { href: "/salesforce", label: "Salesforce Developer Tools Hub" },
   { href: "/csv", label: "CSV & Excel Converter" },
   { href: "/regex", label: "Regex Tester" },
   { href: "/jwt", label: "JWT Decoder" },

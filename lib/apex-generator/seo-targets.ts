@@ -214,6 +214,8 @@ export const APEX_SEO_TARGETS: ApexSeoTarget[] = [
       },
     ],
     relatedLinks: [
+      { label: "Salesforce Debug Log Analyzer", href: "/salesforce-debug-log-analyzer/" },
+      { label: "All Salesforce Tools", href: "/salesforce/" },
       { label: "SOQL Formatter", href: "/soql-formatter/" },
       { label: "cURL to Salesforce Apex", href: "/tools/curl-to-salesforce-apex/" },
       { label: "CSV to SOQL IN Clauses", href: "/csv-to-soql/" },

@@ -53,11 +53,12 @@ export const metadata: Metadata = {
 };
 
 const RELATED_TOOLS = [
+  { href: "/salesforce/", label: "All Salesforce Tools — Free & Client-Side" },
+  { href: "/salesforce-debug-log-analyzer/", label: "Salesforce Debug Log Analyzer" },
   { href: "/json-to-apex/", label: "JSON to Apex Class Generator" },
   { href: "/csv-to-soql/", label: "CSV to SOQL" },
   { href: "/excel-to-soql/", label: "Excel to SOQL" },
   { href: "/tools/curl-to-salesforce-apex/", label: "cURL to Salesforce Apex" },
-  { href: "/jwt-decoder/", label: "JWT Decoder — Secure & Offline" },
   { href: "/regex-tester/", label: "Regex Tester & Debugger" },
 ];
 

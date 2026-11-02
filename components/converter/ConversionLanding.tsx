@@ -207,18 +207,38 @@ export function ConversionLanding({ pair }: { pair: ConversionPair }) {
                 </Link>
               </li>
             ))}
-            {/* Cross-link the SOQL formatter on pages that generate SOQL —
-                high topical relevance + internal link equity for that tool. */}
+            {/* Cross-link the Salesforce cluster on pages that generate SOQL —
+                high topical relevance + internal link equity for those tools. */}
             {pair.target === "soql-in" ? (
-              <li>
-                <Link
-                  href="/soql-formatter/"
-                  className="flex items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-300 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
-                >
-                  <span className="font-medium">SOQL Formatter &amp; Beautifier</span>
-                  <ArrowRight size={14} className="shrink-0 text-zinc-600" />
-                </Link>
-              </li>
+              <>
+                <li>
+                  <Link
+                    href="/soql-formatter/"
+                    className="flex items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-300 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
+                  >
+                    <span className="font-medium">SOQL Formatter &amp; Beautifier</span>
+                    <ArrowRight size={14} className="shrink-0 text-zinc-600" />
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/salesforce-debug-log-analyzer/"
+                    className="flex items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-300 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
+                  >
+                    <span className="font-medium">Salesforce Debug Log Analyzer</span>
+                    <ArrowRight size={14} className="shrink-0 text-zinc-600" />
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/salesforce/"
+                    className="flex items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-300 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
+                  >
+                    <span className="font-medium">All Salesforce Tools</span>
+                    <ArrowRight size={14} className="shrink-0 text-zinc-600" />
+                  </Link>
+                </li>
+              </>
             ) : null}
           </ul>
         </Card>
