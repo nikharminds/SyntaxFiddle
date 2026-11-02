@@ -85,7 +85,10 @@ export default function RootLayout({
             Skip to content
           </a>
           <Navbar />
-          <main id="main" className="flex-1">
+          {/* tabIndex={-1} makes <main> a programmatic focus target: activating
+              the skip link moves keyboard focus here, so the next Tab press
+              starts from the page content instead of restarting at the top. */}
+          <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
             {children}
           </main>
           <Footer />
