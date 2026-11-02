@@ -247,6 +247,69 @@ function apexDiagram() {
   </svg>`;
 }
 
+/* 6. Debug log anatomy — one real log line split into labeled segments, plus
+ * a two-panel workbook strip: pairing BEGIN/END offsets into a duration, and
+ * a limit snapshot with the CLOSE TO LIMIT marker. Variable-width boxes are
+ * sized against monospace metrics (~0.6em/char) so no value can overflow. */
+function debugLogAnatomyDiagram() {
+  const segments = [
+    { value: "12:31:07.0", width: 170, name: "wall clock", hint: "coarse, human-readable" },
+    {
+      value: "(11598292)",
+      width: 230,
+      name: "µs offset",
+      hint: "the real stopwatch",
+      hot: true,
+    },
+    { value: "SOQL_EXECUTE_BEGIN", width: 320, name: "event", hint: "what happened" },
+    { value: "[9]", width: 90, name: "statement no.", hint: "pairs BEGIN with END" },
+    { value: "SELECT Id FROM Account WHERE …", width: 530, name: "fields", hint: "query text, rows, messages" },
+  ];
+  const boxes = segments
+    .map((segment, index) => {
+      const x = 72 + segments.slice(0, index).reduce((sum, s) => sum + s.width + 24, 0);
+      const border = segment.hot ? "#10b981" : "#27272a";
+      const fill = segment.hot ? "#064e3b" : "#18181b";
+      const valueColor = segment.hot ? "#34d399" : "#e4e4e7";
+      return `
+  <rect x="${x}" y="252" width="${segment.width}" height="100" rx="14" fill="${fill}" stroke="${border}" stroke-width="${segment.hot ? 4 : 2}"/>
+  <text x="${x + segment.width / 2}" y="316" font-family="${MONO}" font-size="24" font-weight="700" fill="${valueColor}" text-anchor="middle">${segment.value}</text>
+  <text x="${x + segment.width / 2}" y="392" font-family="${SANS}" font-size="24" font-weight="600" fill="#e4e4e7" text-anchor="middle">${segment.name}</text>
+  <text x="${x + segment.width / 2}" y="420" font-family="${SANS}" font-size="20" fill="#71717a" text-anchor="middle">${segment.hint}</text>`;
+    })
+    .join("");
+
+  const tip =
+    "The parenthesized offset is microseconds since EXECUTION_STARTED — measure durations with it, never the wall clock.";
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${chrome(
+    "Anatomy of a Debug Log Line",
+    "Every Salesforce debug log event follows one predictable shape",
+  )}
+  <text x="72" y="208" font-family="${MONO}" font-size="22" fill="#a1a1aa"><tspan fill="#71717a">12:31:07.0 </tspan><tspan fill="#34d399">(11598292)</tspan><tspan fill="#e4e4e7">|SOQL_EXECUTE_BEGIN</tspan><tspan fill="#34d399">[9]</tspan><tspan fill="#71717a">|Aggregations:0|SELECT Id FROM Account WHERE Industry = 'Banking'</tspan></text>
+  ${boxes}
+  <text x="72" y="456" font-family="${SANS}" font-size="24" fill="#34d399">${tip}</text>
+  <text x="72" y="500" font-family="${SANS}" font-size="26" font-weight="600" fill="#e4e4e7">Put it to work — pair the events</text>
+
+  <rect x="72" y="524" width="908" height="286" rx="16" fill="#18181b" stroke="#27272a" stroke-width="2"/>
+  <text x="96" y="562" font-family="${SANS}" font-size="24" font-weight="600" fill="#e4e4e7">Time any statement</text>
+  <text x="96" y="604" font-family="${MONO}" font-size="20"><tspan fill="#34d399">(11598292)</tspan><tspan fill="#e4e4e7">|SOQL_EXECUTE_BEGIN[9]</tspan><tspan fill="#71717a">|Aggregations:0</tspan></text>
+  <text x="96" y="644" font-family="${MONO}" font-size="20"><tspan fill="#34d399">(12391154)</tspan><tspan fill="#e4e4e7">|SOQL_EXECUTE_END[9]</tspan><tspan fill="#a1a1aa">|Rows:42</tspan></text>
+  <text x="96" y="692" font-family="${SANS}" font-size="20" fill="#71717a">Subtract the offsets — never the wall clocks:</text>
+  <text x="96" y="734" font-family="${MONO}" font-size="24" font-weight="700" fill="#e4e4e7">12,391,154 − 11,598,292</text>
+  <text x="96" y="776" font-family="${MONO}" font-size="28" font-weight="700" fill="#34d399">= 792,862 µs  ≈  0.79 s</text>
+
+  <rect x="1004" y="524" width="524" height="286" rx="16" fill="#18181b" stroke="#27272a" stroke-width="2"/>
+  <text x="1028" y="562" font-family="${SANS}" font-size="24" font-weight="600" fill="#e4e4e7">Limit snapshots</text>
+  <text x="1028" y="604" font-family="${MONO}" font-size="20"><tspan fill="#52525b">(39125034)</tspan><tspan fill="#e4e4e7">|LIMIT_USAGE_FOR_NS</tspan></text>
+  <text x="1028" y="644" font-family="${MONO}" font-size="20" fill="#a1a1aa">query rows  36,042 / 50,000</text>
+  <text x="1028" y="684" font-family="${MONO}" font-size="20" fill="#f87171">DML rows     9,501 / 10,000</text>
+  <text x="1028" y="724" font-family="${MONO}" font-size="20" font-weight="700" fill="#f87171">************ CLOSE TO LIMIT</text>
+  <text x="1028" y="768" font-family="${SANS}" font-size="18" fill="#71717a">A snapshot prints whenever a code</text>
+  <text x="1028" y="792" font-family="${SANS}" font-size="18" fill="#71717a">unit finishes — the last one wins.</text>
+  </svg>`;
+}
+
 const IMAGES = [
   {
     slug: "cron-expressions-explained",
@@ -261,6 +324,11 @@ const IMAGES = [
   },
   { slug: "json-to-zod-guide", file: "json-to-zod-flow.webp", svg: zodDiagram() },
   { slug: "json-to-apex-guide", file: "json-to-apex-flow.webp", svg: apexDiagram() },
+  {
+    slug: "how-to-read-salesforce-debug-log",
+    file: "debug-log-anatomy.webp",
+    svg: debugLogAnatomyDiagram(),
+  },
 ];
 
 for (const { slug, file, svg } of IMAGES) {
