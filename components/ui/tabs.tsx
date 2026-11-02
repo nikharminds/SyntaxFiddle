@@ -56,7 +56,7 @@ export function Tabs({ tabs, value, onValueChange, idPrefix = "dt", className, .
       role="tablist"
       onKeyDown={onKeyDown}
       className={cn(
-        "inline-flex h-9 items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900/60 p-1",
+        "inline-flex min-h-9 max-w-full flex-wrap items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900/60 p-1",
         className
       )}
       {...props}

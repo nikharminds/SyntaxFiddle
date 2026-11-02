@@ -336,7 +336,7 @@ export function ConverterLayout({
             <div
               role="group"
               aria-label="Input source"
-              className="flex rounded-lg border border-zinc-800 bg-zinc-950 p-0.5"
+              className="flex max-w-full flex-wrap rounded-lg border border-zinc-800 bg-zinc-950 p-0.5"
             >
               {(
                 [
@@ -366,7 +366,7 @@ export function ConverterLayout({
             </div>
           </div>
 
-          <label className="flex items-center gap-3">
+          <label className="flex min-w-0 max-w-full items-center gap-3">
             <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">
               Target
             </span>
@@ -374,7 +374,7 @@ export function ConverterLayout({
               value={target}
               onChange={(event) => setTarget(event.target.value as TargetFormat)}
               aria-label="Output format"
-              className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2.5 text-xs font-medium text-zinc-200 focus:border-emerald-500/50 focus:outline-none"
+              className="h-8 min-w-0 max-w-full rounded-md border border-zinc-800 bg-zinc-950 px-2.5 text-xs font-medium text-zinc-200 focus:border-emerald-500/50 focus:outline-none"
             >
               {TARGET_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -384,7 +384,7 @@ export function ConverterLayout({
             </select>
           </label>
 
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex w-full flex-wrap items-center gap-2 sm:w-auto">
             <button
               type="button"
               onClick={onClear}
