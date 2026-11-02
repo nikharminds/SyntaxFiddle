@@ -253,6 +253,11 @@ export const PAIR_EXTRA_FAQS: PairExtraFaqs = {
       answer:
         "Either works in SOQL — 15-character Ids are case-sensitive, 18-character Ids add a case-insensitive suffix — but be consistent within one filter and match the field you are filtering. If your CSV mixes both forms from different sources, deduplicate on the 18-character form first (the converter's dedupe is exact-string, so 001xx...4AA4 and its 18-char expansion would both survive). For external joins outside SOQL, standardize on 18-character everywhere.",
     },
+    {
+      question: "Can I build the IN clause from an email or text column instead of Ids?",
+      answer:
+        "Yes — set the Target SOQL field to any indexed field's API name (Email for contacts and users, or an indexed custom text field) and select the matching column. Escaping handles the text-column gotchas: apostrophes in names and addresses (o'brien@example.com) are backslash-escaped so they cannot terminate the string literal. One caution before running: unlike Id, arbitrary text fields are usually not indexed, so a large IN list against one can produce a non-selective filter error — keep those clauses short or add a second indexed filter to the WHERE clause.",
+    },
   ],
   "excel-to-soql": [
     {
@@ -264,6 +269,11 @@ export const PAIR_EXTRA_FAQS: PairExtraFaqs = {
       question: "Can I filter on a custom external-ID field instead of Id?",
       answer:
         "Yes — set the Target SOQL field to your field's API name (External_Id__c, Legacy_Customer_No__c) and select the column holding those values. External-ID fields are indexed by default in Salesforce, making them the right join key for data loads — and unlike Id, they are stable across sandbox refreshes. The 200-value chunking and escaping apply identically; only the field name on the left side of IN changes.",
+    },
+    {
+      question: "How do the generated clauses fit a Data Loader or update workflow?",
+      answer:
+        "Two common patterns. Pre-load verification: run the IN clause against the org before an upsert to see which spreadsheet rows already exist (match on Id or external ID) and which are genuinely new — the chunk comments make partial runs auditable. Exception-file triage: a Data Loader failure file is an Excel of Ids, and converting its key column into chunked IN clauses fetches the current state of exactly the failed rows so you can diagnose and re-post them. Format the returned clauses with the SOQL Formatter when they need to be read rather than just run, and remember each query's 50,000-row result cap when the filter targets a large object.",
     },
   ],
   "csv-to-xml": [

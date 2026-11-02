@@ -8,7 +8,7 @@ import {
 const EXPECTED_TITLES: Record<string, string> = {
   "xml-to-zod": "XML to Zod Schema Generator (Secure & Offline) | SyntaxFiddle",
   "xml-to-typescript": "XML to TypeScript Interface Converter (Zero-Upload) | SyntaxFiddle",
-  "xml-to-pydantic": "XML to Pydantic BaseModel (Offline) | SyntaxFiddle",
+  "xml-to-pydantic": "XML to Pydantic Model Converter (Offline) | SyntaxFiddle",
   "xml-to-go-struct": "XML to Go Struct Converter | SyntaxFiddle",
 };
 

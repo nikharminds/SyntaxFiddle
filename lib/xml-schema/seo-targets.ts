@@ -157,7 +157,7 @@ export const XML_SCHEMA_SEO_TARGETS: XmlSchemaSeoTarget[] = [
   {
     slug: "xml-to-pydantic",
     target: "pydantic",
-    title: "XML to Pydantic BaseModel (Offline) | SyntaxFiddle",
+    title: "XML to Pydantic Model Converter (Offline) | SyntaxFiddle",
     heading: "XML to Pydantic BaseModel Generator — Offline",
     description: "Convert XML documents to Pydantic v2 BaseModel classes instantly. Aliases for @-attributes, datetime for ISO timestamps — 100% client-side, zero uploads.",
     heroDescription: "Paste an XML document and get Pydantic v2 models in milliseconds: nested elements become nested BaseModel classes, attributes become aliased fields, ISO-8601 timestamps become datetime, and repeated elements become lists. Generation runs in a Web Worker inside your browser — the documents you would never paste into a random site stay on your machine.",

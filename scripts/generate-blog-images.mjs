@@ -310,6 +310,104 @@ function debugLogAnatomyDiagram() {
   </svg>`;
 }
 
+/* 7. CSV column → SOQL IN clause: cleanup steps and 200-value chunking */
+function soqlInClauseDiagram() {
+  const panel = (x, header, lines) => `
+  <rect x="${x}" y="220" width="410" height="380" rx="16" fill="#18181b" stroke="#27272a" stroke-width="2"/>
+  <rect x="${x}" y="220" width="8" height="380" rx="4" fill="#10b981"/>
+  <text x="${x + 32}" y="268" font-family="${SANS}" font-size="24" font-weight="600" fill="#71717a">${header}</text>
+  ${lines
+    .map(
+      (line, index) =>
+        `<text x="${x + 32}" y="${322 + index * 44}" font-family="${MONO}" font-size="22" fill="#e4e4e7">${line}</text>`,
+    )
+    .join("")}`;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${chrome(
+    "CSV Column → SOQL IN Clause",
+    "Trim, dedupe, escape, chunk — from report export to paste-ready filter",
+  )}
+  ${panel(
+    72,
+    "Report export",
+    [
+      "Id",
+      "001xx000003DGA2AA4",
+      "001xx000003DGA3AA5",
+      "001xx000003DGA2AA4",
+      "001xx000003DGA4AA6",
+      "(blank rows …)",
+    ],
+  )}
+  <text x="516" y="415" font-family="${SANS}" font-size="34" fill="#10b981">→</text>
+  <text x="516" y="456" font-family="${SANS}" font-size="21" fill="#34d399" text-anchor="middle">trim · dedupe</text>
+  <text x="516" y="486" font-family="${SANS}" font-size="21" fill="#34d399" text-anchor="middle">escape</text>
+  ${panel(
+    585,
+    "SOQL clause",
+    [
+      "WHERE Id IN (",
+      "  '001xx000003DGA2AA4',",
+      "  '001xx000003DGA3AA5',",
+      "  '001xx000003DGA4AA6'",
+      ")",
+      "FROM Account",
+    ],
+  )}
+  <text x="1029" y="415" font-family="${SANS}" font-size="34" fill="#10b981">→</text>
+  <text x="1029" y="456" font-family="${SANS}" font-size="21" fill="#34d399" text-anchor="middle">chunk at 200</text>
+  ${panel(
+    1098,
+    "OR-joined chunks",
+    [
+      "-- Chunk 1 of 2",
+      "WHERE Id IN (1-200)",
+      "OR Id IN (201-400)",
+      "",
+      "-- each chunk auditable",
+      "-- and runnable alone",
+    ],
+  )}
+  <text x="72" y="688" font-family="${SANS}" font-size="24" fill="#a1a1aa">Duplicates removed · blanks stripped · apostrophes backslash-escaped — the clause matches exactly your value set.</text>
+  <text x="72" y="730" font-family="${SANS}" font-size="24" fill="#a1a1aa">100% in-browser · zero upload · zero logging — <tspan fill="#34d399">syntaxfiddle.com/csv-to-soql/</tspan></text>
+  </svg>`;
+}
+
+/* 8. SOQL formatting before/after — the same query, unreadable vs reviewable */
+function soqlFormattingDiagram() {
+  const after = [
+    ["SELECT", " Id, Name,"],
+    ["  (SELECT", " ContactId, Role"],
+    ["   FROM", " OpportunityContactRoles)"],
+    ["FROM", " Opportunity"],
+    ["WHERE", " AccountId IN ("],
+    ["  SELECT", " AccountId FROM Account"],
+    ["  WHERE", " Region__c = 'EMEA')"],
+    ["  AND", " IsWon = false"],
+    ["ORDER BY", " Amount DESC"],
+  ];
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${chrome(
+    "SOQL Before / After Formatting",
+    "Same query, same results — formatted SOQL is auditable SOQL",
+  )}
+  <rect x="72" y="196" width="1456" height="150" rx="16" fill="#18181b" stroke="#27272a" stroke-width="2"/>
+  <text x="96" y="238" font-family="${SANS}" font-size="24" font-weight="600" fill="#71717a">Before — pasted through chat</text>
+  <text x="96" y="286" font-family="${MONO}" font-size="21" fill="#e4e4e7">SELECT Id,Name,(SELECT ContactId,Role FROM OpportunityContactRoles) FROM Opportunity WHERE AccountId</text>
+  <text x="96" y="326" font-family="${MONO}" font-size="21" fill="#e4e4e7">IN (SELECT AccountId FROM Account WHERE Region__c='EMEA') AND IsWon=false ORDER BY Amount DESC</text>
+  <text x="800" y="390" font-family="${SANS}" font-size="24" fill="#34d399" text-anchor="middle">↓ keyword caps · subquery indent · one condition per line ↓</text>
+  <rect x="72" y="410" width="1456" height="372" rx="16" fill="#18181b" stroke="#10b981" stroke-opacity="0.35" stroke-width="2"/>
+  <text x="96" y="452" font-family="${SANS}" font-size="24" font-weight="600" fill="#71717a">After — the query a reviewer can read</text>
+  ${after
+    .map(
+      ([keyword, rest], index) =>
+        `<text x="96" y="${500 + index * 34}" xml:space="preserve" font-family="${MONO}" font-size="21"><tspan fill="#34d399" font-weight="700">${keyword}</tspan><tspan fill="#e4e4e7">${rest}</tspan></text>`,
+    )
+    .join("")}
+  <text x="72" y="814" font-family="${SANS}" font-size="24" fill="#a1a1aa">The two non-negotiables: never break a string literal or a field API name across lines — everything else is presentation.</text>
+  </svg>`;
+}
+
 const IMAGES = [
   {
     slug: "cron-expressions-explained",
@@ -328,6 +426,16 @@ const IMAGES = [
     slug: "how-to-read-salesforce-debug-log",
     file: "debug-log-anatomy.webp",
     svg: debugLogAnatomyDiagram(),
+  },
+  {
+    slug: "soql-in-clause-from-csv",
+    file: "soql-in-clause-flow.webp",
+    svg: soqlInClauseDiagram(),
+  },
+  {
+    slug: "how-to-format-soql-queries",
+    file: "soql-before-after.webp",
+    svg: soqlFormattingDiagram(),
   },
 ];
 

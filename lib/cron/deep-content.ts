@@ -374,6 +374,66 @@ export const RECIPE_DEEP_CONTENT: Record<string, RecipeDeepContent> = {
       },
     ],
   },
+  "never-runs": {
+    sections: [
+      {
+        heading: "Why 0 0 31 2 * never fires: February only has 28-29 days",
+        body: [
+          "The expression 0 0 31 2 * is syntactically valid in every dialect — five legal fields, every value in range — and describes a fire time that cannot exist: midnight on February 31st. No year since the calendar reform has had one, and none ever will. Vixie cron (the Debian, Ubuntu, RHEL, and macOS default) parses it without complaint and simply never matches a date against it, which is precisely what makes it useful: a job line that looks scheduled to any reader but can never execute. Whether other daemons behave the same way is the first thing to check — Quartz and AWS EventBridge validate day-of-month against the month and reject 31 FEB outright with a parse error, and GitHub Actions rejects the equivalent schedule at workflow-lint time, so the pattern is a Unix-cron idiom, not a portable one.",
+          "The expression earns its keep in two real situations. First, disabling a job without deleting it: commenting out a crontab line works, but a line that stays uncommented keeps its syntax highlighting, its documentation, and its place in the file — and teams who comment lines out routinely lose them. Scheduling a retired job at February 31st keeps the line visible, keeps 'why was this here?' answerable, and makes re-enabling a one-character-per-field edit back to the real schedule. Second, it documents intent in shared files: a job that must not run under the current configuration (a migration script kept for rollback, an experiment paused mid-incident) reads as explicitly parked rather than accidentally broken.",
+        ],
+      },
+      {
+        heading: "Deliberately never-running cron jobs: legitimate uses and safer alternatives",
+        body: [
+          "The pattern has honest critics, and they are half right. A schedule that never fires is a config value that lies about itself: monitoring that checks cron syntax will pass it, new teammates will assume it works, and nothing in the file says 'this is a tombstone' unless a comment says so. If the goal is simply to stop a job, the sharper tools are the ones built for it — comment the line and leave a dated note, move the script out of the scheduler's path, systemctl disable --now for timer-based services, or concurrencyPolicy: suspend via kubectl patch on a Kubernetes CronJob (the schedule stays, execution provably stops, and the state is visible in kubectl get cronjobs). Those options carry their disabled status in the system's own interface rather than in a trick of arithmetic.",
+          "Where a never-expression remains genuinely useful is exactly where those tools do not reach: a single shared crontab with no systemd unit, no Kubernetes object, and no deployment pipeline — the dozens of small servers where cron is still the only scheduler. There, 0 0 31 2 * is the cheapest reversible off-switch that survives reviews and diffing. If you use it, mark the line: '# PARKED (never fires — Feb 31 does not exist): <original schedule>' so the real schedule is one copy-paste away. For platforms that validate the expression, the equivalent trick is an explicit far-future year — EventBridge's cron(0 0 31 2 ? * 2099) fires once next century, and Quartz accepts the same year field — which passes validation while remaining, for operational purposes, a job that never runs.",
+        ],
+      },
+    ],
+    extraFaqs: [
+      {
+        question: "What is the cron expression that never runs?",
+        answer:
+          "0 0 31 2 * — midnight on February 31st. February has 28 days (29 in leap years), so day-of-month 31 in month 2 matches no date that will ever occur, and the job never executes. It parses as valid five-field syntax in Vixie-compatible crons (Linux, macOS), which is why it works as a way to park a job without deleting it. Two caveats: some schedulers validate day-of-month against the month and reject it — Quartz and AWS EventBridge throw a parse error, so use their year field instead (0 0 31 2 ? * 2099) — and a parked line should carry a comment naming the original schedule so re-enabling it is a copy-paste, not an archaeology project.",
+      },
+      {
+        question: "Why won't my scheduler accept 0 0 31 2 * as a cron expression?",
+        answer:
+          "Because not every scheduler trusts the operator to know the calendar. Quartz and AWS EventBridge validate field combinations at parse time and reject day-of-month 31 paired with month 2 as an impossible date; GitHub Actions' workflow parser does the same for its schedule key. Plain Unix cron is deliberately dumber — it stores five fields and evaluates them per-minute against real dates, so an unmatchable combination is simply never selected, no error, no log line. The result: the same text is a valid tombstone on a Linux server and a broken config in a Quartz scheduler. Portability-minded teams pick the explicit alternatives — commented-out lines, Kubernetes suspend, or the far-future year form — so the disable intent travels across platforms without rewriting.",
+      },
+    ],
+  },
+  "every-4-hours-offset": {
+    sections: [
+      {
+        heading: "Why 30 */4 beats */4 for shared infrastructure",
+        body: [
+          "The two expressions fire six times a day at the same interval, but on different minutes: 0 */4 * * * lands exactly on 00:00, 04:00, 08:00, 12:00, 16:00, and 20:00 — the same six instants every other four-hourly job on the planet uses, because */4 in the hour field means 'start at 0, step by 4'. Adding the explicit minute — 30 */4 * * * — slides the whole schedule to 00:30, 04:30, 08:30, 12:30, 16:30, 20:30 without changing the interval. On any shared target, that thirty-minute offset is the entire point: database maintenance windows, API rate limits, and upstream service restarts cluster on the hour and half-hour, and a poller that lands at :30 of every fourth hour collides with none of them by construction rather than by luck.",
+          "The offset also buys diagnostic clarity. When a four-hourly job fires at the top of the hour, its execution is confounded with every hourly, half-hourly, and quarter-hourly job in the fleet — log volume spikes, connection pools saturate, and slow runs are indistinguishable from slow neighbors. Move the job to :30 and its logs occupy a quiet band; latency and error traces for that window belong to one job, not a herd. The cost is equally real and worth stating: the schedule is now surprising — a reader scanning the crontab sees 30 in the minute field and must know that 30 */4 means 'every fourth hour at half past', not 'at 30 minutes past some other interval'. One comment in the crontab settles it; the plain-English translation above is generated from the expression, so what you see there is exactly what the daemon computed.",
+        ],
+      },
+      {
+        heading: "Every four hours on other schedulers: systemd, Kubernetes, and EventBridge forms",
+        body: [
+          "The same six-fires-a-day cadence translates directly. systemd expresses it as OnCalendar=*-*-* 00/4:30:00 — the 00/4 hour repetition carries the every-four-hours semantics, and the :30 keeps the offset; systemctl list-timers shows the next transitions. Kubernetes CronJobs accept the cron syntax verbatim — schedule: \"30 */4 * * *\" — and, since 1.27, a timeZone field, which matters at this cadence because six fires a day in UTC drift visibly against a local business day when the offset between them is not a multiple of four hours. AWS EventBridge needs the six-field form with '?' in one day field: cron(30 */4 * * ? *), evaluated in UTC, with the year field trailing. Quartz is the trap: its step in the hour field counts the same way, but its seconds field comes first — 0 30 0 */4 * ? — and forgetting the leading seconds zero or misplacing the mandatory '?' between the two day fields is the most common porting error.",
+          "Operational notes specific to a six-fire cadence: it is short enough that a failed run self-heals within four hours and rare enough that each run should be worth alerting on — the right monitoring posture is a heartbeat check (did the job's last-run timestamp advance past two intervals?) rather than per-run alarms. The interval is also longer than most default timeouts, so a hung run overlaps its successor exactly once before anyone notices; set concurrencyPolicy: Forbid in Kubernetes or use a lockfile in plain cron to make the overlap impossible rather than merely unlikely. The simulator above shows the next fires in your timezone — paste the expression and confirm the :30 phase lands where your infrastructure expects it.",
+        ],
+      },
+    ],
+    extraFaqs: [
+      {
+        question: "What times does 30 */4 * * * actually fire?",
+        answer:
+          "At half past every fourth hour: 00:30, 04:30, 08:30, 12:30, 16:30, and 20:30 — six runs per day. The hour field */4 selects hours 0, 4, 8, 12, 16, 20 (starting at 0 and stepping by 4), and the minute field 30 pins each fire to half past. The schedule repeats in the daemon's timezone — UTC on most servers, local time where the crontab or Kubernetes timeZone field says otherwise — so the wall-clock times shift with the zone. The next-run table above is computed from the same field logic the daemon uses, so the six timestamps shown are exactly the ones a Linux crontab will honor.",
+      },
+      {
+        question: "How do I run a job every 4 hours starting at a different minute?",
+        answer:
+          "Pin the minute and keep the step form in the hour field: <minute> */4 * * * — so 15 */4 * * * fires at quarter past every fourth hour (00:15, 04:15, 08:15, …) and 30 */4 * * * at half past. To offset which hours the cycle lands on rather than the minutes, give the hour field a range with a step: 0 1-23/4 * * * starts the cycle at 01:00 and fires at 01:00, 05:00, 09:00, 13:00, 17:00, and 21:00. Both forms are standard five-field cron, and the every-2-hours-offset recipe in this directory shows the same technique at a different cadence — paste any variant into the simulator above and the field table and next-run list confirm the times it will actually fire.",
+      },
+    ],
+  },
 };
 
 export function getRecipeDeepContent(slug: string): RecipeDeepContent | undefined {

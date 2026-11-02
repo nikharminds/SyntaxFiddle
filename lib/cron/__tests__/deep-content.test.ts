@@ -32,6 +32,8 @@ describe("cron deep content", () => {
       "weekdays-at-9am",
       "every-monday-at-9am",
       "first-day-of-month",
+      "never-runs",
+      "every-4-hours-offset",
     ];
     for (const slug of expected) {
       expect(RECIPE_DEEP_CONTENT[slug], slug).toBeDefined();

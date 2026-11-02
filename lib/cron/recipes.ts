@@ -96,6 +96,7 @@ const DAILY: Seed[] = [
   ["daily-at-2am", "0 2 * * *", "Daily at 2 AM"],
   ["daily-at-3am", "0 3 * * *", "Daily at 3 AM"],
   ["daily-at-4am", "0 4 * * *", "Daily at 4 AM"],
+  ["daily-at-4-30am", "30 4 * * *", "Daily at 4:30 AM"],
   ["daily-at-5am", "0 5 * * *", "Daily at 5 AM"],
   ["daily-at-6am", "0 6 * * *", "Daily at 6 AM"],
   ["daily-at-6-30am", "30 6 * * *", "Daily at 6:30 AM"],

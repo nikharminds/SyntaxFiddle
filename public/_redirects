@@ -27,3 +27,13 @@
 /cron/every-3-months/ /cron/ 301
 /cron/every-6-months /cron/ 301
 /cron/every-6-months/ /cron/ 301
+
+# /regex/ was a thin duplicate of /regex-tester/ with a canonical tag — but
+# Search Console (2026-11-02 export) showed both URLs earning impressions
+# separately (/regex/ 137 impr at pos 58, /regex-tester/ 93 impr at pos 51),
+# meaning Google ignored the canonical and split the ranking signals. A
+# permanent redirect consolidates everything onto the canonical page.
+# Flavor pages (/regex/<flavor>/) are separate indexed pages — exact-path
+# rules only, no wildcard, so they are unaffected.
+/regex /regex-tester/ 301
+/regex/ /regex-tester/ 301
