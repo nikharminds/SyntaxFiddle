@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Check, ServerOff, ShieldCheck, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -5,6 +6,17 @@ import { Card } from "@/components/ui/card";
 import { SecurityTextSection } from "@/components/shared/security-text-section";
 import { TabularConverters } from "@/components/shared/tabular-converters";
 import { ToolGrid } from "@/components/shared/tool-grid";
+
+// Every other route declares its own canonical; without one here the homepage
+// emitted no <link rel="canonical"> at all. Page-level metadata replaces the
+// layout's `alternates` wholesale (shallow merge), so the RSS autodiscovery
+// entry is re-declared to keep it on the homepage too.
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "/",
+    types: { "application/rss+xml": [{ url: "/rss.xml", title: "SyntaxFiddle Blog" }] },
+  },
+};
 
 const PROOF_STATS: [string, string][] = [
   ["0", "servers"],

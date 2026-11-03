@@ -96,7 +96,10 @@ every 5 minutes.*
 ```
 
 Every tenth minute: 0, 10, 20, 30, 40, 50. Steps can start anywhere — `15/10`
-means 15, 25, 35, 45, 55.
+means 15, 25, 35, 45, 55. For the full walkthrough of the most common step
+schedule — plain-English translation, next-run preview in your timezone, and
+copy-paste snippets for crontab, Node.js, and AWS — see the
+[every 5 minutes cron recipe](/cron/every-5-minutes/).
 
 ## Cron shortcut macros: @daily, @hourly, @reboot
 
@@ -110,6 +113,12 @@ Most modern cron daemons accept named aliases for common schedules:
 | `@daily`   | `0 0 * * *` — every day at midnight                     |
 | `@hourly`  | `0 * * * *` — top of every hour                         |
 | `@reboot`  | Once, immediately after the cron daemon starts          |
+
+Macros are just readable spellings of the five-field forms — and the fields can
+also express schedules that never fire at all. A date like February 31st never
+exists, so [`0 0 31 2 *`](/cron/never-runs/) matches no day of any year; the
+[cron expression that never runs](/cron/never-runs/) guide covers that trick and
+its legitimate uses (disabling a job without deleting it).
 
 ## Five pitfalls that break schedules
 
