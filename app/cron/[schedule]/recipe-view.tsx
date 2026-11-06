@@ -76,6 +76,19 @@ export function CronRecipeView({ recipe }: { recipe: CronRecipe }) {
           initialDialect={recipe.dialect}
           syncUrl={false}
         />
+        {recipe.dialect === "salesforce" ? (
+          <p className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-4 py-3 text-sm text-zinc-300">
+            Scheduling Apex? The{" "}
+            <Link
+              href="/cron/salesforce/"
+              className="font-medium text-emerald-400 hover:underline"
+            >
+              Salesforce cron expression builder
+            </Link>{" "}
+            has the full System.schedule field reference, special-character guide, and
+            copy-paste <code className="font-mono text-xs text-emerald-400">System.schedule</code> snippets.
+          </p>
+        ) : null}
       </section>
 
       <section aria-labelledby="fields-heading" className="mt-14">

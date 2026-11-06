@@ -1,23 +1,25 @@
 import Link from "next/link";
 import { CodeXml } from "lucide-react";
 
+// Canonical hrefs use trailing slashes site-wide (matches sitemap + canonical
+// tags) so footer clicks never pay a redirect hop on Cloudflare Pages.
 const TOOL_LINKS = [
-  { href: "/cron", label: "Cron Expression Tester & Generator" },
-  { href: "/salesforce", label: "Salesforce Developer Tools Hub" },
-  { href: "/csv", label: "CSV & Excel Converter" },
-  { href: "/regex", label: "Regex Tester" },
-  { href: "/jwt", label: "JWT Decoder" },
-  { href: "/curl-converter", label: "cURL Converter" },
-  { href: "/json-to-schema", label: "JSON to Schema Converter" },
-  { href: "/xml-to-schema", label: "XML to Schema Converter" },
-  { href: "/tools", label: "Developer Tools Directory" },
+  { href: "/cron/", label: "Cron Expression Tester & Generator" },
+  { href: "/salesforce/", label: "Salesforce Developer Tools Hub" },
+  { href: "/csv/", label: "CSV & Excel Converter" },
+  { href: "/regex-tester/", label: "Regex Tester" },
+  { href: "/jwt-decoder/", label: "JWT Decoder" },
+  { href: "/curl-converter/", label: "cURL Converter" },
+  { href: "/json-to-schema/", label: "JSON to Schema Converter" },
+  { href: "/xml-to-schema/", label: "XML to Schema Converter" },
+  { href: "/tools/", label: "Developer Tools Directory" },
 ];
 
 const COMPANY_LINKS = [
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
-  { href: "/privacy", label: "Privacy Policy" },
-  { href: "/terms", label: "Terms of Service" },
+  { href: "/about/", label: "About" },
+  { href: "/contact/", label: "Contact" },
+  { href: "/privacy/", label: "Privacy Policy" },
+  { href: "/terms/", label: "Terms of Service" },
   { href: "https://github.com/nikharminds/SyntaxFiddle", label: "GitHub (open source)" },
 ];
 
@@ -80,16 +82,29 @@ export function Footer() {
         <nav aria-label="Company">
           <h2 className="text-sm font-semibold text-zinc-100">Company</h2>
           <ul className="mt-4 space-y-3">
-            {COMPANY_LINKS.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className="text-sm text-zinc-400 transition-colors hover:text-emerald-400"
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
+            {COMPANY_LINKS.map((link) => {
+              const isExternal = link.href.startsWith("http");
+              const className =
+                "text-sm text-zinc-400 transition-colors hover:text-emerald-400";
+              return (
+                <li key={link.href}>
+                  {isExternal ? (
+                    <a
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={className}
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link href={link.href} className={className}>
+                      {link.label}
+                    </Link>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </nav>
       </div>

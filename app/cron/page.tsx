@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AtSign, CalendarClock, Layers, Link2 } from "lucide-react";
+import { ArrowRight, AtSign, CalendarClock, Layers, Link2 } from "lucide-react";
 import { AdUnit } from "@/components/ads/AdUnit";
 import { CronPlayground } from "@/components/cron/cron-playground";
 import { RelatedRecipes } from "@/components/cron/related-recipes";
@@ -11,8 +11,8 @@ import { Badge } from "@/components/ui/badge";
 const CRON_FACTS = [
   {
     icon: Layers,
-    title: "4 cron dialects",
-    description: "Unix, Quartz, AWS EventBridge, and Cloudflare on one screen.",
+    title: "5 cron dialects",
+    description: "Unix, Quartz, AWS EventBridge, Cloudflare, and Salesforce on one screen.",
   },
   {
     icon: CalendarClock,
@@ -40,6 +40,9 @@ const POPULAR_SLUGS = [
   "quartz-every-10-seconds",
   "spring-boot-daily",
   "cloudflare-every-5-minutes",
+  "salesforce-every-5-minutes",
+  "salesforce-weekdays-at-noon",
+  "salesforce-last-day-of-month",
 ];
 
 const CRON_MACRO_LINKS = [
@@ -85,6 +88,24 @@ export default function CronPage() {
       </section>
 
       <AdUnit format="leaderboard" className="mt-10" />
+
+      <section aria-label="Salesforce cron builder" className="mt-10">
+        <Link
+          href="/cron/salesforce/"
+          className="flex items-center justify-between gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-5 py-4 transition-colors hover:border-emerald-500/50 hover:bg-emerald-500/10"
+        >
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold text-emerald-300">
+              Working in Salesforce? Try the dedicated System.schedule builder
+            </span>
+            <span className="mt-0.5 block text-xs text-zinc-500">
+              Seconds-first format, 1-based weekdays, optional year — with copy-paste Apex snippets and a
+              full field reference.
+            </span>
+          </span>
+          <ArrowRight size={16} className="shrink-0 text-emerald-400" aria-hidden />
+        </Link>
+      </section>
 
       <div id="related" className="mt-10">
         <RelatedRecipes slugs={POPULAR_SLUGS} />

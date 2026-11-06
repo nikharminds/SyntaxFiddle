@@ -45,7 +45,9 @@ Rules for recipes:
 
 ## Adding a cron dialect
 
-Salesforce `System.schedule` is the most requested missing dialect. A dialect needs:
+The shipped Salesforce `System.schedule` dialect (see `DIALECTS.salesforce` and the
+`maxFieldCount` option for optional trailing fields) is the reference implementation.
+A dialect needs:
 
 1. An entry in `lib/cron/dialects.ts` (label, field definitions, validation rules).
 2. Engine support in `lib/cron/engine.ts` — parsing, validation, and next-run matching.

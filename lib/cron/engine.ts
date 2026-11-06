@@ -90,7 +90,7 @@ export function analyzeCronExpression(
       isValid: false,
       errorMessage: 'Expression is empty. Provide all cron fields, e.g. "*/5 * * * *".',
       humanReadable: "",
-      fields: spec.fields.map((field) => ({
+      fields: spec.fields.slice(0, spec.fieldCount).map((field) => ({
         name: field.name,
         value: "",
         allowedRange: field.rangeLabel,
@@ -102,13 +102,14 @@ export function analyzeCronExpression(
     };
   }
 
-  if (tokens.length !== spec.fieldCount) {
+  const maxFieldCount = spec.maxFieldCount ?? spec.fieldCount;
+  if (tokens.length < spec.fieldCount || tokens.length > maxFieldCount) {
     const message = fieldCountError(tokens.length, spec);
     return {
       isValid: false,
       errorMessage: message,
       humanReadable: "",
-      fields: spec.fields.map((field, index) => ({
+      fields: spec.fields.slice(0, spec.fieldCount).map((field, index) => ({
         name: field.name,
         value: tokens[index] ?? "",
         allowedRange: field.rangeLabel,
@@ -120,7 +121,16 @@ export function analyzeCronExpression(
   }
 
   const fields: CronFieldDetail[] = spec.fields.map((field, index) => {
-    const value = tokens[index] ?? "";
+    const value = tokens[index];
+    if (value === undefined) {
+      // Trailing optional fields (the Salesforce year) may be omitted.
+      return {
+        name: field.name,
+        value: "",
+        allowedRange: field.rangeLabel,
+        isValid: true,
+      };
+    }
     const verdict = validateField(value, field, spec);
     return {
       name: field.name,
@@ -236,7 +246,7 @@ function validateItem(item: string, field: CronFieldSpec): string | undefined {
 
   if (base.includes("#")) {
     if (!field.allowsHash) {
-      return "The '#' wildcard (nth weekday of the month) is only supported in Day of Week for the AWS EventBridge and Quartz dialects.";
+      return "The '#' wildcard (nth weekday of the month) is only supported in Day of Week for the AWS EventBridge, Quartz, and Salesforce dialects.";
     }
     const hashParts = base.split("#");
     if (hashParts.length > 2) {
@@ -259,7 +269,7 @@ function validateItem(item: string, field: CronFieldSpec): string | undefined {
 
   if (base === "L") {
     if (!field.allowsL) {
-      return "The 'L' wildcard (last day) is only supported in the AWS EventBridge and Quartz dialects.";
+      return "The 'L' wildcard (last day) is only supported in the AWS EventBridge, Quartz, and Salesforce dialects.";
     }
     if (step !== undefined) {
       return `Steps cannot be combined with 'L' in "${item}".`;
@@ -269,7 +279,7 @@ function validateItem(item: string, field: CronFieldSpec): string | undefined {
 
   if (base === "LW") {
     if (!field.allowsL || !field.allowsW) {
-      return "The 'LW' wildcard (last weekday of the month) is only supported in Day of Month for AWS EventBridge and Quartz.";
+      return "The 'LW' wildcard (last weekday of the month) is only supported in Day of Month for AWS EventBridge, Quartz, and Salesforce.";
     }
     if (step !== undefined) {
       return `Steps cannot be combined with 'LW' in "${item}".`;
@@ -279,7 +289,7 @@ function validateItem(item: string, field: CronFieldSpec): string | undefined {
 
   if (/^\d+W$/.test(base)) {
     if (!field.allowsW) {
-      return "The 'W' wildcard (nearest weekday) is only supported in Day of Month for AWS EventBridge and Quartz.";
+      return "The 'W' wildcard (nearest weekday) is only supported in Day of Month for AWS EventBridge, Quartz, and Salesforce.";
     }
     const day = Number(base.slice(0, -1));
     if (day < field.min || day > field.max) {
@@ -384,14 +394,23 @@ function fieldCountError(found: number, spec: CronDialectSpec): string {
     hint = " Quartz expects a leading Seconds field.";
   } else if (found === 5 && spec.id === "aws") {
     hint = " AWS EventBridge expects a trailing Year field.";
+  } else if (found === 5 && spec.id === "salesforce") {
+    hint = ' Salesforce System.schedule expects a leading Seconds field — "0 * * * * ?" runs every minute.';
   }
-  return `The ${spec.label} dialect expects ${spec.fieldCount} fields, but found ${found}.${hint}`;
+  const expected =
+    spec.maxFieldCount !== undefined && spec.maxFieldCount > spec.fieldCount
+      ? `${spec.fieldCount} or ${spec.maxFieldCount} fields`
+      : `${spec.fieldCount} fields`;
+  return `The ${spec.label} dialect expects ${expected}, but found ${found}.${hint}`;
 }
 
 function humanize(tokens: string[], spec: CronDialectSpec): string {
   let expression = tokens.join(" ");
   if (spec.id === "aws") {
     expression = tokens.slice(0, 5).join(" ").replace(/\?/g, "*");
+  } else if (spec.id === "salesforce") {
+    // cronstrue has no year slot — the optional Salesforce 7th token is dropped.
+    expression = tokens.slice(0, 6).join(" ");
   }
   try {
     const text = cronstrue.toString(expression, {
@@ -414,7 +433,7 @@ function macroFailure(message: string, spec: CronDialectSpec): CronAnalysisResul
     isValid: false,
     errorMessage: message,
     humanReadable: "",
-    fields: spec.fields.map((field) => ({
+    fields: spec.fields.slice(0, spec.fieldCount).map((field) => ({
       name: field.name,
       value: "",
       allowedRange: field.rangeLabel,
@@ -425,13 +444,13 @@ function macroFailure(message: string, spec: CronDialectSpec): CronAnalysisResul
   };
 }
 
-/** Suggests the manual expansion of a 5-field macro for Quartz / AWS dialects. */
+/** Suggests the manual expansion of a 5-field macro for Quartz / AWS / Salesforce dialects. */
 function dialectExpansion(fiveFields: string, spec: CronDialectSpec): string {
   const parts = fiveFields.split(" ");
   parts[parts[4] === "*" ? 4 : 2] = "?";
-  // Unix day-of-week 0 (Sunday) is 1 in the Quartz/AWS 1-based (1 = SUN) field.
+  // Unix day-of-week 0 (Sunday) is 1 in the Quartz/AWS/Salesforce 1-based (1 = SUN) field.
   if (parts[4] === "0") parts[4] = "1";
-  if (spec.id === "quartz") {
+  if (spec.id === "quartz" || spec.id === "salesforce") {
     parts.unshift("0");
   } else if (spec.id === "aws") {
     parts.push("*");
@@ -483,6 +502,17 @@ function computeNextRuns(
     const month = tokens[4] ?? "*";
     const dayOfWeek = shiftDayOfWeekBase(tokens[5] ?? "*", true);
     expression = [seconds, minute, hour, dayOfMonth, month, dayOfWeek].join(" ");
+  } else if (spec.id === "salesforce") {
+    const seconds = tokens[0] ?? "0";
+    const minute = tokens[1] ?? "*";
+    const hour = tokens[2] ?? "*";
+    const dayOfMonth = (tokens[3] ?? "*").replace(/\?/g, "*");
+    const month = tokens[4] ?? "*";
+    const dayOfWeek = shiftDayOfWeekBase(tokens[5] ?? "*", true);
+    expression = [seconds, minute, hour, dayOfMonth, month, dayOfWeek].join(" ");
+    if (tokens.length > 6) {
+      yearMatcher = buildYearMatcher(tokens[6] ?? "*");
+    }
   } else if (spec.id === "aws") {
     const minute = tokens[0] ?? "*";
     const hour = tokens[1] ?? "*";

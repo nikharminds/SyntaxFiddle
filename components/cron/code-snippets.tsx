@@ -27,6 +27,7 @@ const KEYWORDS: Record<CodeSnippet["language"], ReadonlySet<string>> = {
   python: new Set(["from", "import", "def", "return", "None", "True", "False", "class"]),
   yaml: new Set(["on", "schedule", "cron", "jobs", "steps", "runs-on", "name"]),
   bash: new Set(["echo"]),
+  apex: new Set(["public", "global", "class", "implements", "new", "void", "static", "return", "System.schedule", "Database.executeBatch"]),
 };
 
 const STRING_PATTERNS: Record<CodeSnippet["language"], string> = {
@@ -35,6 +36,7 @@ const STRING_PATTERNS: Record<CodeSnippet["language"], string> = {
   python: "'(?:[^'\\\\\\n]|\\\\.)*'|\"(?:[^\"\\\\\\n]|\\\\.)*\"",
   yaml: "'(?:[^'\\\\\\n]|\\\\.)*'|\"(?:[^\"\\\\\\n]|\\\\.)*\"",
   bash: "'(?:[^'\\\\\\n]|\\\\.)*'|\"(?:[^\"\\\\\\n]|\\\\.)*\"",
+  apex: "'(?:[^'\\\\\\n]|\\\\.)*'|\"(?:[^\"\\\\\\n]|\\\\.)*\"",
 };
 
 const COMMENT_PATTERNS: Record<CodeSnippet["language"], string> = {
@@ -43,6 +45,7 @@ const COMMENT_PATTERNS: Record<CodeSnippet["language"], string> = {
   python: "#[^\\n]*",
   yaml: "#[^\\n]*",
   bash: "#[^\\n]*",
+  apex: "//[^\\n]*",
 };
 
 function escapeRegExp(text: string): string {

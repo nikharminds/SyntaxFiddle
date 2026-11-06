@@ -3,7 +3,7 @@ import { SITE_URL } from "@/lib/site";
 
 const TITLE = "Cron Expression Tester & Generator";
 const DESCRIPTION =
-  "Cron expression tester and generator for Unix, Quartz, AWS EventBridge, and Cloudflare — live run timeline, timezone-aware next runs, and plain-English output.";
+  "Cron expression tester and generator for Unix, Quartz, AWS EventBridge, Cloudflare, and Salesforce System.schedule — live run timeline, timezone-aware next runs, and plain-English output.";
 
 export const metadata: Metadata = {
   title: TITLE,

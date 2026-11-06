@@ -9,6 +9,7 @@ const OPTIONS: { id: CronDialect; label: string }[] = [
   { id: "aws", label: "AWS EventBridge" },
   { id: "quartz", label: "Quartz / Spring" },
   { id: "cloudflare", label: "Cloudflare Triggers" },
+  { id: "salesforce", label: "Salesforce" },
 ];
 
 export type DialectSelectorProps = {
@@ -55,7 +56,7 @@ export function DialectSelector({ value, onChange }: DialectSelectorProps) {
       role="radiogroup"
       aria-label="Cron dialect"
       onKeyDown={onKeyDown}
-      className="grid w-full grid-cols-2 gap-1 rounded-lg border border-zinc-800 bg-zinc-900/60 p-1 sm:grid-cols-4"
+      className="grid w-full grid-cols-2 gap-1 rounded-lg border border-zinc-800 bg-zinc-900/60 p-1 sm:grid-cols-3 lg:grid-cols-5"
     >
       {OPTIONS.map((option) => {
         const active = option.id === value;

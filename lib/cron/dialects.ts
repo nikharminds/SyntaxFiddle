@@ -1,4 +1,4 @@
-export type CronDialect = "unix" | "aws" | "quartz" | "cloudflare";
+export type CronDialect = "unix" | "aws" | "quartz" | "cloudflare" | "salesforce";
 
 export type CronFieldKey =
   | "second"
@@ -26,6 +26,8 @@ export interface CronDialectSpec {
   id: CronDialect;
   label: string;
   fieldCount: number;
+  /** Maximum accepted field count when trailing fields are optional (the Salesforce year). Defaults to fieldCount. */
+  maxFieldCount?: number;
   fields: CronFieldSpec[];
   dayOfWeekStartIndexZero: boolean;
   requiresQuestionMarkInDayFields: boolean;
@@ -100,6 +102,14 @@ const monthField: CronFieldSpec = {
   max: 12,
   rangeLabel: "1-12 or JAN-DEC",
   names: MONTH_NAMES,
+};
+
+const salesforceYearField: CronFieldSpec = {
+  key: "year",
+  name: "Year",
+  min: 1970,
+  max: 2099,
+  rangeLabel: "1970-2099 (optional)",
 };
 
 function unixDayOfMonthField(): CronFieldSpec {
@@ -223,6 +233,30 @@ export const DIALECTS: Record<CronDialect, CronDialectSpec> = {
       "6-field Quartz/Spring format: seconds minute hour day-of-month month day-of-week.",
       "Day-of-week is 1-7 where 1 = SUN, and supports L and # (nth weekday).",
       "Use '?' for the day field you want to leave unspecified.",
+    ],
+  },
+  salesforce: {
+    id: "salesforce",
+    label: "Salesforce (System.schedule)",
+    fieldCount: 6,
+    maxFieldCount: 7,
+    fields: [
+      secondField,
+      minuteField,
+      hourField,
+      extendedDayOfMonthField(),
+      monthField,
+      extendedDayOfWeekField(),
+      salesforceYearField,
+    ],
+    dayOfWeekStartIndexZero: false,
+    requiresQuestionMarkInDayFields: false,
+    notes: [
+      "System.schedule format: seconds minute hour day-of-month month day-of-week — the leading Seconds field is required.",
+      "Day-of-week runs 1-7 where 1 = SUN (Quartz-style) and accepts SUN-SAT names.",
+      "An optional 7th Year field (1970-2099) bounds how long the schedule stays active.",
+      "Supports ? , - * / L W # — use '?' for the day field you leave unspecified.",
+      "The expression is evaluated in the timezone of the user who schedules the job.",
     ],
   },
 };

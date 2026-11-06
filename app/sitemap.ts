@@ -47,6 +47,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 1,
     },
+    {
+      url: `${SITE_URL}/salesforce-id-converter/`,
+      changeFrequency: "weekly",
+      priority: 1,
+    },
+    { url: `${SITE_URL}/cron/salesforce/`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${SITE_URL}/json-to-schema/`, changeFrequency: "weekly", priority: 1 },
     { url: `${SITE_URL}/xml-to-schema/`, changeFrequency: "weekly", priority: 1 },
     { url: `${SITE_URL}/about/`, changeFrequency: "yearly", priority: 0.3 },

@@ -56,7 +56,9 @@ function extractCanonical(
   from: CronDialect,
 ): CanonicalCron | null {
   const spec = DIALECTS[from];
-  if (!spec || tokens.length !== spec.fieldCount) return null;
+  if (!spec) return null;
+  const maxFieldCount = spec.maxFieldCount ?? spec.fieldCount;
+  if (tokens.length < spec.fieldCount || tokens.length > maxFieldCount) return null;
   const fields: CanonicalCron = {
     second: "0",
     minute: "*",
@@ -69,7 +71,9 @@ function extractCanonical(
   for (let i = 0; i < spec.fields.length; i++) {
     const fieldSpec = spec.fields[i];
     if (!fieldSpec) return null;
-    const token = tokens[i] as string;
+    const token = tokens[i];
+    // Optional trailing fields (the Salesforce year) keep their default when omitted.
+    if (token === undefined) continue;
     (fields as Record<CronFieldKey, string>)[fieldSpec.key] =
       token === "?" ? "*" : token;
   }
@@ -197,14 +201,14 @@ export function convertCronExpression(
   if (!fields) return null;
 
   // Lossy conversions are rejected rather than silently changing semantics:
-  // sub-minute Quartz seconds and year-restricted AWS schedules cannot be
-  // expressed in the 5-field Unix family or across the other 6-field dialect.
-  if (fields.second !== "0" && to !== "quartz") return null;
-  if (fields.year !== "*" && to !== "aws") return null;
+  // sub-minute seconds and year-restricted schedules cannot be expressed in
+  // dialects that lack those fields.
+  if (fields.second !== "0" && to !== "quartz" && to !== "salesforce") return null;
+  if (fields.year !== "*" && to !== "aws" && to !== "salesforce") return null;
 
   const domRestricted = fields.dayOfMonth !== "*";
   const dowRestricted = fields.dayOfWeek !== "*";
-  const questionMarkTarget = to === "aws" || to === "quartz";
+  const questionMarkTarget = to === "aws" || to === "quartz" || to === "salesforce";
   if (questionMarkTarget && domRestricted && dowRestricted) return null;
   if (!specialTokensSurvive(fields, from, to)) return null;
 
@@ -227,7 +231,7 @@ export function convertCronExpression(
       dayOfMonth = "?";
       dayOfWeek = "*";
     } else {
-      // Quartz documents the wildcard case with '?' in day-of-week.
+      // Quartz and Salesforce document the wildcard case with '?' in day-of-week.
       dayOfMonth = "*";
       dayOfWeek = "?";
     }
@@ -243,8 +247,8 @@ export function convertCronExpression(
   }
 
   const parts: string[] = [];
-  if (to === "quartz") parts.push(fields.second);
+  if (to === "quartz" || to === "salesforce") parts.push(fields.second);
   parts.push(fields.minute, fields.hour, dayOfMonth, fields.month, dayOfWeek);
-  if (to === "aws") parts.push(fields.year);
+  if (to === "aws" || to === "salesforce") parts.push(fields.year);
   return parts.join(" ");
 }

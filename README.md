@@ -32,7 +32,7 @@ customer exports, internal schedules, and live auth tokens.
 
 | Tool | What it does |
 | --- | --- |
-| [Cron Expression Tester & Generator](https://syntaxfiddle.com/cron/) | Parse, explain, and simulate cron schedules across **Unix, Quartz, AWS EventBridge, and Cloudflare** dialects — plain-English translation, run timeline, timezone-aware next runs, and 100+ [ready-made cron recipes](https://syntaxfiddle.com/cron/every-5-minutes/). |
+| [Cron Expression Tester & Generator](https://syntaxfiddle.com/cron/) | Parse, explain, and simulate cron schedules across **Unix, Quartz, AWS EventBridge, Cloudflare, and [Salesforce System.schedule](https://syntaxfiddle.com/cron/salesforce/)** dialects — plain-English translation, run timeline, timezone-aware next runs, and 170+ [ready-made cron schedule pages](https://syntaxfiddle.com/cron/every-5-minutes/). |
 | [Conversion Studio](https://syntaxfiddle.com/csv/) | **20 dedicated converters** across CSV, Excel, JSON, SQL, and XML — [CSV→JSON](https://syntaxfiddle.com/csv-to-json/), [CSV→SQL](https://syntaxfiddle.com/csv-to-sql/), [CSV→SOQL](https://syntaxfiddle.com/csv-to-soql/), [CSV→XML](https://syntaxfiddle.com/csv-to-xml/), [CSV→Markdown](https://syntaxfiddle.com/csv-to-markdown/), [CSV→YAML](https://syntaxfiddle.com/csv-to-yaml/), [Excel→SQL](https://syntaxfiddle.com/excel-to-sql/), [Excel→JSON](https://syntaxfiddle.com/excel-to-json/), [Excel→XML](https://syntaxfiddle.com/excel-to-xml/), [Excel→SOQL](https://syntaxfiddle.com/excel-to-soql/), [Excel→Markdown](https://syntaxfiddle.com/excel-to-markdown/), [Excel→YAML](https://syntaxfiddle.com/excel-to-yaml/), [JSON→CSV](https://syntaxfiddle.com/json-to-csv/), [JSON→Excel](https://syntaxfiddle.com/json-to-excel/), [JSON→YAML](https://syntaxfiddle.com/json-to-yaml/), [SQL→CSV](https://syntaxfiddle.com/sql-to-csv/), [SQL→Excel](https://syntaxfiddle.com/sql-to-excel/), [XML→JSON](https://syntaxfiddle.com/xml-to-json/), [XML→CSV](https://syntaxfiddle.com/xml-to-csv/), and [XML→Excel](https://syntaxfiddle.com/xml-to-excel/) — real typed `.xlsx` output, delimiter sniffing, column type inference, 100% client-side. |
 | [cURL Converter](https://syntaxfiddle.com/curl-converter/) | Transpile cURL commands to idiomatic code in **10 targets**: [fetch](https://syntaxfiddle.com/tools/curl-to-javascript-fetch/), [axios](https://syntaxfiddle.com/curl-to-axios/), [Python requests](https://syntaxfiddle.com/tools/curl-to-python-requests/), [PHP](https://syntaxfiddle.com/curl-to-php/), [Go](https://syntaxfiddle.com/curl-to-go/), [C#](https://syntaxfiddle.com/curl-to-csharp/), [Java](https://syntaxfiddle.com/curl-to-java/), [Salesforce Apex](https://syntaxfiddle.com/tools/curl-to-salesforce-apex/), [PowerShell](https://syntaxfiddle.com/curl-to-powershell/), and [HTTPie](https://syntaxfiddle.com/curl-to-httpie/). Headers, JSON bodies, basic auth included. |
 | [Regex Tester](https://syntaxfiddle.com/regex-tester/) | Evaluate patterns with live match highlighting, capture groups, and flags — sandboxed in a Web Worker with ReDoS protection. Dialect modes for [MySQL](https://syntaxfiddle.com/regex/mysql/), [Python](https://syntaxfiddle.com/regex/python/), [PHP/PCRE](https://syntaxfiddle.com/regex/php/), [Java](https://syntaxfiddle.com/regex/java/), and [.NET](https://syntaxfiddle.com/regex/dotnet/) translate flavor-specific syntax to JS with per-construct notices — untranslatable constructs are blocked, never silently mis-matched. |
@@ -40,10 +40,14 @@ customer exports, internal schedules, and live auth tokens.
 | [JSON to Schema Converter](https://syntaxfiddle.com/json-to-schema/) | Infer types from raw JSON into [Zod](https://syntaxfiddle.com/tools/json-to-zod/), [TypeScript](https://syntaxfiddle.com/json-to-typescript/), [Pydantic](https://syntaxfiddle.com/tools/json-to-pydantic/), and [Go structs](https://syntaxfiddle.com/json-to-go-struct/). |
 | [XML to Schema Converter](https://syntaxfiddle.com/xml-to-schema/) | Same four targets from XML documents — [XML→Zod](https://syntaxfiddle.com/xml-to-zod/), [XML→TypeScript](https://syntaxfiddle.com/xml-to-typescript/), [XML→Pydantic](https://syntaxfiddle.com/xml-to-pydantic/), and [XML→Go structs](https://syntaxfiddle.com/xml-to-go-struct/), with `@attr` conventions, repeated-element arrays, and CDATA preserved. |
 | [JSON to Apex Class Generator](https://syntaxfiddle.com/json-to-apex/) | Turn JSON into Salesforce Apex wrapper classes — inner classes for nested objects, `List<>` members for arrays, a `parse()` helper via `JSON.deserialize`, and optional `@AuraEnabled` members. One tool, three modes: a wire-callable `@AuraEnabled(cacheable=true)` parse() for LWC, and a `fromHttpResponse()` callout helper for REST integrations; reserved words mangled, original key casing preserved. |
+| [Salesforce ID Converter](https://syntaxfiddle.com/salesforce-id-converter/) | Convert Salesforce record IDs between the 15-character and case-safe 18-character forms — single or bulk, with standard-object prefix detection (001 = Account, 500 = Case) and checksum verification. Ships a verified Excel formula and the Apex `to18CharId` method. |
 | [Developer Tools Directory](https://syntaxfiddle.com/tools/) | One-page index of every tool — all 20 converters, the cURL targets, the schema generators, and the Salesforce developer tools. |
 
 ## Popular Salesforce tools
 
+[Salesforce ID converter](https://syntaxfiddle.com/salesforce-id-converter/) ·
+[Salesforce cron expression builder](https://syntaxfiddle.com/cron/salesforce/) ·
+[Debug log analyzer](https://syntaxfiddle.com/salesforce-debug-log-analyzer/) ·
 [JSON to Apex class generator](https://syntaxfiddle.com/json-to-apex/) ·
 [SOQL formatter](https://syntaxfiddle.com/soql-formatter/) ·
 [CSV to SOQL IN clauses](https://syntaxfiddle.com/csv-to-soql/) ·
@@ -146,10 +150,11 @@ tests/         # Integration tests
 
 ## Contributing
 
-Contributions are welcome — especially **new cron dialects** (Salesforce `System.schedule`
-is on the [roadmap](https://github.com/nikharminds/SyntaxFiddle/issues)), **new cron
-recipes**, and **new conversion targets**. Adding a recipe takes one line of data; the
-page, FAQ, schema markup, and sitemap entry are generated automatically.
+Contributions are welcome — especially **new cron dialects** (the shipped
+[Salesforce `System.schedule`](https://syntaxfiddle.com/cron/salesforce/) dialect is the
+reference implementation to copy), **new cron recipes**, and **new conversion targets**.
+Adding a recipe takes one line of data; the page, FAQ, schema markup, and sitemap entry
+are generated automatically.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the guide, and look for
 [`good first issue`](https://github.com/nikharminds/SyntaxFiddle/labels/good%20first%20issue)

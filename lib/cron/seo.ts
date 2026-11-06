@@ -15,7 +15,7 @@ export interface RecipeFaq {
 export interface CodeSnippet {
   id: string;
   label: string;
-  language: "js" | "python" | "yaml" | "bash" | "ts";
+  language: "js" | "python" | "yaml" | "bash" | "ts" | "apex";
   code: string;
   scheduleLiteral?: string;
   note?: string;
@@ -26,6 +26,7 @@ const DIALECT_LABELS: Record<CronDialect, string> = {
   aws: "AWS EventBridge",
   quartz: "Quartz",
   cloudflare: "Cloudflare Workers",
+  salesforce: "Salesforce (System.schedule)",
 };
 
 const UTC_BEHAVIOR: Record<CronDialect, string> = {
@@ -37,6 +38,8 @@ const UTC_BEHAVIOR: Record<CronDialect, string> = {
     "AWS EventBridge evaluates cron expressions in UTC only — there is no per-rule timezone setting. Convert your target local time, including daylight saving adjustments, to UTC when authoring the expression.",
   quartz:
     "Quartz evaluates the trigger in the timezone configured on the scheduler or on the individual trigger's timeZone property, defaulting to the JVM's default timezone. Spring's @Scheduled uses the server default unless you set the zone attribute per task.",
+  salesforce:
+    "System.schedule evaluates the cron expression in the timezone of the user who schedules the job — not UTC and not necessarily the org default. Schedule as the right user (or simulate with that user's timezone above): sandbox and production users with different timezones produce different fire times, and daylight saving shifts move runs by an hour.",
 };
 
 export function buildRecipeFaqs(
@@ -72,7 +75,7 @@ export function buildRecipeFaqs(
   } else if (recipe.category === "platform-specific") {
     practicalFaq = {
       question: `Is "${recipe.expression}" valid outside ${DIALECT_LABELS[recipe.dialect]}?`,
-      answer: `Not directly. Standard Unix cron expects 5 fields without '?', Quartz expects a leading seconds field, and AWS EventBridge appends a year and requires '?' in one of the two day fields. The conversion snippets below show the equivalent expression for each platform.`,
+      answer: `Not directly. Standard Unix cron expects 5 fields without '?', Quartz expects a leading seconds field, AWS EventBridge appends a year and requires '?' in one of the two day fields, and Salesforce System.schedule needs a leading seconds field with 1-based weekdays and an optional trailing year. The conversion snippets below show the equivalent expression for each platform.`,
     };
   } else {
     practicalFaq = {
@@ -94,7 +97,18 @@ export function buildRecipeSnippets(recipe: CronRecipe): CodeSnippet[] {
     : "Converted to the standard 5-field crontab syntax that Linux, GitHub Actions, and APScheduler expect.";
   const unsupportedCode = `# The 5-field cron syntax cannot express "${recipe.expression}".\n# Use a scheduler with rich triggers (APScheduler CronTrigger(day='last'),\n# node-cron 'L' support, or the AWS/Quartz syntax shown in the AWS tab).`;
 
-  const snippets: CodeSnippet[] = [
+  const snippets: CodeSnippet[] = [];
+  if (recipe.dialect === "salesforce") {
+    snippets.push({
+      id: "apex",
+      label: "Apex (System.schedule)",
+      language: "apex",
+      code: `public class MySchedulable implements Schedulable {\n    public void execute(SchedulableContext ctx) {\n        // Your scheduled logic — often Database.executeBatch(...).\n    }\n}\n\n// Fires on the schedule below, in the scheduling user's timezone:\nSystem.schedule('My Job', '${recipe.expression}', new MySchedulable());`,
+      scheduleLiteral: recipe.expression,
+      note: "Run via Anonymous Apex, a test, or a post-deploy script. The expression is evaluated in the timezone of the user who schedules the job — watch that when hours look off by a few.",
+    });
+  }
+  snippets.push(
     {
       id: "node",
       label: "Node.js",
@@ -146,7 +160,7 @@ export function buildRecipeSnippets(recipe: CronRecipe): CodeSnippet[] {
       scheduleLiteral: awsConversion.expression,
       note: awsConversion.note,
     },
-  ];
+  );
 
   return snippets;
 }

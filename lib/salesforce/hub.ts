@@ -29,6 +29,19 @@ export const SALESFORCE_TOOLS: SalesforceToolLink[] = [
     badge: "New",
   },
   {
+    href: "/salesforce-id-converter/",
+    label: "Salesforce ID Converter",
+    shortLabel: "ID Converter",
+    tagline: "Convert 15-character record IDs to case-safe 18-character IDs in bulk, with object-prefix detection.",
+    badge: "New",
+  },
+  {
+    href: "/cron/salesforce/",
+    label: "Cron Expression Builder",
+    shortLabel: "Cron Builder",
+    tagline: "Build and simulate System.schedule expressions for scheduled Apex — seconds field, 1-based weekdays, optional year.",
+  },
+  {
     href: "/soql-formatter/",
     label: "SOQL Formatter",
     shortLabel: "SOQL Formatter",
@@ -64,7 +77,7 @@ export const SALESFORCE_HUB_TITLE =
   "Salesforce Developer Tools — Free, Online & 100% Client-Side | SyntaxFiddle";
 
 export const SALESFORCE_HUB_DESCRIPTION =
-  "Every SyntaxFiddle Salesforce tool in one place: debug log analyzer with N+1 detection, SOQL formatter, JSON to Apex class generator, CSV & Excel to SOQL converters, and cURL to Apex — free, online, and parsed entirely in your browser. No org login, no uploads.";
+  "Every SyntaxFiddle Salesforce tool in one place: debug log analyzer with N+1 detection, 15-to-18 digit ID converter, System.schedule cron builder, SOQL formatter, JSON to Apex class generator, CSV & Excel to SOQL converters, and cURL to Apex — free, online, and parsed entirely in your browser. No org login, no uploads.";
 
 export const SALESFORCE_HUB_KEYWORDS = [
   "salesforce tools",
@@ -72,6 +85,10 @@ export const SALESFORCE_HUB_KEYWORDS = [
   "free salesforce tools online",
   "salesforce debug log analyzer",
   "apex debug log analyzer",
+  "salesforce id converter",
+  "15 digit to 18 digit salesforce",
+  "salesforce cron expression",
+  "system.schedule",
   "soql formatter online",
   "json to apex generator",
   "csv to soql",

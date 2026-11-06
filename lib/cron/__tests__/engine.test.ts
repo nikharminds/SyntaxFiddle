@@ -237,6 +237,110 @@ describe("analyzeCronExpression", () => {
     });
   });
 
+  describe("Salesforce System.schedule dialect", () => {
+    it("accepts 0 0 12 ? * MON-FRI (6 fields) and validates weekdays at noon", () => {
+      const result = analyzeCronExpression("0 0 12 ? * MON-FRI", "salesforce", "UTC");
+
+      expect(result.isValid).toBe(true);
+      expect(result.dialect).toBe("salesforce");
+      // The optional Year field renders as a valid, empty 7th row.
+      expect(result.fields).toHaveLength(7);
+      expect(result.fields[6]).toMatchObject({ value: "", isValid: true });
+      expect(result.humanReadable).toMatch(/Monday through Friday/);
+      expect(result.nextRuns.length).toBeGreaterThan(0);
+      for (const run of result.nextRuns) {
+        expect(run.getUTCDay()).toBeGreaterThanOrEqual(1);
+        expect(run.getUTCDay()).toBeLessThanOrEqual(5);
+        expect(run.getUTCHours()).toBe(12);
+        expect(run.getUTCSeconds()).toBe(0);
+      }
+    });
+
+    it("treats day-of-week as 1-based: rejects 0 and treats 1 as Sunday", () => {
+      const invalid = analyzeCronExpression("0 15 10 ? * 0", "salesforce", "UTC");
+      expect(invalid.isValid).toBe(false);
+      expect(invalid.fields[5]?.error).toMatch(/between 1 and 7/);
+
+      const sunday = analyzeCronExpression("0 15 10 ? * 1", "salesforce", "UTC");
+      expect(sunday.isValid).toBe(true);
+      for (const run of sunday.nextRuns) {
+        expect(run.getUTCDay()).toBe(0);
+      }
+    });
+
+    it("accepts the optional 7th year field and constrains runs to it", () => {
+      const result = analyzeCronExpression("0 0 12 ? * MON-FRI 2030", "salesforce", "UTC");
+
+      expect(result.isValid).toBe(true);
+      expect(result.fields).toHaveLength(7);
+      expect(result.fields[6]?.isValid).toBe(true);
+      expect(result.nextRuns.length).toBeGreaterThan(0);
+      for (const run of result.nextRuns) {
+        expect(run.getUTCFullYear()).toBe(2030);
+      }
+    });
+
+    it("returns no runs when the Salesforce year is entirely in the past", () => {
+      const result = analyzeCronExpression("0 0 12 ? * MON-FRI 2020", "salesforce", "UTC");
+
+      expect(result.isValid).toBe(true);
+      expect(result.nextRuns).toEqual([]);
+      expect(result.errorMessage).toMatch(/no upcoming run dates/);
+    });
+
+    it("validates the Salesforce year range (1970-2099)", () => {
+      const result = analyzeCronExpression("0 0 12 ? * MON-FRI 2200", "salesforce", "UTC");
+
+      expect(result.isValid).toBe(false);
+      expect(result.fields[6]?.isValid).toBe(false);
+      expect(result.fields[6]?.error).toMatch(/between 1970 and 2099/);
+    });
+
+    it("rejects 5 fields with a leading-seconds hint", () => {
+      const result = analyzeCronExpression("0 9 * * 1-5", "salesforce", "UTC");
+
+      expect(result.isValid).toBe(false);
+      expect(result.errorMessage).toMatch(/expects 6 or 7 fields, but found 5/);
+      expect(result.errorMessage).toMatch(/Seconds/);
+      expect(result.nextRuns).toEqual([]);
+    });
+
+    it("rejects 8 fields", () => {
+      const result = analyzeCronExpression("* * * * * * * *", "salesforce", "UTC");
+
+      expect(result.isValid).toBe(false);
+      expect(result.errorMessage).toMatch(/expects 6 or 7 fields, but found 8/);
+    });
+
+    it("honors the seconds field", () => {
+      const result = analyzeCronExpression("30 15 10 ? * MON-FRI", "salesforce", "UTC");
+
+      expect(result.isValid).toBe(true);
+      for (const run of result.nextRuns) {
+        expect(run.getUTCSeconds()).toBe(30);
+        expect(run.getUTCMinutes()).toBe(15);
+      }
+    });
+
+    it("accepts L in day-of-month (last day of the month)", () => {
+      const result = analyzeCronExpression("0 0 0 L * ?", "salesforce", "UTC");
+
+      expect(result.isValid).toBe(true);
+      expect(result.nextRuns.length).toBeGreaterThan(0);
+      for (const run of result.nextRuns) {
+        expect(run.getUTCDate()).toBeGreaterThan(27);
+      }
+    });
+
+    it("rejects macros with the manual Salesforce expansion", () => {
+      const result = analyzeCronExpression("@daily", "salesforce", "UTC");
+
+      expect(result.isValid).toBe(false);
+      expect(result.errorMessage).toMatch(/Salesforce/);
+      expect(result.errorMessage).toContain('"0 0 0 * * ?"');
+    });
+  });
+
   describe("timezones and run counts", () => {
     it("computes runs in the selected IANA timezone", () => {
       const result = analyzeCronExpression("0 12 * * ? *", "aws", "Asia/Kolkata");

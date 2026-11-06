@@ -114,6 +114,8 @@ const XML_SCHEMA_LINKS: DirectoryLink[] = [
 const SALESFORCE_TOOLS: DirectoryLink[] = [
   { href: "/json-to-apex/", label: "JSON to Apex Class Generator", icon: Cloud, hub: true },
   { href: "/soql-formatter/", label: "SOQL Formatter & Beautifier", icon: Database },
+  { href: "/salesforce-id-converter/", label: "Salesforce ID Converter — 15 to 18 Digit", icon: Database },
+  { href: "/cron/salesforce/", label: "Salesforce Cron Expression Builder", icon: Cloud },
   { href: "/csv-to-soql/", label: "CSV to SOQL IN Clauses", icon: Table2 },
   { href: "/excel-to-soql/", label: "Excel to SOQL IN Clauses", icon: FileSpreadsheet },
   { href: "/tools/curl-to-salesforce-apex/", label: "cURL to Salesforce Apex", icon: SquareTerminal },

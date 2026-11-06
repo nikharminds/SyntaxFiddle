@@ -32,6 +32,7 @@ const DIALECT_LABELS: Record<CronDialect, string> = {
   aws: "AWS EventBridge",
   quartz: "Quartz",
   cloudflare: "Cloudflare Workers",
+  salesforce: "Salesforce (System.schedule)",
 };
 
 const DESCRIPTION_DIALECTS: Record<CronDialect, string> = {
@@ -39,6 +40,7 @@ const DESCRIPTION_DIALECTS: Record<CronDialect, string> = {
   aws: "AWS EventBridge",
   quartz: "Quartz",
   cloudflare: "Cloudflare Workers",
+  salesforce: "Salesforce",
 };
 
 type Seed = readonly [slug: string, expression: string, name: string, dialect?: CronDialect];
@@ -46,7 +48,15 @@ type Seed = readonly [slug: string, expression: string, name: string, dialect?: 
 function describe(name: string, expression: string, dialect: CronDialect): string {
   const awsWrapper =
     dialect === "aws" ? ` In an EventBridge rule you write it as cron(${expression}).` : "";
-  return `The ${DESCRIPTION_DIALECTS[dialect]} cron expression "${expression}" runs a task ${name.toLowerCase()}.${awsWrapper} Preview the next run times in your timezone, read the plain-English translation, and copy ready-to-paste snippets for crontab, Node.js, GitHub Actions, and AWS EventBridge.`;
+  const apexWrapper =
+    dialect === "salesforce"
+      ? ` In Apex, schedule it with System.schedule('MyJob', '${expression}', new MySchedulable()).`
+      : "";
+  const snippetTargets =
+    dialect === "salesforce"
+      ? "Apex System.schedule, crontab, Node.js, GitHub Actions, and AWS EventBridge"
+      : "crontab, Node.js, GitHub Actions, and AWS EventBridge";
+  return `The ${DESCRIPTION_DIALECTS[dialect]} cron expression "${expression}" runs a task ${name.toLowerCase()}.${awsWrapper}${apexWrapper} Preview the next run times in your timezone, read the plain-English translation, and copy ready-to-paste snippets for ${snippetTargets}.`;
 }
 
 function buildCategory(category: RecipeCategory, seeds: Seed[]): CronRecipe[] {
@@ -179,9 +189,21 @@ const PLATFORM: Seed[] = [
   ["cloudflare-daily-at-midnight", "0 0 * * *", "Daily at Midnight (Cloudflare Workers)", "cloudflare"],
   ["cloudflare-every-monday-at-midnight", "0 0 * * 1", "Every Monday at Midnight (Cloudflare Workers)", "cloudflare"],
   ["cloudflare-first-day-of-month", "0 0 1 * *", "First Day of Month (Cloudflare Workers)", "cloudflare"],
+  ["salesforce-every-minute", "0 * * * * ?", "Every Minute (Salesforce)", "salesforce"],
+  ["salesforce-every-5-minutes", "0 0/5 * * * ?", "Every 5 Minutes (Salesforce)", "salesforce"],
+  ["salesforce-every-15-minutes", "0 0/15 * * * ?", "Every 15 Minutes (Salesforce)", "salesforce"],
+  ["salesforce-every-30-minutes", "0 0/30 * * * ?", "Every 30 Minutes (Salesforce)", "salesforce"],
+  ["salesforce-every-hour", "0 0 * * * ?", "Every Hour (Salesforce)", "salesforce"],
+  ["salesforce-every-6-hours", "0 0 0/6 * * ?", "Every 6 Hours (Salesforce)", "salesforce"],
+  ["salesforce-daily-at-midnight", "0 0 0 * * ?", "Daily at Midnight (Salesforce)", "salesforce"],
+  ["salesforce-weekdays-at-noon", "0 0 12 ? * MON-FRI", "Weekdays at Noon (Salesforce)", "salesforce"],
+  ["salesforce-every-monday-at-9am", "0 0 9 ? * MON", "Every Monday at 9 AM (Salesforce)", "salesforce"],
+  ["salesforce-first-day-of-month", "0 0 0 1 * ?", "First Day of Month (Salesforce)", "salesforce"],
+  ["salesforce-last-day-of-month", "0 0 0 L * ?", "Last Day of Month (Salesforce)", "salesforce"],
+  ["salesforce-third-friday", "0 0 12 ? * 6#3", "Third Friday of the Month (Salesforce)", "salesforce"],
 ];
 
-const DIALECT_PREFIXES = ["aws-eventbridge-", "quartz-", "spring-boot-", "cloudflare-"];
+const DIALECT_PREFIXES = ["aws-eventbridge-", "quartz-", "spring-boot-", "cloudflare-", "salesforce-"];
 
 function conceptOf(slug: string): string {
   for (const prefix of DIALECT_PREFIXES) {
@@ -303,6 +325,12 @@ export function unixEquivalentExpression(recipe: CronRecipe): string | null {
     }
     fields = fields.slice(1);
   }
+  if (recipe.dialect === "salesforce") {
+    if ((fields.length !== 6 && fields.length !== 7) || fields[0] !== "0") {
+      return null;
+    }
+    fields = fields.slice(1, 6);
+  }
   if (recipe.dialect === "aws") {
     if (fields.length !== 6) {
       return null;
@@ -337,7 +365,19 @@ export function awsEquivalentExpression(recipe: CronRecipe): AwsConversion {
       note: "AWS EventBridge cannot express sub-minute cadences. The closest equivalent fires at the top of every minute — combine it with in-code throttling if you need finer control.",
     };
   }
-  const five = recipe.dialect === "quartz" ? fields.slice(1) : fields;
+  if (
+    recipe.dialect === "salesforce" &&
+    ((fields.length !== 6 && fields.length !== 7) || fields[0] !== "0")
+  ) {
+    return {
+      expression: "0/1 * * * ? *",
+      note: "AWS EventBridge cannot express sub-minute cadences. The closest equivalent fires at the top of every minute — combine it with in-code throttling if you need finer control.",
+    };
+  }
+  const five =
+    recipe.dialect === "quartz" || recipe.dialect === "salesforce"
+      ? fields.slice(1, 6)
+      : fields;
   if (five.length !== 5) {
     return { expression: recipe.expression };
   }
@@ -360,6 +400,11 @@ export function awsEquivalentExpression(recipe: CronRecipe): AwsConversion {
 }
 
 export function nodeCronEquivalentExpression(recipe: CronRecipe): string {
+  if (recipe.dialect === "salesforce") {
+    const fields = recipe.expression.trim().split(/\s+/);
+    // node-cron is seconds-first like System.schedule; drop the optional year.
+    return (fields.length === 7 ? fields.slice(0, 6) : fields).join(" ");
+  }
   if (recipe.dialect !== "aws") {
     return recipe.expression;
   }

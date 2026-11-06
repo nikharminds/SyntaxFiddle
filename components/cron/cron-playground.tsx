@@ -16,6 +16,7 @@ export const DIALECT_DEFAULTS: Record<CronDialect, string> = {
   aws: "0 12 ? * MON-FRI *",
   quartz: "0 15 10 ? * 6#3",
   cloudflare: "0 */6 * * *",
+  salesforce: "0 0/5 * * * ?",
 };
 
 const TIMELINE_RUN_COUNT = 50;

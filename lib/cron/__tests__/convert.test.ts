@@ -69,6 +69,48 @@ describe("convertCronExpression", () => {
     );
   });
 
+  describe("salesforce conversions", () => {
+    it("prepends seconds and appends the year converting unix to salesforce", () => {
+      expect(convertCronExpression("0 9 * * 1-5", "unix", "salesforce")).toBe(
+        "0 0 9 ? * MON-FRI *",
+      );
+    });
+
+    it("drops seconds and year converting salesforce back to unix", () => {
+      expect(convertCronExpression("0 0 9 ? * MON-FRI", "salesforce", "unix")).toBe(
+        "0 9 * * 1-5",
+      );
+    });
+
+    it("keeps 1-based day names and the year converting salesforce to aws", () => {
+      expect(convertCronExpression("0 0 12 ? * MON-FRI 2027", "salesforce", "aws")).toBe(
+        "0 12 ? * MON-FRI 2027",
+      );
+    });
+
+    it("maps a salesforce expression onto the quartz 6-field shape", () => {
+      expect(convertCronExpression("0 0 12 ? * MON-FRI", "salesforce", "quartz")).toBe(
+        "0 0 12 ? * MON-FRI",
+      );
+    });
+
+    it("uses '?' in day-of-week for unrestricted unix day fields", () => {
+      expect(convertCronExpression("*/5 * * * *", "unix", "salesforce")).toBe(
+        "0 */5 * * * ? *",
+      );
+    });
+
+    it("round-trips unix through salesforce", () => {
+      const sf = convertCronExpression("*/5 * * * *", "unix", "salesforce");
+      expect(convertCronExpression(sf!, "salesforce", "unix")).toBe("*/5 * * * *");
+    });
+
+    it("rejects sub-minute salesforce seconds converting to unix or aws", () => {
+      expect(convertCronExpression("*/15 * * * * ?", "salesforce", "unix")).toBeNull();
+      expect(convertCronExpression("*/15 * * * * ?", "salesforce", "aws")).toBeNull();
+    });
+  });
+
   it("rejects lossy conversions instead of silently changing semantics", () => {
     // Non-zero quartz seconds cannot be expressed in a 5-field dialect.
     expect(convertCronExpression("30 15 10 ? * MON-FRI", "quartz", "unix")).toBeNull();

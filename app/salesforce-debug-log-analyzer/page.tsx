@@ -178,6 +178,8 @@ export default function SalesforceDebugLogAnalyzerPage() {
           <ul className="grid list-none gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {[
               { href: "/salesforce/", label: "All Salesforce Developer Tools" },
+              { href: "/salesforce-id-converter/", label: "Salesforce ID Converter — 15 to 18 Digit" },
+              { href: "/cron/salesforce/", label: "Salesforce Cron Expression Builder" },
               { href: "/soql-formatter/", label: "SOQL Formatter — Beautify Queries" },
               { href: "/json-to-apex/", label: "JSON to Apex Class Generator" },
               { href: "/tools/curl-to-salesforce-apex/", label: "cURL to Salesforce Apex" },

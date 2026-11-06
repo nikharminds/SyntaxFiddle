@@ -17,14 +17,17 @@ const H = 630;
 const SANS = "-apple-system, Helvetica, Arial, sans-serif";
 const MONO = "Menlo, Monaco, Courier New, monospace";
 
-/** Identical chrome to the blog diagram generator — the house card style. */
+/** Identical chrome to the blog diagram generator — the house card style.
+ * Footer baseline sits at H-40 so content above (chips end ≈544) keeps a
+ * ~30px clear gap above the domain line, with 35px below it.
+ */
 function chrome(title, subtitle) {
   return `
   <rect x="0" y="0" width="${W}" height="${H}" fill="#09090b"/>
   <rect x="0" y="0" width="${W}" height="10" fill="#10b981"/>
   <text x="64" y="100" font-family="${SANS}" font-size="46" font-weight="700" fill="#fafafa">${title}</text>
   <text x="64" y="144" font-family="${SANS}" font-size="25" fill="#a1a1aa">${subtitle}</text>
-  <text x="64" y="${H - 46}" font-family="${SANS}" font-size="22" fill="#52525b">syntaxfiddle.com — 100% client-side dev utilities</text>`;
+  <text x="64" y="${H - 40}" font-family="${SANS}" font-size="22" fill="#52525b">syntaxfiddle.com — 100% client-side dev utilities</text>`;
 }
 
 /* 1. Debug Log Analyzer — mock log panel + two finding chips below it.
@@ -84,12 +87,19 @@ function debugLogCard() {
   </svg>`;
 }
 
-/* 2. Salesforce tools hub — six equal tool chips, no favoritism. */
+/* 2. Salesforce tools hub — every tool as an equal chip, no favoritism.
+ *
+ * Three rows of chips must end well above the domain footer line (baseline
+ * y=584, visual top ≈568): rows at y=180/310/440 with 104px-tall boxes end
+ * at y=544, leaving ~24px of clear padding above the footer text.
+ */
 function hubCard() {
   const tools = [
     "Debug Log Analyzer",
     "SOQL Formatter",
     "JSON to Apex",
+    "ID Converter",
+    "Cron Builder",
     "CSV to SOQL",
     "Excel to SOQL",
     "cURL to Apex",
@@ -99,24 +109,84 @@ function hubCard() {
       const column = index % 3;
       const row = Math.floor(index / 3);
       const x = 64 + column * 366;
-      const y = 240 + row * 146;
+      const y = 180 + row * 130;
       return `
-  <rect x="${x}" y="${y}" width="340" height="110" rx="14" fill="#18181b" stroke="#27272a" stroke-width="2"/>
-  <text x="${x + 24}" y="${y + 46}" font-family="${SANS}" font-size="25" font-weight="700" fill="#e4e4e7">${label}</text>
-  <text x="${x + 24}" y="${y + 78}" font-family="${SANS}" font-size="18" fill="#71717a">free · online · client-side</text>`;
+  <rect x="${x}" y="${y}" width="340" height="104" rx="14" fill="#18181b" stroke="#27272a" stroke-width="2"/>
+  <text x="${x + 24}" y="${y + 44}" font-family="${SANS}" font-size="25" font-weight="700" fill="#e4e4e7">${label}</text>
+  <text x="${x + 24}" y="${y + 76}" font-family="${SANS}" font-size="18" fill="#71717a">free · online · client-side</text>`;
     })
     .join("");
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${chrome(
     "Salesforce Developer Tools",
-    "Six free tools — no org login, nothing ever uploaded",
+    "Eight free tools — no org login, nothing ever uploaded",
   )}
   ${boxes}
   </svg>`;
 }
 
+/* 3. ID Converter — a 15-char Id flowing into its case-safe 18-char form,
+ * with three object-prefix chips underneath.
+ */
+function idConverterCard() {
+  const chips = [
+    { x: 64, text: "001 → Account", stroke: "#10b981" },
+    { x: 438, text: "003 → Contact", stroke: "#3f3f46" },
+    { x: 812, text: "500 → Case", stroke: "#3f3f46" },
+  ]
+    .map(
+      (chip) => `
+  <rect x="${chip.x}" y="488" width="324" height="46" rx="10" fill="#18181b" stroke="${chip.stroke}" stroke-width="2"/>
+  <text x="${chip.x + 22}" y="518" font-family="${MONO}" font-size="20" fill="#a1a1aa">${chip.text}</text>`,
+    )
+    .join("");
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${chrome(
+    "Salesforce ID Converter",
+    "15 → 18 character record Ids · case-safe · bulk mode",
+  )}
+  <rect x="64" y="170" width="1072" height="290" rx="16" fill="#101012" stroke="#27272a" stroke-width="2"/>
+  <text x="96" y="240" font-family="${SANS}" font-size="20" fill="#71717a">15-character (case-sensitive)</text>
+  <text x="96" y="284" font-family="${MONO}" font-size="30" font-weight="700" fill="#e4e4e7">0033000001QyXb5</text>
+  <path d="M 600 268 L 668 268 M 648 248 L 672 268 L 648 288" stroke="#10b981" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="700" y="240" font-family="${SANS}" font-size="20" fill="#71717a">18-character (case-safe)</text>
+  <text x="700" y="284" font-family="${MONO}" font-size="30" font-weight="700" fill="#10b981">0033000001QyXb5<tspan fill="#fafafa">AAF</tspan></text>
+  <text x="96" y="356" font-family="${SANS}" font-size="19" fill="#52525b">Checksum verified · Excel &amp; Apex recipes included · nothing uploaded</text>
+  ${chips}
+  </svg>`;
+}
+
+/* 4. Salesforce cron landing — a System.schedule expression front and center. */
+function salesforceCronCard() {
+  const chips = [
+    { x: 64, text: "6 fields + optional year", stroke: "#10b981" },
+    { x: 500, text: "Apex System.schedule ready", stroke: "#3f3f46" },
+    { x: 936, text: "1 = SUN", stroke: "#3f3f46" },
+  ]
+    .map(
+      (chip) => `
+  <rect x="${chip.x}" y="488" width="${chip.text.length * 12 + 44}" height="46" rx="10" fill="#18181b" stroke="${chip.stroke}" stroke-width="2"/>
+  <text x="${chip.x + 22}" y="518" font-family="${SANS}" font-size="20" fill="#a1a1aa">${chip.text}</text>`,
+    )
+    .join("");
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${chrome(
+    "Salesforce Cron Expression Builder",
+    "System.schedule · seconds-first · timezone-true run preview",
+  )}
+  <rect x="64" y="170" width="1072" height="290" rx="16" fill="#101012" stroke="#27272a" stroke-width="2"/>
+  <text x="96" y="228" font-family="${SANS}" font-size="20" fill="#71717a">Every 5 minutes, in System.schedule form:</text>
+  <text x="96" y="296" font-family="${MONO}" font-size="46" font-weight="700" fill="#10b981">0 0/5 * * * ?</text>
+  <text x="96" y="352" font-family="${SANS}" font-size="21" fill="#a1a1aa">Live next-run preview · plain-English output · copy-paste Apex</text>
+  <text x="96" y="398" font-family="${MONO}" font-size="20" fill="#52525b">System.schedule('My Job', '0 0/5 * * * ?', new MySchedulable());</text>
+  ${chips}
+  </svg>`;
+}
+
 const IMAGES = [
   { file: "salesforce-debug-log-analyzer.jpg", svg: debugLogCard() },
+  { file: "salesforce-id-converter.jpg", svg: idConverterCard() },
+  { file: "salesforce-cron.jpg", svg: salesforceCronCard() },
   { file: "salesforce.jpg", svg: hubCard() },
 ];
 
