@@ -13,9 +13,9 @@ import { buildJwtSeoSections, JWT_FAQS } from "@/lib/jwt/copy";
 import { SITE_URL } from "@/lib/site";
 
 const PAGE_URL = `${SITE_URL}/jwt-decoder/`;
-const TITLE = "JWT Decoder - Secure, Offline, Client-Side Only | SyntaxFiddle";
+const TITLE = "JWT Decoder Online — Decode & Inspect Tokens | SyntaxFiddle";
 const DESCRIPTION =
-  "Decode JSON Web Tokens entirely in your browser — color-coded header, payload, and signature, syntax-highlighted claims, and live expiry checks. Decode-only, zero network calls, nothing logged.";
+  "Free online JWT decoder — inspect the header, payload, and signature of any token entirely in your browser. Color-coded segments, live expiry checks, zero network calls.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -86,7 +86,7 @@ export default function JwtDecoderPage() {
               <Badge variant="outline">Decode-Only</Badge>
             </>
           }
-          title="JWT Decoder — Secure, Offline, Client-Side Only"
+          title="JWT Decoder Online — Secure, Offline, Client-Side Only"
           description="Paste a token and inspect its header, payload, and claims without it ever leaving your browser. Below the tool: how Base64Url works, what each of the three segments contains, and why server-backed decoders are a credential-leak risk."
           facts={[
             {

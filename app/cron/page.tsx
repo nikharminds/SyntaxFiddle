@@ -66,13 +66,13 @@ export default function CronPage() {
               <Badge variant="outline">Zero-latency parsing</Badge>
             </>
           }
-          title="Cron Expression Tester & Generator"
+          title="Cron Expression Generator & Tester"
           description={
             <>
-              Type an expression — validation, the plain-English translation, and the run
-              timeline update instantly as you type. Everything is computed in your
-              browser, and the URL updates silently so you can share the exact state.
-              Looking for a specific schedule? Browse the{" "}
+              Type an expression — the plain-English translation, validation, and the run
+              timeline update instantly as you type. Every field is explained inline, so the
+              tool doubles as a cron syntax explainer. Looking for a specific schedule? Browse
+              the{" "}
               <a href="#related" className="text-emerald-400 hover:underline">
                 popular cron recipes
               </a>{" "}
@@ -146,6 +146,52 @@ export default function CronPage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section aria-labelledby="cron-explainer-heading" className="mt-14">
+        <h2
+          id="cron-explainer-heading"
+          className="flex items-center gap-2 text-xl font-bold tracking-tight text-zinc-100"
+        >
+          <CalendarClock size={18} className="text-emerald-400" aria-hidden />
+          A cron reader, validator, and calculator in one tool
+        </h2>
+        <div className="mt-3 max-w-3xl space-y-3 text-sm leading-relaxed text-zinc-400">
+          <p>
+            Paste any expression and the validator spells out what every field means in plain
+            English — invalid patterns are flagged with the exact field that broke. Inherited a
+            crontab line and wondering what{" "}
+            <code className="font-mono text-emerald-400">*/15 * * * *</code> means? The reader
+            translates it: every 15 minutes, on the quarter hour. Need the upcoming run times?
+            The calculator lists the next 50 in your timezone as you type.
+          </p>
+          <p>
+            Common schedules have dedicated reference pages —{" "}
+            <Link
+              href="/cron/every-15-minutes/"
+              className="text-emerald-400 hover:underline"
+            >
+              */15 * * * * (every 15 minutes)
+            </Link>
+            ,{" "}
+            <Link href="/cron/every-hour/" className="text-emerald-400 hover:underline">
+              0 * * * * (top of every hour)
+            </Link>
+            , and{" "}
+            <Link href="/cron/weekdays-at-9am/" className="text-emerald-400 hover:underline">
+              weekdays at 9 AM
+            </Link>{" "}
+            among them — and the{" "}
+            <Link
+              href="/blog/cron-expressions-explained/"
+              className="text-emerald-400 hover:underline"
+            >
+              field-by-field cron syntax guide
+            </Link>{" "}
+            covers every operator, macro, and dialect quirk. New to cron? Start with the guide.
+            Chasing a specific schedule? Jump straight to its reference page.
+          </p>
+        </div>
       </section>
     </div>
   );

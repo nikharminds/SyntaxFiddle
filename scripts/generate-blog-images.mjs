@@ -408,6 +408,37 @@ function soqlFormattingDiagram() {
   </svg>`;
 }
 
+/* 9. Salesforce callout error triage — CALLOUT_REQUEST/RESPONSE pair beside the
+ * 400 JSON error body, plus a status-code triage strip. */
+function calloutErrorDiagram() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${chrome(
+    "Salesforce Callout Error Triage",
+    "Pair the CALLOUT_REQUEST and CALLOUT_RESPONSE lines, then read the error body",
+  )}
+  <rect x="72" y="190" width="880" height="300" rx="16" fill="#18181b" stroke="#27272a" stroke-width="2"/>
+  <text x="96" y="230" font-family="${SANS}" font-size="24" font-weight="600" fill="#e4e4e7">Debug log — the failing transaction</text>
+  <text x="96" y="288" font-family="${MONO}" font-size="20"><tspan fill="#52525b">14:32:11.5 </tspan><tspan fill="#e4e4e7">(2530146)|</tspan><tspan fill="#34d399">CALLOUT_REQUEST</tspan><tspan fill="#e4e4e7">[31]|Method:POST</tspan></text>
+  <text x="96" y="326" font-family="${MONO}" font-size="20" fill="#71717a">  https://api.supplier.example.com/v1/workorders</text>
+  <text x="96" y="382" font-family="${MONO}" font-size="20"><tspan fill="#52525b">14:32:12.1 </tspan><tspan fill="#e4e4e7">(3184222)|</tspan><tspan fill="#34d399">CALLOUT_RESPONSE</tspan><tspan fill="#e4e4e7">[31]|</tspan><tspan fill="#f87171" font-weight="700">Status:400</tspan></text>
+  <text x="96" y="438" font-family="${SANS}" font-size="20" fill="#71717a">Same statement number <tspan fill="#34d399">[31]</tspan> pairs the request with its response — subtract</text>
+  <text x="96" y="466" font-family="${SANS}" font-size="20" fill="#71717a">the microsecond offsets to time the call: 3,184,222 − 2,530,146 ≈ 0.65 s.</text>
+
+  <rect x="976" y="190" width="552" height="300" rx="16" fill="#18181b" stroke="#10b981" stroke-opacity="0.35" stroke-width="2"/>
+  <text x="1000" y="230" font-family="${SANS}" font-size="24" font-weight="600" fill="#e4e4e7">400 body — logged via System.debug</text>
+  <text x="1000" y="288" font-family="${MONO}" font-size="20" fill="#71717a">{</text>
+  <text x="1000" y="326" font-family="${MONO}" font-size="20"><tspan fill="#e4e4e7">  "</tspan><tspan fill="#f87171">errorStatuscode</tspan><tspan fill="#e4e4e7">": 400,</tspan></text>
+  <text x="1000" y="364" font-family="${MONO}" font-size="20"><tspan fill="#e4e4e7">  "</tspan><tspan fill="#f87171">errorStatus</tspan><tspan fill="#e4e4e7">": "error",</tspan></text>
+  <text x="1000" y="402" font-family="${MONO}" font-size="20"><tspan fill="#e4e4e7">  "</tspan><tspan fill="#f87171">errorDescription</tspan><tspan fill="#e4e4e7">":</tspan></text>
+  <text x="1000" y="440" font-family="${MONO}" font-size="20" fill="#a1a1aa">    "value was not found for</text>
+  <text x="1000" y="478" font-family="${MONO}" font-size="20" fill="#a1a1aa">     required field :workOrder :"</text>
+  <text x="72" y="556" font-family="${SANS}" font-size="26" font-weight="600" fill="#e4e4e7">Status-code triage</text>
+  <text x="72" y="604" font-family="${MONO}" font-size="21"><tspan fill="#34d399" font-weight="700">400</tspan><tspan fill="#a1a1aa"> bad payload     </tspan><tspan fill="#34d399" font-weight="700">401</tspan><tspan fill="#a1a1aa"> auth failed     </tspan><tspan fill="#34d399" font-weight="700">403</tspan><tspan fill="#a1a1aa"> forbidden     </tspan><tspan fill="#34d399" font-weight="700">404</tspan><tspan fill="#a1a1aa"> wrong route</tspan></text>
+  <text x="72" y="650" font-family="${MONO}" font-size="21"><tspan fill="#34d399" font-weight="700">429</tspan><tspan fill="#a1a1aa"> rate limited     </tspan><tspan fill="#34d399" font-weight="700">5xx</tspan><tspan fill="#a1a1aa"> partner-side — retry with backoff</tspan></text>
+  <text x="72" y="730" font-family="${SANS}" font-size="24" fill="#a1a1aa">The platform logs the status but never the body — <tspan fill="#34d399">System.debug</tspan> the response yourself.</text>
+  <text x="72" y="772" font-family="${SANS}" font-size="24" fill="#a1a1aa">Triage the pair in your browser — <tspan fill="#34d399">syntaxfiddle.com/salesforce-debug-log-analyzer/</tspan></text>
+  </svg>`;
+}
+
 const IMAGES = [
   {
     slug: "cron-expressions-explained",
@@ -436,6 +467,11 @@ const IMAGES = [
     slug: "how-to-format-soql-queries",
     file: "soql-before-after.webp",
     svg: soqlFormattingDiagram(),
+  },
+  {
+    slug: "debug-salesforce-callout-errors",
+    file: "callout-error-triage.webp",
+    svg: calloutErrorDiagram(),
   },
 ];
 

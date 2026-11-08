@@ -1,0 +1,250 @@
+---
+title: "Debugging Salesforce Callout Errors in Debug Logs"
+description: "Find failed HTTP callouts in Salesforce debug logs — CALLOUT events, 400 response bodies, status-code triage, and the Apex pattern that pins the source."
+publishedAt: "2026-11-08"
+updatedAt: "2026-11-08"
+category: "Salesforce"
+tags: ["salesforce debug log", "callout", "http status codes", "apex", "integration errors"]
+author:
+  name: "SyntaxFiddle Editorial"
+  url: "https://syntaxfiddle.com/about/"
+relatedToolSlug: "salesforce-debug-log-analyzer"
+image:
+  url: "/blog/debug-salesforce-callout-errors/callout-error-triage.webp"
+  alt: "Diagram of Salesforce callout error triage — CALLOUT_REQUEST and CALLOUT_RESPONSE debug log lines paired by statement number, a 400 status, and the JSON error body with errorStatuscode and errorDescription highlighted"
+  caption: "A failed callout leaves two log lines — pair them by statement number, then read the response body your Apex code logs"
+  width: 1600
+  height: 900
+faq:
+  - question: "How do I find callout errors in a Salesforce debug log?"
+    answer: "Capture a log with a trace flag (set the Callout level to INFO), reproduce the failing action, and search the file for CALLOUT_REQUEST and CALLOUT_RESPONSE. The bracketed statement number pairs each request with its response; a Status:400 or higher on the response line marks the failing call."
+  - question: "Why is my Salesforce callout returning a 400 error?"
+    answer: "A 400 means the remote system rejected the payload: a required field was missing or misspelled, a value had the wrong type or format, or the JSON body did not match the partner's schema. The response body almost always names the offending field — log it with System.debug and compare against the API contract."
+  - question: "Where is the HTTP response body in a debug log?"
+    answer: "Salesforce logs the callout's method, endpoint, and status code, but never the response body. Your Apex code must debug it explicitly: System.debug('Body: ' + res.getBody()) immediately after the send. That line appears as USER_DEBUG in the log right after the CALLOUT_RESPONSE event."
+  - question: "How do I find which Apex class made a failing callout?"
+    answer: "Look one level up in the log: the CODE_UNIT_STARTED line names the class or trigger that owns the transaction, and the statement number on the CALLOUT_REQUEST line maps to the send() call inside it. EXCEPTION_THROWN entries add the exact Apex line for callout exceptions such as timeouts."
+  - question: "Do callout events need a specific debug log level?"
+    answer: "Yes — set the Callout category to INFO on the trace flag (Setup, Debug Logs, then edit the flag). At lower levels the CALLOUT_REQUEST and CALLOUT_RESPONSE lines are omitted entirely, which makes failed integrations look like they never happened."
+---
+
+An integration breaks overnight. The partner's status page is green, your org
+reports a failed callout somewhere in a queue of pending orders, and the only
+witness is a Salesforce debug log. The good news: callouts are among the
+easiest failures to pin down, because the platform records every HTTP request
+your Apex code sends — which class made it, which endpoint it hit, and what
+status came back. This guide walks the complete triage workflow: capture the
+right log, find the failing request, read the error body the API returned, and
+trace the failure back to the exact statement that made the call.
+
+<ToolBanner tool="salesforce-debug-log-analyzer" />
+
+## Capturing a log that shows callouts
+
+Before anything else, make sure the log will actually contain the callout.
+Three setup details decide that:
+
+1. **Trace flag levels.** In Setup, open *Debug Logs* and add a trace flag for
+   the running user. Set the **Callout** category to `INFO` — this is the one
+   people miss. Without it, `CALLOUT_REQUEST` and `CALLOUT_RESPONSE` lines are
+   omitted, and a broken integration looks like it never fired.
+2. **The right transaction.** A callout inside a Batch, Future, or Queueable
+   execution writes to that job's own log, not your user's. Find the job ID on
+   the *Apex Jobs* page and pull its log.
+3. **Reproduce while the flag is live.** Logs cover 24 hours and cap at 20 MB —
+   trigger the failing request (or let the scheduler pass) while the flag is
+   active, then download the log before it expires.
+
+## The callout events in a debug log
+
+A single callout leaves a pair of lines that share a statement number:
+
+```text
+14:32:11.5 (2530146)|CALLOUT_REQUEST|[31]|Method:POST|https://api.supplier.example.com/v1/workorders
+14:32:12.1 (3184222)|CALLOUT_RESPONSE|[31]|Status:400
+```
+
+| Segment                  | Meaning                                                  |
+| ------------------------ | -------------------------------------------------------- |
+| `14:32:11.5`             | Wall-clock time at tenth-of-a-second granularity         |
+| `(2530146)`              | Microseconds since `EXECUTION_STARTED` — the stopwatch    |
+| `CALLOUT_REQUEST`        | An HTTP request left the org                              |
+| `[31]`                   | Statement number — pairs the request with its response    |
+| `Method:POST` + URL      | What was sent, and where                                  |
+| `Status:400`             | The HTTP status the remote system returned                |
+
+Two habits make these pairs useful. First, match on the bracketed number:
+`[31]` on both lines ties this response to this request, which matters when a
+transaction fans out to several endpoints. Second, time the call by subtracting
+the microsecond offsets — here `3,184,222 − 2,530,146 ≈ 0.65 s`. A call that
+returns `400` in 200 milliseconds was rejected before the partner's business
+logic ran; one that takes nine seconds before failing usually died deeper in
+their pipeline, which changes who you escalate to.
+
+## What the log shows — and what it does not
+
+Salesforce logs the method, the endpoint, and the status code. It **never**
+logs the response body. If the partner API explains itself in JSON — most do —
+that explanation never reaches your log unless your Apex code prints it. This
+is the single most common reason teams stare at a bare `Status:400` line with
+no idea what went wrong: the diagnosis was delivered to the org and silently
+dropped.
+
+The fix belongs in your callout code, and it is one line:
+
+```apex
+HttpResponse res = new Http().send(req);
+System.debug(LoggingLevel.WARN, 'Callout body: ' + res.getBody());
+```
+
+With that in place, the log shows a `USER_DEBUG` line immediately after
+`CALLOUT_RESPONSE`, carrying the partner's error message verbatim.
+
+## Anatomy of a 400 error body
+
+A typical partner rejection looks like this:
+
+```json
+{
+  "sortingDataReportResults": { "successResults": [], "failureResults": [] },
+  "errorStatuscode": 400,
+  "errorStatus": "error",
+  "errorDescription": "This work order is unavailable for this supplier. Field: workOrder: 00047984 — value was not found for required field: workOrder: null"
+}
+```
+
+Read it as three facts, in order:
+
+- **`errorStatuscode`** — the HTTP-level verdict, mirroring the status on the
+  `CALLOUT_RESPONSE` line.
+- **`errorDescription`** — the human-readable cause. In this example the
+  partner names the field (`workOrder`) and the offending value (`00047984`):
+  the work order either does not exist in their system yet, or was created
+  after your org tried to sync it. That is a sequencing problem, not a payload
+  problem — the fix belongs in the process, not the request body.
+- **Field-level details** — well-shaped APIs always identify the failing field
+  and the rejected value. Grep the description for `field`, `required`,
+  `invalid`, and the actual value your payload sent; the mismatch is usually
+  visible by eye.
+
+## Status-code triage for integrations
+
+The status on `CALLOUT_RESPONSE` narrows the search space before you read a
+single line of code:
+
+| Status | Meaning for a callout                              | First thing to check                     |
+| ------ | -------------------------------------------------- | ---------------------------------------- |
+| `400`  | Payload rejected — schema or validation            | The `errorDescription`, field by field   |
+| `401`  | Authentication failed                              | Expired token, wrong secret, clock skew  |
+| `403`  | Authenticated but not allowed                      | Scope, IP allowlist, entitlement         |
+| `404`  | Route or resource unknown                          | Base URL, API version, record ID mapping |
+| `405`  | Wrong HTTP method                                  | PATCH vs PUT vs POST per the docs        |
+| `415`  | Unsupported media type                             | Missing `Content-Type: application/json` |
+| `429`  | Rate limited                                       | Retry with backoff, check call volume    |
+| `5xx`  | Partner-side failure                               | Retry with backoff, then their status    |
+
+`4xx` answers "we sent something wrong"; `5xx` answers "they had a problem."
+The retry policy should differ accordingly — never blind-retry a `400`.
+
+## Pinpointing the failing Apex statement
+
+The log tells you not just *that* a callout failed but *where*. Three anchors
+do it:
+
+- **`CODE_UNIT_STARTED` / `CODE_UNIT_FINISHED`.** These fences name the entry
+  point — the class, trigger, or anonymous block that owns the transaction.
+  Any `CALLOUT_REQUEST` between the fences belongs to that code unit.
+- **Statement numbers.** The `[31]` on the request line corresponds to the
+  `send()` call at roughly that position in the class — invaluable when one
+  class makes several calls to several endpoints.
+- **`EXCEPTION_THROWN`.** Timeouts, unresolvable hosts, and malformed URLs do
+  not produce a status at all — they throw `System.CalloutException`, and the
+  exception line names the exact Apex class and line number. If your log ends
+  with an exception instead of a `CALLOUT_RESPONSE`, the request never
+  completed; you are debugging transport, not payload.
+
+A useful convention: wrap named-credential endpoints
+(`callout:Supplier_API`) so that switching sandboxes never means editing URLs,
+and the log's request line stays identical across environments.
+
+## Log the response, not just the failure
+
+The pattern that turns every future incident into a five-minute diagnosis:
+
+```apex
+public static String placeWorkOrder(String payload) {
+    HttpRequest req = new HttpRequest();
+    req.setEndpoint('callout:Supplier_API/v1/workorders');
+    req.setMethod('POST');
+    req.setHeader('Content-Type', 'application/json');
+    req.setBody(payload);
+    req.setTimeout(30000);
+
+    HttpResponse res;
+    try {
+        res = new Http().send(req);
+    } catch (System.CalloutException e) {
+        // Transport failure: timeout, DNS, malformed endpoint
+        System.debug(LoggingLevel.ERROR, 'Callout transport failed: ' + e.getMessage());
+        throw e;
+    }
+
+    System.debug(LoggingLevel.INFO, 'Callout status: ' + res.getStatusCode());
+    if (res.getStatusCode() >= 300) {
+        // Application failure: the partner said no — keep the receipt
+        System.debug(LoggingLevel.WARN, 'Callout body: ' + res.getBody());
+    }
+    return res.getBody();
+}
+```
+
+Three decisions are baked in: transport failures and application failures are
+caught separately (they have different owners — network vs. payload), the
+status is always logged at `INFO` so it appears even in low-volume captures,
+and the body is logged at `WARN` only on failure so healthy runs do not bloat
+the 20 MB cap. Note that `CalloutException` is uncatchable in some contexts —
+synchronous trigger callouts throw a different shape — but the logging rule is
+the same: the body outlives the incident only if you printed it.
+
+## From log to fix
+
+The complete loop, end to end: capture with the Callout level at `INFO`,
+search for `CALLOUT_REQUEST`, pair it with its `CALLOUT_RESPONSE` by statement
+number, read the `USER_DEBUG` body line, and trace the statement number back
+into the class. On short logs that is a two-minute job by hand; on a real
+overnight capture with thousands of lines, drop the file into the
+[Salesforce debug log analyzer](/salesforce-debug-log-analyzer/) — it groups
+events by statement, extracts exceptions with their Apex lines, and pairs
+requests with responses automatically. The other
+[Salesforce tools](/salesforce/) cover the neighboring steps: the SOQL
+formatter keeps the queries in the same log readable, and the JSON-to-Apex
+generator types the payloads you are about to send.
+
+## Frequently asked questions
+
+**How do I find callout errors in a Salesforce debug log?**
+Capture a log with the Callout level at `INFO`, reproduce the failure, and
+search for `CALLOUT_REQUEST` and `CALLOUT_RESPONSE`. The bracketed statement
+number pairs each request with its response, and any status of 400 or higher
+on the response line marks the failing call.
+
+**Why is my Salesforce callout returning a 400 error?**
+The remote system rejected the payload — a required field was missing, a value
+had the wrong type or format, or the JSON did not match their schema. The
+response body almost always names the offending field; log it with
+`System.debug` and compare against the API contract.
+
+**Where is the HTTP response body in a debug log?**
+Salesforce records the status but never the body. Your Apex code must print it
+— `System.debug('Body: ' + res.getBody())` right after `send()` — and it shows
+up as a `USER_DEBUG` line after the `CALLOUT_RESPONSE` event.
+
+**How do I find which Apex class made a failing callout?**
+Read one level up: `CODE_UNIT_STARTED` names the owning class, and the
+statement number on the request line maps to the `send()` call inside it. For
+transport failures, `EXCEPTION_THROWN` names the exact class and line.
+
+**Do callout events need a specific debug log level?**
+Yes — the Callout category must be `INFO` on the trace flag. At lower levels
+the request and response lines are omitted, which makes the integration look
+like it never ran.

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { SITE_URL } from "@/lib/site";
 
-const TITLE = "Cron Expression Tester & Generator";
+const TITLE = "Cron Expression Generator & Tester";
 const DESCRIPTION =
-  "Cron expression tester and generator for Unix, Quartz, AWS EventBridge, Cloudflare, and Salesforce System.schedule — live run timeline, timezone-aware next runs, and plain-English output.";
+  "Free cron expression generator, tester, validator, and plain-English reader for Unix, Quartz, AWS EventBridge, Cloudflare, and Salesforce System.schedule — live run timeline and timezone-aware next runs.";
 
 export const metadata: Metadata = {
   title: TITLE,

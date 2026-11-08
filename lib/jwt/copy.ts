@@ -54,6 +54,11 @@ export const JWT_FAQS = [
       "No — it is deliberately decode-only. Signature verification requires the issuer's HMAC secret or public key, which a browser tool does not have and should not fake. Use the decoder to inspect structure and claims, then verify the signature in your backend or a vetted JWT library against the issuer's JWKS endpoint.",
   },
   {
+    question: "Can a JWT signature be verified offline?",
+    answer:
+      "Decoding can: Base64Url needs no key material, which is why this decoder works with your Wi-Fi disabled. Verification cannot — the signature is an HMAC or public-key signature computed over the token's first two segments with a secret only the issuer holds. A signature cannot be discovered or reconstructed from the token alone; without the key there is nothing to compare against, so verification always needs the HMAC secret or the issuer's public key (usually fetched from its JWKS endpoint).",
+  },
+  {
     question: "How can the payload be readable if the token is signed?",
     answer:
       "Because signing provides integrity, not confidentiality. The signature proves the payload was not modified by anyone without the key, but the payload itself is plain Base64Url-encoded JSON that anyone can decode. Treat every claim as public: never put passwords, API keys, or sensitive personal data in a JWT payload.",
